@@ -2,7 +2,10 @@
   "name": "@adobe/helix-ops",
   "version": "0.0.1",
   "description": "Operational tooling for Project Helix services",
-  "main": "src/index.js",
+  "bin": {
+    "newrelic": "src/newrelic.js",
+    "statuspage": "src/statuspage.js"
+  },
   "scripts": {
     "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 100 --statements 100 --lines 100 mocha",
     "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --branches 100 --statements 100 --lines 100 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
@@ -21,7 +24,11 @@
     "url": "https://github.com/adobe/helix-ops/issues"
   },
   "homepage": "https://github.com/adobe/helix-ops#readme",
-  "dependencies": {},
+  "dependencies": {
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.8",
+    "yargs": "^15.0.1"
+  },
   "devDependencies": {
     "@adobe/eslint-config-helix": "1.1.0",
     "@semantic-release/changelog": "3.0.5",
