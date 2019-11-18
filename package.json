@@ -1,7 +1,7 @@
 {
-  "name": "@adobe/helix-library",
+  "name": "@adobe/helix-ops",
   "version": "0.0.1",
-  "description": "Example Package",
+  "description": "Operational tooling for Project Helix services",
   "main": "src/index.js",
   "scripts": {
     "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 100 --statements 100 --lines 100 mocha",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/adobe/helix-library"
+    "url": "https://github.com/adobe/helix-ops"
   },
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/adobe/helix-library/issues"
+    "url": "https://github.com/adobe/helix-ops/issues"
   },
-  "homepage": "https://github.com/adobe/helix-library#readme",
+  "homepage": "https://github.com/adobe/helix-ops#readme",
   "dependencies": {},
   "devDependencies": {
     "@adobe/eslint-config-helix": "1.1.0",
