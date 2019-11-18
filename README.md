@@ -1,6 +1,6 @@
-# Helix Library
+# Helix Operations
 
-> An example library to be used in and with Project Helix
+> Tooling for automating operations of Project Helix services
 
 ## Status
 [![codecov](https://img.shields.io/codecov/c/github/adobe/helix-library.svg)](https://codecov.io/gh/adobe/helix-library)
@@ -13,7 +13,7 @@
 ## Installation
 
 ```bash
-$ npm install -S @adobe/helix-library
+$ npm install --save-dev @adobe/helix-ops
 ```
 
 ## Usage
