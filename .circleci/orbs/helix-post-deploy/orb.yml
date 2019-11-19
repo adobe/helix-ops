@@ -1,0 +1,112 @@
+version: 2.1
+
+description: |
+  Configures monitoring and alerting in New Relic, and links to Statuspage for public visibility of Project Helix services.
+
+executors:
+    node8:
+        docker:
+            - image: circleci/node:8
+
+commands:
+  config-env:
+    description: Configures the build environment
+    steps:
+      - run:
+          name: Configure Environment
+          command: echo -e "LOG_LEVEL=info\n" > .env
+
+  config-wsk:
+    description: Sets the OpenWhisk properties
+    steps:
+      - run:
+          name: Configure OpenWhisk
+          command: echo -e "APIHOST=https://adobeioruntime.net\nNAMESPACE=helix\nAUTH=$WSK_AUTH\n" > ~/.wskprops
+
+  monitoring:
+    description: Sets up the monitoring
+    parameters:
+        tool_path:
+            type: string
+            default: "./node_modules/.bin"
+            description: The path to the monitoring automation tooling
+        action_namespace:
+            type: string
+            default: "helix"
+            description: The name of the namespace where the action is deployed
+        action_package:
+            type: string
+            default: "helix-services"
+            description: The package name of the deployed action
+        action_name:
+            type: string
+            default: ""
+            description: The name of the deployed action
+        newrelic_auth:
+            type: env_var_name
+            default: NEWRELIC_AUTH
+            description: The admin's API key for your New Relic account (not the user API key!)
+        newrelic_name:
+            type: string
+            default: ""
+            description: The name to be used for the New Relic monitor, alert policy and notification channel
+        newrelic_url:
+            type: string
+            default: ""
+            description: The URL to monitor in New Relic
+        newrelic_group_policy: 
+            type: string
+            default: ""
+            description: A collective alert policy in New Relic to add the monitor to
+        statuspage_auth:
+            type: env_var_name
+            default: STATUSPAGE_AUTH
+            description: The API user key for your Statuspage account (this is the user API key)
+        statuspage_page_id:
+            type: env_var_name
+            default: STATUSPAGE_PAGE_ID
+            description: The ID of the page to add components to in Statuspage
+        statuspage_name:
+            type: string
+            default: ""
+            description: The name to be used for the Statuspage component
+        statuspage_group:
+            type: string
+            default: ""
+            description: The name of the component group in Statuspage to add the new component to
+    steps:
+      - run:
+          name: Monitoring Setup
+          command: |
+              # statuspage automation
+              spCmd="node << parameters.tool_path >>/statuspage setup --silent"
+              if [ "<< parameters.statuspage_name >>" != "" ]; then
+                spCmd="${spCmd} --name \"<< parameters.statuspage_name >>\""
+              fi
+              if [ "<< parameters.statuspage_group >>" != "" ]; then
+                spCmd="${spCmd} --group \"<< parameters.statuspage_group >>\""
+              fi
+              email="`eval ${spCmd}`"
+
+              # new relic automation
+              if [ "<< parameters.newrelic_url >>" != "" ]; then
+                url="<< parameters.newrelic_url >>"
+              else
+                actionNS="<< parameters.action_namespace >>"
+                actionPackage="<< parameters.action_package >>"
+                if [ "<< parameters.action_name >>" != "" ]; then
+                  actionName="<< parameters.action_name >>"
+                else
+                  actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
+                fi
+                actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+.[0-9]+/)[0])"`
+                url="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
+              fi
+              nrCmd="node << parameters.tool_path >>/newrelic setup ${url} ${email}"
+              if [ "<< parameters.newrelic_name >>" != "" ]; then
+                nrCmd="${nrCmd} --name \"<< parameters.newrelic_name >>\""
+              fi
+              if [ "<< parameters.newrelic_group_policy >>" != "" ]; then
+                nrCmd="${nrCmd} --group_policy \"<< parameters.newrelic_group_policy >>\""
+              fi
+              eval ${nrCmd}
