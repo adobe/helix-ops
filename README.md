@@ -13,7 +13,7 @@
 ## Installation
 
 ```bash
-$ npm install -S @adobe/helix-ops
+$ npm install -D @adobe/helix-ops
 ```
 
 ## Automated Monitoring
