@@ -49,7 +49,7 @@ Automation email: component+id@notifications.statuspage.io
 done.
 ```
 Note: You can directly reuse the output of `statuspage` in your shell by adding the `--silent` parameter:
-```
+```bash
 $ npx statuspage setup --group "Delivery" --silent
 component+id@notifications.statuspage.io
 ```

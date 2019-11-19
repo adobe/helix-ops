@@ -38,9 +38,9 @@ jobs:
         name: Lint
         command: npm run lint
 
-    - run:
-        name: Getting Code Coverage
-        command: npm run test-ci
+    # - run:
+    #     name: Getting Code Coverage
+    #     command: npm run test-ci
 
     - store_test_results:
         path: junit
