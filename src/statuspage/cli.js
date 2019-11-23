@@ -15,7 +15,8 @@ const fs = require('fs');
 const request = require('request-promise-native');
 
 class CLI {
-  constructor(arg) {
+  // eslint-disable-next-line class-methods-use-this
+  run(arg) {
     let logger = console;
     const config = {};
 
@@ -27,7 +28,7 @@ class CLI {
       // ignore
     }
 
-    async function setLogger(silent) {
+    function setLogger(silent) {
       function log(...args) {
         if (args.length < 2) {
           return;
@@ -194,16 +195,15 @@ class CLI {
           default: false,
         });
     }
-
-    return yargs(arg)
+    return yargs
       .scriptName('statuspage')
       .usage('$0 <cmd>')
-      // eslint-disable-next-line no-underscore-dangle
       .command('setup', 'Create or reuse a Statuspage component', (y) => baseargs(y), updateOrCreateComponent)
       .help()
       .strict()
       .demandCommand(1)
       .env('STATUSPAGE')
+      .parse(arg)
       .argv;
   }
 }
