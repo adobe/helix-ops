@@ -73,6 +73,9 @@ async function reuseOrCreateChannel(auth, name, email) {
 
 async function getConditions(auth, policy) {
   try {
+    if (!policy || !policy.id) {
+      throw Error('No policy specified');
+    }
     const response = await request.get(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
       json: true,
       headers: {
@@ -90,6 +93,9 @@ async function getConditions(auth, policy) {
 async function createCondition(auth, policy, monitorId) {
   console.log('Creating condition in alert policy');
   try {
+    if (!policy || !policy.id) {
+      throw Error('No policy specified');
+    }
     await request.post(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
       json: true,
       headers: {
@@ -110,7 +116,7 @@ async function createCondition(auth, policy, monitorId) {
       },
     });
   } catch (e) {
-    console.error('Unable to add alert policy condition', e.message);
+    console.error('Unable to add alert policy condition:', e.message);
   }
 }
 
@@ -231,5 +237,11 @@ async function updateOrCreatePolicies(auth, name, groupPolicy, monitorId, channe
 }
 
 module.exports = {
-  updateOrCreatePolicies, reuseOrCreateChannel,
+  updateOrCreatePolicies,
+  reuseOrCreateChannel,
+  CHANNEL_TYPE,
+  INCIDENT_PREFERENCE,
+  CONDITION_NAME,
+  CONDITION_PRIORITY,
+  CONDITION_THRESHOLD,
 };

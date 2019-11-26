@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright 2019 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -10,71 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-/* eslint-disable no-console, camelcase */
+const CLI = require('./newrelic/cli.js');
 
-const yargs = require('yargs');
-const fs = require('fs');
-const { updateOrCreateMonitor } = require('./newrelic/synthetics.js');
-const { updateOrCreatePolicies, reuseOrCreateChannel } = require('./newrelic/alerts.js');
-
-const config = {};
-let packageJSON = {};
-
-// load config
-try {
-  packageJSON = JSON.parse(fs.readFileSync('package.json'));
-  config.packageName = packageJSON.name;
-} catch (e) {
-  config.packageName = undefined;
-}
-
-function baseargs(y) {
-  return y
-    .positional('url', {
-      type: 'string',
-      describe: 'The URL to check',
-      required: true,
-    })
-    .positional('email', {
-      type: 'string',
-      describe: 'The email address to send alerts to',
-      required: true,
-    })
-    .option('auth', {
-      type: 'string',
-      describe: 'Admin API Key (or env var $NEWRELIC_AUTH)',
-      required: true,
-    })
-    .option('name', {
-      type: 'string',
-      describe: 'The name of the monitor, channel and policy',
-      required: config.packageName === undefined,
-      default: config.packageName,
-    })
-    .option('group_policy', {
-      type: 'string',
-      describe: 'The name of a common policy to add the monitor to',
-      required: false,
-    });
-}
-
-function run() {
-  return yargs
-    .scriptName('newrelic')
-    .usage('$0 <cmd>')
-    .command('setup url email', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
-      auth, name, url, email, group_policy,
-    }) => {
-      await updateOrCreatePolicies(auth, name, group_policy,
-        await updateOrCreateMonitor(auth, name, url),
-        email ? await reuseOrCreateChannel(auth, name, email) : null);
-      console.log('done.');
-    })
-    .help()
-    .strict()
-    .demandCommand(1)
-    .env('NEWRELIC')
-    .argv;
-}
-
-run();
+(async () => {
+  new CLI().run(process.argv.slice(2));
+})();

@@ -144,9 +144,14 @@ async function updateOrCreateMonitor(auth, name, url) {
       process.exit(1);
     }
   }
-  return monitor.id;
+  return monitor ? monitor.id : null;
 }
 
 module.exports = {
   updateOrCreateMonitor,
+  MONITOR_FREQUENCY,
+  MONITOR_LOCATIONS,
+  MONITOR_STATUS,
+  MONITOR_THRESHOLD,
+  MONITOR_TYPE,
 };
