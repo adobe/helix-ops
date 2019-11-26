@@ -18,6 +18,7 @@ const shell = require('shelljs');
 const sinon = require('sinon');
 
 const Statuspage = require('../src/statuspage/cli');
+const { getTimedPromise } = require('./utils');
 
 function buildArgs({
   cmd, auth, pageId, name, desc, group, silent,
@@ -31,18 +32,6 @@ function buildArgs({
   if (group) args.push('--group', group);
   if (silent) args.push('--silent');
   return args;
-}
-
-function getTimedPromise(fn, time, err) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (fn()) {
-        resolve(true);
-      } else {
-        reject(new Error(err));
-      }
-    }, time);
-  });
 }
 
 async function run(opts = {}) {
@@ -65,7 +54,7 @@ describe('Testing statuspage', () => {
   const group = 'Test Group';
   const email = 'component+abcdef@notifications.statuspage.io';
   const now = new Date().toISOString();
-  const testComp1 = {
+  const testComp = {
     id: '1234',
     page_id: pageId,
     created_at: now,
@@ -78,7 +67,7 @@ describe('Testing statuspage', () => {
     only_show_if_degraded: false,
     automation_email: email,
   };
-  const testGroup1 = {
+  const testGroup = {
     id: '0000',
     name: group,
     page_id: pageId,
@@ -90,13 +79,17 @@ describe('Testing statuspage', () => {
   };
 
   before(() => {
-    sinon.spy(logger, 'log');
-    sinon.spy(logger, 'error');
+    try {
+      sinon.spy(logger, 'log');
+      sinon.spy(logger, 'error');
+    } catch (e) {
+      // ignore, already wrapped
+    }
   });
 
   beforeEach(() => {
     name = namePrefix + Date.now(); // ensure unique component names
-    testComp1.name = name;
+    testComp.name = name;
     nock.restore();
     nock.cleanAll();
     nock.activate();
@@ -119,9 +112,7 @@ describe('Testing statuspage', () => {
 
   it('creates new component', async () => {
     let listRetrieved = false;
-    const listRetrievedPromise = getTimedPromise(() => listRetrieved, 1000, 'list not retrieved');
     let compCreated = false;
-    const compCreatedPromise = getTimedPromise(() => compCreated, 1000, 'component not created');
 
     nock('https://api.statuspage.io')
       .get(`/v1/pages/${pageId}/components`)
@@ -132,7 +123,7 @@ describe('Testing statuspage', () => {
       .post(`/v1/pages/${pageId}/components`)
       .reply(201, () => {
         compCreated = true;
-        return JSON.stringify(testComp1);
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -141,29 +132,27 @@ describe('Testing statuspage', () => {
       pageId,
       name,
     });
-    assert.ok(await listRetrievedPromise, 'did not retrieve list of components');
-    assert.ok(await compCreatedPromise, 'did not create new component');
+    assert.ok(await getTimedPromise(() => listRetrieved, 'Component list not retrieved'));
+    assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
   }).timeout(5000);
 
   it('detects and updates existing component', async () => {
     // const apiURL = `/v1/pages/${pageId}/components`;
     let listRetrieved = false;
-    const listRetrievedPromise = getTimedPromise(() => listRetrieved, 1000, 'list not retrieved');
     let compUpdated = false;
-    const compUpdatedPromise = getTimedPromise(() => compUpdated, 1000, 'component not updated');
     const desc = 'Update me';
 
     nock('https://api.statuspage.io')
       .get(`/v1/pages/${pageId}/components`)
       .reply(200, () => {
         listRetrieved = true;
-        return JSON.stringify([testComp1]); // return component with same name to force update
+        return JSON.stringify([testComp]); // return component with same name to force update
       })
       .patch(`/v1/pages/${pageId}/components/1234`)
       .reply(200, (uri, body) => {
         compUpdated = body.component.description === desc;
-        return JSON.stringify(testComp1);
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -173,22 +162,21 @@ describe('Testing statuspage', () => {
       name,
       desc,
     });
-    assert.ok(await listRetrievedPromise, 'did not retrieve list of components');
-    assert.ok(await compUpdatedPromise, 'did not update existing component');
+    assert.ok(await getTimedPromise(() => listRetrieved, 'Component list not retrieved'));
+    assert.ok(await getTimedPromise(() => compUpdated, 'Component not updated'));
     assert.ok(logger.log.calledWith('Updating component', name), `console.log not called with ${name}`);
   }).timeout(5000);
 
   it('adds new component to group', async () => {
     let compCreated = false;
-    const compCreatedPromise = getTimedPromise(() => compCreated, 1000, 'component not created');
 
     nock('https://api.statuspage.io')
       .get(`/v1/pages/${pageId}/components`)
-      .reply(200, () => JSON.stringify([testGroup1])) // return group
+      .reply(200, () => JSON.stringify([testGroup])) // return group
       .post(`/v1/pages/${pageId}/components`)
       .reply(201, () => {
         compCreated = true;
-        return JSON.stringify(testComp1);
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -199,21 +187,20 @@ describe('Testing statuspage', () => {
       group,
     });
 
-    assert.ok(await compCreatedPromise, 'did not create new component');
+    assert.ok(await getTimedPromise(() => compCreated, 'Component not created in group'));
     assert.ok(logger.log.calledWith(`Creating component ${name} in group ${group}`), `console.log not called with ${name} and ${group}`);
   }).timeout(5000);
 
   it('adds existing component to group', async () => {
     let compUpdated = false;
-    const compUpdatedPromise = getTimedPromise(() => compUpdated, 1000, 'component not updated');
 
     nock('https://api.statuspage.io')
       .get(`/v1/pages/${pageId}/components`)
-      .reply(200, () => JSON.stringify([testComp1, testGroup1])) // return component and group
+      .reply(200, () => JSON.stringify([testComp, testGroup])) // return component and group
       .patch(`/v1/pages/${pageId}/components/1234`)
       .reply(200, (uri, body) => {
-        compUpdated = body.component.group_id === testGroup1.id;
-        return JSON.stringify(testComp1);
+        compUpdated = body.component.group_id === testGroup.id;
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -224,20 +211,22 @@ describe('Testing statuspage', () => {
       group,
     });
 
-    assert.ok(await compUpdatedPromise, 'did not add existing component to group');
+    assert.ok(await getTimedPromise(() => compUpdated, 'Component not added to group'));
   }).timeout(5000);
 
   it('outputs only email in silent mode', async () => {
     let compCreated = false;
-    const compCreatedPromise = getTimedPromise(() => compCreated, 1000, 'component not created');
+
+    logger.log.restore();
+    sinon.spy(logger, 'log');
 
     nock('https://api.statuspage.io')
-      .get(`/v1/pages/${pageId}/components`)
+      .get(/.*/)
       .reply(200, () => JSON.stringify([]))
-      .post(`/v1/pages/${pageId}/components`)
+      .post(/.*/)
       .reply(201, () => {
         compCreated = true;
-        return JSON.stringify(testComp1);
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -247,13 +236,12 @@ describe('Testing statuspage', () => {
       name,
       silent: true,
     });
-    assert.ok(await compCreatedPromise, 'did not create new component');
-    assert.ok(logger.log.calledWith(email), `console.log not called with ${email}`);
+    assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
+    assert.ok(logger.log.calledOnceWith(email), `console.log not called once with ${email}`);
   }).timeout(5000);
 
   it('uses environment variables', async () => {
     let compCreated = false;
-    const compCreatedPromise = getTimedPromise(() => compCreated, 1000, 'component not created');
 
     process.env.STATUSPAGE_AUTH = auth;
     process.env.STATUSPAGE_PAGE_ID = pageId;
@@ -264,7 +252,7 @@ describe('Testing statuspage', () => {
       .post(`/v1/pages/${pageId}/components`)
       .reply(201, () => {
         compCreated = true;
-        return JSON.stringify(testComp1);
+        return JSON.stringify(testComp);
       });
 
     await run({
@@ -275,13 +263,12 @@ describe('Testing statuspage', () => {
     delete process.env.STATUSPAGE_AUTH;
     delete process.env.STATUSPAGE_PAGE_ID;
 
-    assert.ok(await compCreatedPromise, 'did not create new component');
+    assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
   }).timeout(5000);
 
-  it('exists with code 1 if create API fails', async () => {
+  it('exits with code 1 if create API fails', async () => {
     let errorHandled = false;
-    const errorHandledPromise = getTimedPromise(() => errorHandled, 1000, 'did not exit with code 1');
 
     process.exit = (code) => {
       errorHandled = code === 1;
@@ -300,21 +287,20 @@ describe('Testing statuspage', () => {
       name,
     });
 
-    assert.ok(await errorHandledPromise, 'did not handle error');
+    assert.ok(await getTimedPromise(() => errorHandled, 'Process did not exit with code 1'));
     assert.ok(logger.error.calledWith('Unable to retrieve components:'), 'console.log not called with GET error');
     assert.ok(logger.error.calledWith('Component creation failed:'), 'console.log not called with POST error');
   });
 
   it('fails gracefully if update API fails', async () => {
-    let errorOccurred = false;
-    const errorOccurredPromise = getTimedPromise(() => errorOccurred, 1000, 'did not exit with code 1');
+    let errorHandled = false;
 
     nock('https://api.statuspage.io')
       .get(`/v1/pages/${pageId}/components`)
-      .reply(200, JSON.stringify([testComp1]))
+      .reply(200, JSON.stringify([testComp]))
       .patch(`/v1/pages/${pageId}/components/1234`)
       .reply(500, () => {
-        errorOccurred = true;
+        errorHandled = true;
         return 'Internal Server Error';
       });
 
@@ -325,7 +311,7 @@ describe('Testing statuspage', () => {
       name,
     });
 
-    assert.ok(await errorOccurredPromise, 'did not encounter error');
+    assert.ok(await getTimedPromise(() => errorHandled, 'Process did not exit with code 0'));
     assert.ok(logger.error.calledWith('Component update failed:'), 'console.log not called with error message');
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
   });
