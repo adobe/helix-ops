@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Copyright 2019 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -12,8 +10,20 @@
  * governing permissions and limitations under the License.
  */
 
-const CLI = require('./newrelic/cli.js');
+/* eslint-env mocha */
 
-(async () => {
-  new CLI().run(process.argv.slice(2));
-})();
+function getTimedPromise(fn, err, time) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (fn()) {
+        resolve(true);
+      } else {
+        reject(new Error(err));
+      }
+    }, time || 1000);
+  });
+}
+
+module.exports = {
+  getTimedPromise,
+};

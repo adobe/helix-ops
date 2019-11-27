@@ -7,8 +7,8 @@
     "statuspage": "src/statuspage.js"
   },
   "scripts": {
-    "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 100 --statements 100 --lines 100 mocha",
-    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --branches 100 --statements 100 --lines 100 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
+    "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 95 --lines 95 mocha",
+    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 95 --lines 95 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
     "lint": "./node_modules/.bin/eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx jsdoc2md -c .jsdoc.json --files 'src/*.js'  > docs/API.md",
@@ -50,8 +50,11 @@
     "lint-staged": "9.4.3",
     "lodash": "4.17.15",
     "mocha": "6.2.2",
+    "nock": "^11.7.0",
     "nyc": "14.1.1",
-    "semantic-release": "15.13.31"
+    "semantic-release": "15.13.31",
+    "shelljs": "^0.8.3",
+    "sinon": "^7.5.0"
   },
   "lint-staged": {
     "*.js": "eslint"
