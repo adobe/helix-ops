@@ -61,6 +61,9 @@ describe('Testing newrelic', () => {
   let v = 0;
   const logger = console;
 
+  // env variable backup
+  const originalAuth = process.env.NEWRELIC_AUTH;
+
   // defaults
   const cmd = 'setup';
   const auth = 'test-auth';
@@ -116,6 +119,8 @@ describe('Testing newrelic', () => {
   before(() => {
     sinon.spy(logger, 'log');
     sinon.spy(logger, 'error');
+    // make sure there are no env variables around for this test
+    delete process.env.NEWRELIC_AUTH;
   });
 
   beforeEach(() => {
@@ -134,6 +139,8 @@ describe('Testing newrelic', () => {
     // unwrap the sinon spies
     logger.log.restore();
     logger.error.restore();
+    // add env variables back
+    process.env.NEWRELIC_AUTH = originalAuth;
   });
 
   it('shows help if no command specified and exits with code != 0', async () => {
@@ -142,13 +149,13 @@ describe('Testing newrelic', () => {
     assert.ok(/Not enough non-option arguments/.test(output.stderr), 'expected help output');
   }).timeout(5000);
 
-  it.only('refuses to run without required arguments', async () => {
+  it('refuses to run without required arguments', async () => {
     const output = await runShell({
       cmd,
       url,
       email,
     });
-    // assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
     assert.ok(/Missing required argument: auth/.test(output.stderr), 'expected missing required arguments');
   }).timeout(5000);
 
