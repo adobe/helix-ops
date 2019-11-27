@@ -78,35 +78,43 @@ commands:
       - run:
           name: Monitoring Setup
           command: |
+              # config params
+              toolPath="<< parameters.tool_path >>"
+              actionNS="<< parameters.action_namespace >>"
+              actionPackage="<< parameters.action_package >>"
+              actionName="<< parameters.action_name >>"
+              nrAuth="<< parameters.newrelic_auth >>"
+              nrName="<< parameters.newrelic_name >>"
+              nrURL="<< parameters.newrelic_url >>"
+              nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
+              spAuth="<< parameters.statuspage_auth >>"
+              spPageID="<< parameters.statuspage_page_id >>"
+              spName="<< parameters.statuspage_name >>"
+              spGroup="<< parameters.statuspage_group >>"
+
               # statuspage automation
-              spCmd="node << parameters.tool_path >>/statuspage setup --silent"
-              if [ "<< parameters.statuspage_name >>" != "" ]; then
-                spCmd="${spCmd} --name \"<< parameters.statuspage_name >>\""
+              spCmd="node ${toolPath}/statuspage setup --silent"
+              if [ "${spName}" != "" ]; then
+                spCmd="${spCmd} --name \"${spName}\""
               fi
-              if [ "<< parameters.statuspage_group >>" != "" ]; then
-                spCmd="${spCmd} --group \"<< parameters.statuspage_group >>\""
+              if [ "${spGroup}" != "" ]; then
+                spCmd="${spCmd} --group \"${spGroup}\""
               fi
-              email="`eval ${spCmd}`"
+              spEmail="`eval ${spCmd}`"
 
               # new relic automation
-              if [ "<< parameters.newrelic_url >>" != "" ]; then
-                url="<< parameters.newrelic_url >>"
-              else
-                actionNS="<< parameters.action_namespace >>"
-                actionPackage="<< parameters.action_package >>"
-                if [ "<< parameters.action_name >>" != "" ]; then
-                  actionName="<< parameters.action_name >>"
-                else
+              if [ "${nrURL}" == "" ]; then
+                if [ "${actionName}" == "" ]; then
                   actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
                 fi
                 actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+.[0-9]+/)[0])"`
-                url="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
+                nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
-              nrCmd="node << parameters.tool_path >>/newrelic setup ${url} ${email}"
-              if [ "<< parameters.newrelic_name >>" != "" ]; then
-                nrCmd="${nrCmd} --name \"<< parameters.newrelic_name >>\""
+              nrCmd="node ${toolPath}/newrelic setup ${nrURL} ${spEmail}"
+              if [ "${nrName}" != "" ]; then
+                nrCmd="${nrCmd} --name \"${nrName}\""
               fi
-              if [ "<< parameters.newrelic_group_policy >>" != "" ]; then
-                nrCmd="${nrCmd} --group_policy \"<< parameters.newrelic_group_policy >>\""
+              if [ "${nrGroupPolicy}" != "" ]; then
+                nrCmd="${nrCmd} --group_policy \"${nrGroupPolicy}\""
               fi
               eval ${nrCmd}
