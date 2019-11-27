@@ -79,12 +79,8 @@ describe('Testing statuspage', () => {
   };
 
   before(() => {
-    try {
-      sinon.spy(logger, 'log');
-      sinon.spy(logger, 'error');
-    } catch (e) {
-      // ignore, already wrapped
-    }
+    sinon.spy(logger, 'log');
+    sinon.spy(logger, 'error');
   });
 
   beforeEach(() => {
@@ -93,6 +89,12 @@ describe('Testing statuspage', () => {
     nock.restore();
     nock.cleanAll();
     nock.activate();
+  });
+
+  after(() => {
+    // unwrap the sinon spies
+    logger.log.restore();
+    logger.error.restore();
   });
 
   it('shows help if no command specified and exits with code != 0', async () => {
