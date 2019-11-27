@@ -46,6 +46,10 @@ describe('Testing statuspage', () => {
   let name;
   const logger = console;
 
+  // env variable backups
+  const originalAuth = process.env.STATUSPAGE_AUTH;
+  const originalPageId = process.env.STATUSPAGE_PAGE_ID;
+
   // defaults
   const cmd = 'setup';
   const auth = 'test-auth';
@@ -81,6 +85,9 @@ describe('Testing statuspage', () => {
   before(() => {
     sinon.spy(logger, 'log');
     sinon.spy(logger, 'error');
+    // make sure there are no env variables around for this test
+    delete process.env.STATUSPAGE_AUTH;
+    delete process.env.STATUSPAGE_PAGE_ID;
   });
 
   beforeEach(() => {
@@ -95,6 +102,9 @@ describe('Testing statuspage', () => {
     // unwrap the sinon spies
     logger.log.restore();
     logger.error.restore();
+    // add env variables back
+    process.env.STATUSPAGE_AUTH = originalAuth;
+    process.env.STATUSPAGE_PAGE_ID = originalPageId;
   });
 
   it('shows help if no command specified and exits with code != 0', async () => {
