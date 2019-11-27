@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/adobe/helix-ops/compare/v1.0.2...v1.1.0) (2019-11-27)
+
+
+### Features
+
+* **monitoring:** improve resilience and legibility of command script ([#8](https://github.com/adobe/helix-ops/issues/8)) ([5606f35](https://github.com/adobe/helix-ops/commit/5606f3500882b9f21b0122de00af4ea222b0f6ae))
+
 ## [1.0.2](https://github.com/adobe/helix-ops/compare/v1.0.1...v1.0.2) (2019-11-25)
 
 
