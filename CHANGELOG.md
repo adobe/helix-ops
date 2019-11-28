@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/adobe/helix-ops/compare/v1.1.0...v1.1.1) (2019-11-28)
+
+
+### Bug Fixes
+
+* **monitoring:** monitoring setup fails ([#10](https://github.com/adobe/helix-ops/issues/10)) ([8379160](https://github.com/adobe/helix-ops/commit/8379160501acc14d1003c755c9b006c92f7b5291))
+
 # [1.1.0](https://github.com/adobe/helix-ops/compare/v1.0.2...v1.1.0) (2019-11-27)
 
 
