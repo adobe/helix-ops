@@ -93,7 +93,7 @@ commands:
               spGroup="<< parameters.statuspage_group >>"
 
               # statuspage automation
-              spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name \"${spName}\"} ${spGroup:+--group \"${spGroup}\"}`
+              spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"}`
 
               # new relic automation
               if [ "${nrURL}" == "" ]; then
@@ -103,4 +103,4 @@ commands:
                 actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+.[0-9]+/)[0])"`
                 nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
-              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name \"${nrName}\"} ${nrGroupPolicy:+--group_policy \"${nrGroupPolicy}\"} 
+              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} 
