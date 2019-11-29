@@ -67,6 +67,37 @@ jobs:
           command: node -e "if (require('./package.json').name=='@adobe/helix-library') { process.exit(1) };"
 
       - run:
+          name: Semantic Orb Release
+          command: |
+              # analyze commits to find out if any orbs need to be updated
+              npm run semantic-release --dry-run --analyze-commits | tee /tmp/commit-analysis.log
+              segment=$(cat /tmp/commit-analysis.log | sed '/^.* complete: */!d; s///;q' | sed 's/^\(.*\) release/\1/')
+              if [[ "${segment}" =~ ^(major|minor|patch)$ ]]; then
+                echo "Commit analysis suggests ${segment} release, identifying affected orbs"
+                for path in .circleci/orbs/*
+                do
+                  if [[ "${path}" =~ .*/README.md$ ]]; then
+                    continue
+                  fi
+                  echo "Orb ${path}"
+                  orb=$(basename ${path})
+                  # run circleci first to check for updates
+                  circleci > /dev/null
+                  # compare published orb to local source
+                  circleci orb source adobe/${orb} > /tmp/${orb}-pub.yml
+                  diff -B /tmp/${orb}-pub.yml .circleci/orbs/${orb}/orb.yml | tee /tmp/${orb}-diff.txt
+                  if [ "$(cat /tmp/${orb}-diff.txt)" != "" ]; then
+                    echo "  Source changed, proceeding with ${segment} release"
+                    echo "circleci orb increment .circleci/orbs/${orb}/orb.yml adobe/helix-post-deploy ${segment}"
+                  else
+                    echo "  Source unchanged, skipping release"
+                  fi
+                done
+              else
+                echo "Commit analysis suggests skipping release"
+              fi
+
+      - run:
           name: Semantic Release
           command: npm run semantic-release
 
