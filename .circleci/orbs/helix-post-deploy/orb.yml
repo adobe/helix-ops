@@ -78,7 +78,7 @@ commands:
       - run:
           name: Monitoring Setup
           command: |
-              # config parameters
+              # config params
               toolPath="<< parameters.tool_path >>"
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
