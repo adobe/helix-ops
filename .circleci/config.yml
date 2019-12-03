@@ -70,25 +70,24 @@ jobs:
           name: Semantic Orb Release
           command: |
               # analyze commits to find out if any orbs need to be updated
-              npm run semantic-release --dry-run --analyze-commits | tee /tmp/commit-analysis.log
-              segment=$(cat /tmp/commit-analysis.log | sed '/^.* complete: */!d; s///;q' | sed 's/^\(.*\) release/\1/')
+              tmpDir="$(mktemp -d)"
+              npm run semantic-release --dry-run --analyze-commits > "${tmpDir}/commit-analysis.log"
+              segment=$(sed -En 's/\[[^]]+\] \[semantic-release\] \[@semantic-release\/commit-analyzer\] .* Analysis of [0-9]+ commits? complete: ([a-z]+) release$/\1/p' "${tmpDir}/commit-analysis.log")
               if [[ "${segment}" =~ ^(major|minor|patch)$ ]]; then
-                echo "Commit analysis suggests ${segment} release, identifying affected orbs"
-                for path in .circleci/orbs/*
-                do
-                  if [[ "${path}" =~ .*/README.md$ ]]; then
-                    continue
-                  fi
+                echo "Commit analysis suggests ${segment} release"
+                echo "Identifying affected orbs"
+                for path in .circleci/orbs/* ; do
+                  [[ "${path}" =~ .*/README.md$ ]] && continue
                   echo "Orb ${path}"
                   orb=$(basename ${path})
                   # run circleci first to check for updates
                   circleci > /dev/null
                   # compare published orb to local source
-                  circleci orb source adobe/${orb} > /tmp/${orb}-pub.yml
-                  diff -B /tmp/${orb}-pub.yml .circleci/orbs/${orb}/orb.yml | tee /tmp/${orb}-diff.txt
-                  if [ "$(cat /tmp/${orb}-diff.txt)" != "" ]; then
+                  circleci orb source adobe/${orb} > "${tmpDir}/${orb}-pub.yml"
+                  diff -B ${tmpDir}/${orb}-pub.yml .circleci/orbs/${orb}/orb.yml > "${tmpDir}/${orb}-diff.txt"
+                  if [ "$(cat ${tmpDir}/${orb}-diff.txt)" != "" ]; then
                     echo "  Source changed, proceeding with ${segment} release"
-                    circleci orb publish increment .circleci/orbs/${orb}/orb.yml adobe/helix-post-deploy ${segment}
+                    circleci orb publish increment .circleci/orbs/${orb}/orb.yml adobe/${orb} ${segment}
                   else
                     echo "  Source unchanged, skipping release"
                   fi
