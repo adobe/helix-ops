@@ -71,6 +71,8 @@ jobs:
           command: |
               # analyze commits to find out if any orbs need to be updated
               tmpDir="$(mktemp -d)"
+              echo "Working directory is ${tmpDir}"
+              echo "Analyzing commits since last release"
               npm run semantic-release --dry-run --analyze-commits > "${tmpDir}/commit-analysis.log"
               segment=$(sed -En 's/\[[^]]+\] \[semantic-release\] \[@semantic-release\/commit-analyzer\] .* Analysis of [0-9]+ commits? complete: ([a-z]+) release$/\1/p' "${tmpDir}/commit-analysis.log")
               if [[ "${segment}" =~ ^(major|minor|patch)$ ]]; then
@@ -95,6 +97,7 @@ jobs:
               else
                 echo "Commit analysis suggests skipping release"
               fi
+              echo "Done"
 
       - run:
           name: Semantic Release
