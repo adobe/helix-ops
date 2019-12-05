@@ -73,7 +73,7 @@ async function getReleaseType() {
 function getOrbs() {
   const orbs = [];
   const dirs = fs.readdirSync(config.orbDir, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory());
+    .filter((dir) => dir.isDirectory && dir.isDirectory());
   dirs.forEach((orb) => {
     const dir = `${config.orbDir}/${orb.name}`;
     orbs.push({
