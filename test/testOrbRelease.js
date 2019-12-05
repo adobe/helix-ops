@@ -17,8 +17,6 @@ const nock = require('nock');
 const shell = require('shelljs');
 const sinon = require('sinon');
 
-const OrbRelease = require('../src/orb-release/cli');
-
 function buildArgs({
   auth, pageId: namespace, orbDir, orbSrc, changelog,
 } = {}) {
@@ -29,10 +27,6 @@ function buildArgs({
   if (orbSrc) args.push('--orb-src', `"${orbSrc}"`);
   if (changelog) args.push('--changelog', `"${changelog}"`);
   return args;
-}
-
-async function run(opts = {}) {
-  return new OrbRelease().run(buildArgs(opts));
 }
 
 async function runShell(opts = {}) {
