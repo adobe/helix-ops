@@ -68,36 +68,7 @@ jobs:
 
       - run:
           name: Semantic Orb Release
-          command: |
-              # analyze commits to find out if any orbs need to be updated
-              tmpDir="$(mktemp -d)"
-              echo "Working directory is ${tmpDir}"
-              echo "Analyzing commits since last release"
-              npm run semantic-release --dry-run --analyze-commits > "${tmpDir}/commit-analysis.log"
-              segment=$(sed -En 's/\[[^]]+\] \[semantic-release\] \[@semantic-release\/commit-analyzer\] .* Analysis of [0-9]+ commits? complete: ([a-z]+) release$/\1/p' "${tmpDir}/commit-analysis.log")
-              if [[ "${segment}" =~ ^(major|minor|patch)$ ]]; then
-                echo "Commit analysis suggests ${segment} release"
-                echo "Identifying affected orbs"
-                for path in .circleci/orbs/* ; do
-                  [[ "${path}" =~ .*/README.md$ ]] && continue
-                  echo "Orb ${path}"
-                  orb=$(basename ${path})
-                  # run circleci first to check for updates
-                  circleci > /dev/null
-                  # compare published orb to local source
-                  circleci orb source adobe/${orb} > "${tmpDir}/${orb}-pub.yml"
-                  diff -B ${tmpDir}/${orb}-pub.yml .circleci/orbs/${orb}/orb.yml > "${tmpDir}/${orb}-diff.txt"
-                  if [ "$(cat ${tmpDir}/${orb}-diff.txt)" != "" ]; then
-                    echo "  Source changed, proceeding with ${segment} release"
-                    circleci orb publish increment .circleci/orbs/${orb}/orb.yml adobe/${orb} ${segment}
-                  else
-                    echo "  Source unchanged, skipping release"
-                  fi
-                done
-              else
-                echo "Commit analysis suggests skipping release"
-              fi
-              echo "Done"
+          command: node src/orb-release
 
       - run:
           name: Semantic Release
