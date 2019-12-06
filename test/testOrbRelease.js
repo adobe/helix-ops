@@ -106,7 +106,7 @@ describe('Testing orb-release', () => {
       changelog,
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
-    assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to skip release if orb source unchanged');
+    assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to run using env variable');
     delete process.env.CIRCLECI_CLI_TOKEN;
   }).timeout(5000);
 });

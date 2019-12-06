@@ -40,6 +40,7 @@ function getReleaseDate() {
 }
 
 async function getReleaseType() {
+  logger.log('Analyzing commits since last release');
   Object.assign(gitLogParser.fields, {
     committerDate: { key: 'ci', type: Date },
     message: 'B',
@@ -67,6 +68,7 @@ async function getReleaseType() {
   } else {
     logger.warn('Unable to determine last release date');
   }
+  logger.log(type ? 'Proposed release type: %s' : 'No release', releaseTypes[type]);
   return releaseTypes[type];
 }
 
@@ -87,9 +89,10 @@ function getOrbs() {
 }
 
 function diffOrb(orb) {
+  logger.log('Checking orb %s', orb.name);
   let ret = false;
   const pubFile = `${orb.tmp}/src.yml`;
-  shell.exec(`circleci orb source ${config.namespace}/${orb.name} > "${pubFile}"`);
+  shell.exec(`~/circleci orb source ${config.namespace}/${orb.name} > "${pubFile}"`);
   if (shell.error()) {
     return ret;
   }
@@ -101,11 +104,14 @@ function diffOrb(orb) {
       ret = true;
     }
   });
+  logger.log(ret
+    ? '  Orb source changed, proceeding with release'
+    : '  Orb source unchanged, skipping release');
   return ret;
 }
 
 function releaseOrb(orb, type) {
-  return shell.exec(`circleci orb publish increment "${orb.src}" ${config.namespace}/${orb.name} ${type}`);
+  return shell.exec(`~/circleci orb publish increment "${orb.src}" ${config.namespace}/${orb.name} ${type}`);
 }
 
 async function releaseOrbs(opts) {
@@ -113,21 +119,13 @@ async function releaseOrbs(opts) {
     ...opts,
     ...config,
   };
-  logger.log('Analyzing commits since last release');
   const releaseType = await getReleaseType();
   if (releaseType) {
-    logger.log('Proposed release type:', releaseType);
     getOrbs().forEach((orb) => {
-      logger.log('Checking orb %s', orb.name);
       if (diffOrb(orb)) {
-        logger.log('  Orb source changed, proceeding with %s release', releaseType);
         releaseOrb(orb, releaseType);
-      } else {
-        logger.log('  Orb source unchanged, skipping release');
       }
     });
-  } else {
-    logger.log('No release');
   }
   logger.log('Done');
 }

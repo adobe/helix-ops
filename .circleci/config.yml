@@ -22,8 +22,9 @@ commands:
     - run:
         name: Validate orbs
         command: |
-            curl -fLSs https://circle.ci/cli | DESTDIR=/home/circleci bash
-            find . -name orb.yml -print0 | xargs -0 -I% /home/circleci/circleci orb validate %
+            curl -fLSs https://circle.ci/cli | DESTDIR=~ bash
+            ~/circleci > /dev/null # first run checks for updates
+            find . -name orb.yml -print0 | xargs -0 -I% ~/circleci orb validate %
     # - save_cache:
     #     paths:
     #     - node_modules
@@ -68,7 +69,10 @@ jobs:
 
       - run:
           name: Semantic Orb Release
-          command: node src/orb-release
+          command: |
+              curl -fLSs https://circle.ci/cli | DESTDIR=~ bash
+              ~/circleci > /dev/null # first run checks for updates
+              node src/orb-release
 
       - run:
           name: Semantic Release
