@@ -74,8 +74,12 @@ async function getReleaseType() {
 
 function getOrbs() {
   const orbs = [];
+  logger.log('orbDir', process.cwd(), config.orbDir);
   const dirs = fs.readdirSync(config.orbDir, { withFileTypes: true })
-    .filter((dir) => /^[A-Za-z0-9_-]+$/.test(dir.name));
+    .filter((dir) => {
+      logger.log('dir', dir);
+      return /^[A-Za-z0-9_-]+$/.test(dir.name);
+    });
   dirs.forEach((orb) => {
     const dir = `${config.orbDir}/${orb.name}`;
     orbs.push({
