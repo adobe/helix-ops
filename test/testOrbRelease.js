@@ -97,7 +97,6 @@ describe('Testing orb-release', () => {
       orbSrc,
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
-    assert.ok(/User does not have access to publish SemVer orbs in this namespace/.test(output.stderr), 'expected to attempt release');
   }).timeout(5000);
 
   it('uses environment variables', async () => {
