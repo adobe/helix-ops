@@ -73,7 +73,7 @@ async function getReleaseType() {
 function getOrbs() {
   const orbs = [];
   const dirs = fs.readdirSync(config.orbDir, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory && dir.isDirectory());
+    .filter((dir) => /^[A-Za-z0-9_-]+$/.test(dir.name));
   dirs.forEach((orb) => {
     const dir = `${config.orbDir}/${orb.name}`;
     orbs.push({
@@ -150,7 +150,7 @@ function baseargs(y) {
       type: 'string',
       alias: 'orbDir',
       describe: 'The relative path to the orbs',
-      default: '.circleci/orbs',
+      default: './.circleci/orbs',
       required: false,
     })
     .option('orb-src', {
@@ -162,7 +162,7 @@ function baseargs(y) {
     })
     .option('changelog', {
       type: 'string',
-      describe: 'The path to the change log file',
+      describe: 'The relative path to the change log file',
       default: './CHANGELOG.md',
       required: false,
     });
