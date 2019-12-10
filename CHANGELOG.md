@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/adobe/helix-ops/compare/v1.1.1...v1.2.0) (2019-12-10)
+
+
+### Bug Fixes
+
+* **orb:** change check for orb dir ([f8f3ed0](https://github.com/adobe/helix-ops/commit/f8f3ed085e2d0524f0182eaaadc6220917f105f9))
+* **orb:** check for isDirectory method ([8ae1772](https://github.com/adobe/helix-ops/commit/8ae1772e438c9df026d48302ac554f7c12cde723))
+
+
+### Features
+
+* **orb:** automatic release ([664f6b7](https://github.com/adobe/helix-ops/commit/664f6b7985e918b5befb33a16bb3b04f8180ab45))
+
 ## [1.1.1](https://github.com/adobe/helix-ops/compare/v1.1.0...v1.1.1) (2019-11-28)
 
 
