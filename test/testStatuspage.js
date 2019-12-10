@@ -42,7 +42,8 @@ async function runShell(opts = {}) {
   return shell.exec(`node ./src/statuspage ${buildArgs(opts).join(' ')}`);
 }
 
-describe('Testing statuspage', () => {
+describe('Testing statuspage', function testStatuspage() {
+  this.timeout(5000);
   let name;
   const logger = console;
 
@@ -147,7 +148,7 @@ describe('Testing statuspage', () => {
     assert.ok(await getTimedPromise(() => listRetrieved, 'Component list not retrieved'));
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
-  }).timeout(5000);
+  });
 
   it('detects and updates existing component', async () => {
     // const apiURL = `/v1/pages/${pageId}/components`;
@@ -177,7 +178,7 @@ describe('Testing statuspage', () => {
     assert.ok(await getTimedPromise(() => listRetrieved, 'Component list not retrieved'));
     assert.ok(await getTimedPromise(() => compUpdated, 'Component not updated'));
     assert.ok(logger.log.calledWith('Updating component', name), `console.log not called with ${name}`);
-  }).timeout(5000);
+  });
 
   it('adds new component to group', async () => {
     let compCreated = false;
@@ -201,7 +202,7 @@ describe('Testing statuspage', () => {
 
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created in group'));
     assert.ok(logger.log.calledWith(`Creating component ${name} in group ${group}`), `console.log not called with ${name} and ${group}`);
-  }).timeout(5000);
+  });
 
   it('adds existing component to group', async () => {
     let compUpdated = false;
@@ -224,7 +225,7 @@ describe('Testing statuspage', () => {
     });
 
     assert.ok(await getTimedPromise(() => compUpdated, 'Component not added to group'));
-  }).timeout(5000);
+  });
 
   it('outputs only email in silent mode', async () => {
     let compCreated = false;
@@ -250,7 +251,7 @@ describe('Testing statuspage', () => {
     });
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledOnceWith(email), `console.log not called once with ${email}`);
-  }).timeout(5000);
+  });
 
   it('uses environment variables', async () => {
     let compCreated = false;
@@ -277,7 +278,7 @@ describe('Testing statuspage', () => {
 
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
-  }).timeout(5000);
+  });
 
   it('exits with code 1 if create API fails', async () => {
     let errorHandled = false;
