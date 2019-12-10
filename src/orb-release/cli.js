@@ -13,7 +13,7 @@
 /* eslint-disable no-param-reassign */
 
 const diff = require('diff');
-const fs = require('fs');
+const fs = require('fs-extra');
 const gitLogParser = require('git-log-parser');
 const getStream = require('get-stream');
 const shell = require('shelljs');
@@ -28,9 +28,9 @@ const releaseTypes = [
 const logger = console; // executed in CircleCI runtime
 let config = {};
 
-function getReleaseDate() {
-  if (fs.existsSync(config.changelog)) {
-    const cl = fs.readFileSync(config.changelog).toString('utf-8');
+async function getReleaseDate() {
+  if ((await fs.pathExists(config.changelog))) {
+    const cl = (await fs.readFile(config.changelog)).toString('utf-8');
     const match = /\((\d{4}-\d{2}-\d{2})\)/s.exec(cl);
     if (match && match.length === 2) {
       return new Date(match[1]);
@@ -46,7 +46,7 @@ async function getReleaseType() {
     message: 'B',
   });
   let type = 0;
-  const releaseDate = getReleaseDate();
+  const releaseDate = await getReleaseDate();
   if (releaseDate) {
     logger.log('Last release date: %s', releaseDate.toUTCString());
     (await getStream.array(gitLogParser.parse()))
@@ -72,32 +72,31 @@ async function getReleaseType() {
   return releaseTypes[type];
 }
 
-function getOrbs() {
+async function getOrbs() {
   const orbs = [];
-  const dirs = fs.readdirSync(config.orbDir)
+  const dirs = (await fs.readdir(config.orbDir))
     .filter((dir) => /^[A-Za-z0-9_-]+$/.test(dir));
-  dirs.forEach((orb) => {
+  dirs.forEach(async (orb) => {
     const dir = `${config.orbDir}/${orb}`;
     orbs.push({
       name: orb,
       dir,
       src: `${dir}/${config.orbSrc}`,
-      tmp: fs.mkdtempSync(`/tmp/${orb}-`),
     });
   });
   return orbs;
 }
 
-function diffOrb(orb) {
+async function diffOrb(orb) {
   logger.log('Checking orb %s', orb.name);
   let ret = false;
-  const pubFile = `${orb.tmp}/src.yml`;
+  const pubFile = `${(await fs.ensureDir(`/tmp/${orb.name}-${Date.now()}`))}/src.yml`;
   shell.exec(`~/circleci orb source ${config.namespace}/${orb.name} > "${pubFile}"`);
   if (shell.error()) {
     return ret;
   }
-  const pubSource = fs.readFileSync(pubFile).toString('utf-8');
-  const locSource = `${fs.readFileSync(orb.src).toString('utf-8')}\n`;
+  const pubSource = (await fs.readFile(pubFile)).toString('utf-8');
+  const locSource = `${(await fs.readFile(orb.src)).toString('utf-8')}\n`;
   const patch = diff.diffTrimmedLines(pubSource, locSource);
   patch.forEach((entry) => {
     if (entry.added || entry.removed) {
@@ -121,8 +120,10 @@ async function releaseOrbs(opts) {
   };
   const releaseType = await getReleaseType();
   if (releaseType) {
-    getOrbs().forEach((orb) => {
-      if (diffOrb(orb)) {
+    const orbs = await getOrbs();
+    orbs.forEach(async (orb) => {
+      const srcChanged = await diffOrb(orb);
+      if (srcChanged) {
         releaseOrb(orb, releaseType);
       }
     });
