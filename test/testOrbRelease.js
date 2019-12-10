@@ -45,7 +45,8 @@ describe('Testing orb-release', () => {
   // env variable backups
   const originalAuth = process.env.CIRCLECI_CLI_TOKEN;
 
-  before(() => {
+  before(function beforeAll() {
+    this.timeout(10000);
     sinon.spy(logger, 'log');
     sinon.spy(logger, 'error');
     // make sure there are no env variables around for this test
@@ -70,7 +71,7 @@ describe('Testing orb-release', () => {
     const output = await runShell({});
     assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
     assert.ok(/Missing required argument: token/.test(output.stderr), 'expected missing required arguments');
-  }).timeout(10000);
+  });
 
   it('skips release if orb source unchanged', async () => {
     const output = await runShell({
@@ -79,7 +80,7 @@ describe('Testing orb-release', () => {
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
     assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to skip release if orb source unchanged');
-  }).timeout(10000);
+  });
 
   it('skips release if no release date', async () => {
     const output = await runShell({
@@ -88,7 +89,7 @@ describe('Testing orb-release', () => {
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
     assert.ok(/Unable to determine last release date/.test(output.stderr), 'expected to skip release if no release date');
-  }).timeout(10000);
+  });
 
   it('attempts orb release', async () => {
     const output = await runShell({
@@ -97,7 +98,7 @@ describe('Testing orb-release', () => {
       orbSrc,
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
-  }).timeout(10000);
+  });
 
   it('uses environment variables', async () => {
     process.env.CIRCLECI_CLI_TOKEN = auth;
@@ -107,5 +108,5 @@ describe('Testing orb-release', () => {
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
     assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to run using env variable');
     delete process.env.CIRCLECI_CLI_TOKEN;
-  }).timeout(10000);
+  });
 });
