@@ -33,7 +33,8 @@ async function runShell(opts = {}) {
   return shell.exec(`node ./src/orb-release ${buildArgs(opts).join(' ')}`);
 }
 
-describe('Testing orb-release', () => {
+describe('Testing orb-release', function testOrbRelease() {
+  this.timeout(10000);
   const logger = console;
 
   // defaults
@@ -45,8 +46,7 @@ describe('Testing orb-release', () => {
   // env variable backups
   const originalAuth = process.env.CIRCLECI_CLI_TOKEN;
 
-  before(function beforeAll() {
-    this.timeout(10000);
+  before(() => {
     sinon.spy(logger, 'log');
     sinon.spy(logger, 'error');
     // make sure there are no env variables around for this test

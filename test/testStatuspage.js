@@ -42,7 +42,8 @@ async function runShell(opts = {}) {
   return shell.exec(`node ./src/statuspage ${buildArgs(opts).join(' ')}`);
 }
 
-describe('Testing statuspage', () => {
+describe('Testing statuspage', function testStatuspage() {
+  this.timeout(5000);
   let name;
   const logger = console;
 
@@ -82,8 +83,7 @@ describe('Testing statuspage', () => {
     position: 0,
   };
 
-  before(function beforeAll() {
-    this.timeout(5000);
+  before(() => {
     sinon.spy(logger, 'log');
     sinon.spy(logger, 'error');
     // make sure there are no env variables around for this test
