@@ -52,7 +52,7 @@ $http.get('$$$URL$$$',
           return;
         }
         try {
-          delete details.request;
+          details.request = {};
           console.info('Activation details:', JSON.stringify(details, null, 2));
           $util.insights.set('activation_duration', details.body.duration);
           $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
