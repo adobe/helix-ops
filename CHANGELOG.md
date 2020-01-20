@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/adobe/helix-ops/compare/v1.2.1...v1.3.0) (2020-01-20)
+
+
+### Bug Fixes
+
+* **monitoring:** omit error ([85d8767](https://github.com/adobe/helix-ops/commit/85d876764aff58e1fd0ca16ff580dbd0ab6751dd))
+
+
+### Features
+
+* **monitoring:** don't log request from activation details ([53cd614](https://github.com/adobe/helix-ops/commit/53cd614e924cf64de897cce1df1697bc4ce9750a))
+
 ## [1.2.1](https://github.com/adobe/helix-ops/compare/v1.2.0...v1.2.1) (2020-01-20)
 
 
