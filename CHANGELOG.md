@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/adobe/helix-ops/compare/v1.2.0...v1.2.1) (2020-01-20)
+
+
+### Bug Fixes
+
+* **deps:** update external ([#19](https://github.com/adobe/helix-ops/issues/19)) ([9ac4cec](https://github.com/adobe/helix-ops/commit/9ac4ceca5491a94f765a2571bbb1a6a9ac900fda))
+
 # [1.2.0](https://github.com/adobe/helix-ops/compare/v1.1.1...v1.2.0) (2019-12-10)
 
 
