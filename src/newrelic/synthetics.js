@@ -75,7 +75,7 @@ async function getMonitors(auth, monitorname) {
   }
 }
 
-async function updateMonitor(auth, monitor, url) {
+async function updateMonitor(auth, monitor, url, script) {
   console.log('Updating locations for monitor', monitor.name);
   try {
     await request.patch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
@@ -94,7 +94,7 @@ async function updateMonitor(auth, monitor, url) {
   console.log('Updating script for monitor', monitor.name);
 
   const scriptText = Buffer.from(fs
-    .readFileSync(path.resolve(__dirname, 'monitor_script.js'))
+    .readFileSync(script || path.resolve(__dirname, 'monitor_script.js'))
     .toString()
     .replace('$$$URL$$$', url)
     .replace('$$$NS$$$', getNS(url)))
@@ -114,12 +114,12 @@ async function updateMonitor(auth, monitor, url) {
   }
 }
 
-async function updateOrCreateMonitor(auth, name, url) {
+async function updateOrCreateMonitor(auth, name, url, script) {
   const [monitor] = await getMonitors(auth, name);
 
   if (monitor) {
     // update
-    await updateMonitor(auth, monitor, url);
+    await updateMonitor(auth, monitor, url, script);
   } else {
     // create
     console.log('Creating monitor', name);
@@ -138,7 +138,7 @@ async function updateOrCreateMonitor(auth, name, url) {
           slaThreshold: MONITOR_THRESHOLD,
         },
       });
-      return await updateOrCreateMonitor(auth, name, url);
+      return await updateOrCreateMonitor(auth, name, url, script);
     } catch (e) {
       console.error('Monitor creation failed:', e.message);
       process.exit(1);

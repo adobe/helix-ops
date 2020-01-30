@@ -16,6 +16,8 @@ const assert = require('assert');
 const nock = require('nock');
 const shell = require('shelljs');
 const sinon = require('sinon');
+const fs = require('fs');
+const path = require('path');
 
 const NewRelic = require('../src/newrelic/cli');
 const {
@@ -35,7 +37,7 @@ const {
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, url, email, name, groupPolicy,
+  cmd, auth, url, email, name, groupPolicy, script,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -43,6 +45,7 @@ function buildArgs({
   if (email) args.push(email);
   if (auth) args.push('--auth', auth);
   if (name) args.push('--name', `"${name}"`);
+  if (script) args.push('--script', `"${script}"`);
   if (groupPolicy) args.push('--group_policy', `"${groupPolicy}"`);
   return args;
 }
@@ -70,6 +73,7 @@ describe('Testing newrelic', () => {
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
   const groupPolicy = 'Test Group Policy';
+  const script = path.resolve(__dirname, './fixtures/monitor_script.js');
   const testMonitor = {
     id: '0000',
     frequency: MONITOR_FREQUENCY,
@@ -363,6 +367,53 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok8, 'Policy list not retrieved for group policy'),
       getTimedPromise(() => test.ok9, 'Condition list not retrieved from group policy'),
     ]));
+  }).timeout(5000);
+
+  it('updates existing monitor with custom setup', async () => {
+    const expectedPayload = fs.readFileSync(path.resolve(__dirname, './fixtures/monitor_script.js'))
+      .toString()
+      .replace('$$$URL$$$', url);
+    let ok = false;
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
+      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
+      .reply(204, () => JSON.stringify(testMonitor))
+      // Updating script for monitor
+      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
+      .reply(204, (uri, body) => {
+        ok = Buffer.from(body.scriptText, 'base64').toString() === expectedPayload;
+        return JSON.stringify(testMonitor);
+      });
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      .get('/v2/alerts_channels.json')
+      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
+      .get('/v2/alerts_policies.json')
+      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
+      .put('/v2/alerts_policy_channels.json')
+      .reply(200, () => JSON.stringify({ policy: testPolicy }))
+      .get('/v2/alerts_policies.json')
+      .reply(200, () => JSON.stringify({ policies: [testGroupPolicy] }))
+      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
+      .reply(200, () => JSON.stringify({ location_failure_conditions: [testExistingCondition] }))
+      .get(`/v2/alerts_location_failure_conditions/policies/${testGroupPolicy.id}.json`)
+      .reply(200, () => JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      script,
+      groupPolicy,
+    });
+
+    assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
   }).timeout(5000);
 
   it('uses environment variables', async () => {
