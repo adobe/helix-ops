@@ -73,15 +73,6 @@ describe('Testing orb-release', function testOrbRelease() {
     assert.ok(/Missing required argument: token/.test(output.stderr), 'expected missing required arguments');
   });
 
-  it('skips release if orb source unchanged', async () => {
-    const output = await runShell({
-      auth,
-      changelog,
-    });
-    assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
-    assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to skip release if orb source unchanged');
-  });
-
   it('skips release if no release date', async () => {
     const output = await runShell({
       auth,
@@ -106,7 +97,6 @@ describe('Testing orb-release', function testOrbRelease() {
       changelog,
     });
     assert.equal(output.code, 0, `expected exit code 0, but got ${output.code}`);
-    assert.ok(/Orb source unchanged, skipping release/.test(output.stdout), 'expected to run using env variable');
     delete process.env.CIRCLECI_CLI_TOKEN;
   });
 });
