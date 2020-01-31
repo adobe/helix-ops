@@ -58,6 +58,11 @@ class CLI {
           type: 'string',
           describe: 'The name of a common policy to add the monitor to',
           required: false,
+        })
+        .option('script', {
+          type: 'string',
+          describe: 'The path to the custom monitor script to use',
+          required: false,
         });
     }
 
@@ -65,10 +70,10 @@ class CLI {
       .scriptName('newrelic')
       .usage('$0 <cmd>')
       .command('setup url email', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
-        auth, name, url, email, group_policy,
+        auth, name, url, email, group_policy, script,
       }) => {
         await updateOrCreatePolicies(auth, name, group_policy,
-          await updateOrCreateMonitor(auth, name, url),
+          await updateOrCreateMonitor(auth, name, url, script),
           email ? await reuseOrCreateChannel(auth, name, email) : null);
         console.log('done.');
       })
