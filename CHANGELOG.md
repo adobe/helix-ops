@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/adobe/helix-ops/compare/v1.3.0...v1.4.0) (2020-01-31)
+
+
+### Features
+
+* **monitoring:** ability to use custom script ([a3328df](https://github.com/adobe/helix-ops/commit/a3328df3ae188deaaecc068f2e73bb7814d6dcc9))
+
 # [1.3.0](https://github.com/adobe/helix-ops/compare/v1.2.1...v1.3.0) (2020-01-20)
 
 
