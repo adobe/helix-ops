@@ -70,7 +70,7 @@ jobs:
       - run:
           name: Semantic Orb Release
           command: |
-              curl -fLSs https://circle.ci/cli | DESTDIR=~ bash
+              curl --http1.1 -fLSs https://circle.ci/cli | DESTDIR=~ bash
               ~/circleci > /dev/null # first run checks for updates
               node src/orb-release
 
