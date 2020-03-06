@@ -21,7 +21,7 @@ const Statuspage = require('../src/statuspage/cli');
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, pageId, name, desc, group, silent,
+  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -30,6 +30,8 @@ function buildArgs({
   if (name) args.push('--name', `"${name}"`);
   if (desc) args.push('--description', `"${desc}"`);
   if (group) args.push('--group', group);
+  if (incubator) args.push('--incubator', incubator);
+  if (incubatorPageId) args.push('--incubator_page_id', incubatorPageId);
   if (silent) args.push('--silent');
   return args;
 }
@@ -55,8 +57,10 @@ describe('Testing statuspage', function testStatuspage() {
   const cmd = 'setup';
   const auth = 'test-auth';
   const pageId = 'test-page-id';
+  const incubatorPageId = 'test-incubator-page-id';
   const namePrefix = 'Test Component ';
   const group = 'Test Group';
+  const incubator = true;
   const email = 'component+abcdef@notifications.statuspage.io';
   const now = new Date().toISOString();
   const testComp = {
@@ -278,6 +282,104 @@ describe('Testing statuspage', function testStatuspage() {
 
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
+  });
+
+  it('creates incubator component', async () => {
+    let compCreated = false;
+    nock('https://api.statuspage.io')
+      .get(`/v1/pages/${pageId}/components`)
+      .reply(200, () => JSON.stringify([])) // empty list to force creation
+      .post(`/v1/pages/${pageId}/components`)
+      .reply(201, (uri, body) => {
+        compCreated = body.component
+          && body.component.name
+          && body.component.name.endsWith('[INCUBATOR]');
+        return JSON.stringify(testComp);
+      });
+
+    await run({
+      cmd,
+      auth,
+      pageId,
+      name,
+      incubator,
+    });
+    assert.ok(await getTimedPromise(() => compCreated, 'Incubator component not created'));
+    assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
+  });
+
+  it('creates incubator component on dedicated page', async () => {
+    let compCreated = false;
+    nock('https://api.statuspage.io')
+      .get(`/v1/pages/${incubatorPageId}/components`)
+      .reply(200, () => JSON.stringify([])) // empty list to force creation
+      .post(`/v1/pages/${incubatorPageId}/components`)
+      .reply(201, (uri, body) => {
+        compCreated = body.component
+          && body.component.name
+          && body.component.name.endsWith('[INCUBATOR]');
+        return JSON.stringify(testComp);
+      });
+
+    await run({
+      cmd,
+      auth,
+      pageId,
+      name,
+      incubator,
+      incubatorPageId,
+    });
+    assert.ok(await getTimedPromise(() => compCreated, 'Incubator component not created on dedicated page'));
+    assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
+  });
+
+  it('removes incubator component from same page', async () => {
+    let compRemoved = false;
+    const incubatorComp = { ...testComp, name: testComp.name += ' [INCUBATOR]' };
+    nock('https://api.statuspage.io')
+      .get(`/v1/pages/${pageId}/components`)
+      .reply(200, () => JSON.stringify([incubatorComp]))
+      .post(`/v1/pages/${pageId}/components`)
+      .reply(201, () => JSON.stringify(testComp))
+      .delete(`/v1/pages/${pageId}/components/${incubatorComp.id}`)
+      .reply(204, () => {
+        compRemoved = true;
+        return '';
+      });
+
+    await run({
+      cmd,
+      auth,
+      pageId,
+      name,
+    });
+    assert.ok(await getTimedPromise(() => compRemoved, 'Incubator component not removed from same page'));
+  });
+
+  it('removes incubator component from dedicated page', async () => {
+    let compRemoved = false;
+    const incubatorComp = { ...testComp, name: testComp.name += ' [INCUBATOR]' };
+    nock('https://api.statuspage.io')
+      .get(`/v1/pages/${pageId}/components`)
+      .reply(200, () => JSON.stringify([])) // empty list to force creation
+      .post(`/v1/pages/${pageId}/components`)
+      .reply(201, () => JSON.stringify(testComp))
+      .get(`/v1/pages/${incubatorPageId}/components`)
+      .reply(200, () => JSON.stringify([incubatorComp]))
+      .delete(`/v1/pages/${incubatorPageId}/components/${incubatorComp.id}`)
+      .reply(204, () => {
+        compRemoved = true;
+        return '';
+      });
+
+    await run({
+      cmd,
+      auth,
+      pageId,
+      name,
+      incubatorPageId,
+    });
+    assert.ok(await getTimedPromise(() => compRemoved, 'Incubator component not removed from dedicated page'));
   });
 
   it('exits with code 1 if create API fails', async () => {
