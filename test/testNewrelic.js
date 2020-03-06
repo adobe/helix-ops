@@ -446,7 +446,7 @@ describe('Testing newrelic', () => {
     delete process.env.NEWRELIC_AUTH;
   }).timeout(5000);
 
-  it.only('exits with code 1 if API calls fail', async () => {
+  it('exits with code 1 if API calls fail', async () => {
     let exitCount = 0;
     const originalExit = process.exit;
     process.exit = (code) => {
