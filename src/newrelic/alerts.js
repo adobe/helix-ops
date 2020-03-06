@@ -261,7 +261,9 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
 
 async function purgeIncubatorPolicy(auth, name, allPolicies) {
   const incubatorPolicyName = getIncubatorName(name);
-  const [incubatorPolicy] = allPolicies.filter((policy) => policy.name === incubatorPolicyName);
+  const [incubatorPolicy] = allPolicies
+    ? allPolicies.filter((policy) => policy.name === incubatorPolicyName)
+    : [];
   if (incubatorPolicy) {
     console.log('Removing incubator alert policy', incubatorPolicy.name);
     try {

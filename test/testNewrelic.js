@@ -214,7 +214,7 @@ describe('Testing newrelic', () => {
       .get('/v2/alerts_policies.json')
       .reply(200, () => {
         test.ok7 = true;
-        return JSON.stringify({ policies: [] });
+        return JSON.stringify({ policies: [testGroupPolicy] });
       })
       // Creating alert policy
       .post('/v2/alerts_policies.json')
@@ -239,12 +239,6 @@ describe('Testing newrelic', () => {
       .reply(201, (uri, body) => {
         test.ok11 = body.location_failure_condition.entities.includes(testMonitor.id);
         return JSON.stringify({ location_failure_conditions: testCondition });
-      })
-      // Getting alert policies again
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => {
-        test.ok12 = true;
-        return JSON.stringify({ policies: [testGroupPolicy] });
       })
       // Getting conditions in group alert policy
       .get(`/v2/alerts_location_failure_conditions/policies/${testGroupPolicy.id}.json`)
@@ -279,7 +273,6 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok9, 'Channel not linked to policy'),
       getTimedPromise(() => test.ok10, 'Condition list not retrieved from policy'),
       getTimedPromise(() => test.ok11, 'Condition not created'),
-      getTimedPromise(() => test.ok12, 'Policy list not retrieved again'),
       getTimedPromise(() => test.ok14, 'Condition list not retrieved from group policy'),
       getTimedPromise(() => test.ok15, 'Group policy condition not updated'),
     ]));
@@ -321,19 +314,13 @@ describe('Testing newrelic', () => {
       .get('/v2/alerts_policies.json')
       .reply(200, () => {
         test.ok5 = true;
-        return JSON.stringify({ policies: [testPolicy] });
+        return JSON.stringify({ policies: [testPolicy, testGroupPolicy] });
       })
       // Linking notification channel to alert policy
       .put('/v2/alerts_policy_channels.json')
       .reply(200, (uri, body) => {
         test.ok6 = body.startsWith(`channel_ids=${testChannel.id}`);
         return JSON.stringify({ policy: testPolicy });
-      })
-      // Getting alert policies
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => {
-        test.ok7 = true;
-        return JSON.stringify({ policies: [testGroupPolicy] });
       })
       // Getting conditions in alert policy
       .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
@@ -363,8 +350,7 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok4, 'Channel list not retrieved'),
       getTimedPromise(() => test.ok5, 'Policy list not retrieved'),
       getTimedPromise(() => test.ok6, 'Channel not linked to policy'),
-      getTimedPromise(() => test.ok7, 'Policy list not retrieved'),
-      getTimedPromise(() => test.ok8, 'Policy list not retrieved for group policy'),
+      getTimedPromise(() => test.ok8, 'Condition list not retrieved from policy'),
       getTimedPromise(() => test.ok9, 'Condition list not retrieved from group policy'),
     ]));
   }).timeout(5000);
@@ -460,12 +446,12 @@ describe('Testing newrelic', () => {
     delete process.env.NEWRELIC_AUTH;
   }).timeout(5000);
 
-  it('exits with code 1 if API calls fail', async () => {
-    let exit1Count = 0;
+  it.only('exits with code 1 if API calls fail', async () => {
+    let exitCount = 0;
     const originalExit = process.exit;
     process.exit = (code) => {
       if (code === 1) {
-        exit1Count += 1;
+        exitCount += 1;
       }
     };
 
@@ -489,7 +475,7 @@ describe('Testing newrelic', () => {
       name,
     });
 
-    assert.ok(await getTimedPromise(() => exit1Count === 3, 'Did not exit with code 1 on three occasions'));
+    assert.ok(await getTimedPromise(() => exitCount === 3, 'Did not exit with code 1 on three occasions'));
     process.exit = originalExit;
   }).timeout(5000);
 });
