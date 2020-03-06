@@ -257,7 +257,7 @@ class CLI {
           describe: 'Reduce output to automation email only',
           required: false,
           default: false,
-        })
+        });
     }
     return yargs
       .scriptName('statuspage')
