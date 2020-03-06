@@ -29,17 +29,21 @@ async function getChannelInfo(auth, channelName, email) {
       },
       json: true,
     });
-    return response.channels.filter((channel) => channel.type === CHANNEL_TYPE
-        && channel.name === channelName
-        && channel.configuration.recipients === email);
+    const allChannels = response.channels || [];
+    const [channel] = allChannels.filter((c) => c.type === CHANNEL_TYPE
+      && c.name === channelName && c.configuration.recipients === email);
+    return {
+      channel,
+      allChannels,
+    };
   } catch (e) {
     console.error('Unable to retrieve channels:', e.message);
-    return [];
+    return {};
   }
 }
 
 async function purgeIncubatorChannel(auth, name, allPolicies) {
-  const [incubatorPolicy] = allPolicies.filter((policy) => policy.name === name);
+  const [incubatorPolicy] = allPolicies ? allPolicies.filter((policy) => policy.name === name) : [];
   if (incubatorPolicy) {
     console.log('Removing incubator notification channel', incubatorPolicy.name);
     try {
