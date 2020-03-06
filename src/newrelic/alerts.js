@@ -11,6 +11,7 @@
  */
 
 const request = require('request-promise-native');
+const { getIncubatorName } = require('../utils');
 
 const CHANNEL_TYPE = 'email';
 const INCIDENT_PREFERENCE = 'PER_POLICY';
@@ -20,7 +21,7 @@ const CONDITION_THRESHOLD = 2;
 
 /* eslint-disable no-console */
 
-async function getChannels(auth, channelName, email) {
+async function getChannelInfo(auth, channelName, email) {
   try {
     const response = await request.get('https://api.newrelic.com/v2/alerts_channels.json', {
       headers: {
@@ -37,13 +38,32 @@ async function getChannels(auth, channelName, email) {
   }
 }
 
-async function reuseOrCreateChannel(auth, name, email) {
-  let [channel] = await getChannels(auth, name, email);
+async function purgeIncubatorChannel(auth, name, allPolicies) {
+  const [incubatorPolicy] = allPolicies.filter((policy) => policy.name === name);
+  if (incubatorPolicy) {
+    console.log('Removing incubator notification channel', incubatorPolicy.name);
+    try {
+      await request.delete(`https://api.newrelic.com/v2/alerts_policies/${incubatorPolicy.id}.json`, {
+        headers: {
+          'X-Api-Key': auth,
+        },
+      });
+    } catch (e) {
+      console.error('Unable to remove incubator alert policy', e.message);
+    }
+  }
+}
+
+async function reuseOrCreateChannel(auth, name, email, incubator) {
+  const channelName = incubator ? getIncubatorName(name) : name;
+  const info = await getChannelInfo(auth, channelName, email);
+  const { allChannels } = info;
+  let { channel } = info;
 
   if (channel) {
     console.log(`Reusing notification channel ${channel.name}`);
   } else {
-    console.log('Creating notification channel', name);
+    console.log('Creating notification channel', channelName);
 
     try {
       const response = await request.post('https://api.newrelic.com/v2/alerts_channels.json', {
@@ -53,7 +73,7 @@ async function reuseOrCreateChannel(auth, name, email) {
         },
         body: {
           channel: {
-            name,
+            name: channelName,
             type: CHANNEL_TYPE,
             configuration: {
               recipients: email,
@@ -63,6 +83,11 @@ async function reuseOrCreateChannel(auth, name, email) {
         },
       });
       [channel] = response.channels;
+
+      if (!incubator) {
+        // delete same name incubator channel
+        purgeIncubatorChannel(auth, getIncubatorName(name), allChannels);
+      }
     } catch (e) {
       console.error('Notification channel creation failed:', e.message);
       process.exit(1);
@@ -142,7 +167,7 @@ async function updateCondition(auth, condition, monitorId) {
   }
 }
 
-async function getPolicies(auth, policyName) {
+async function getPolicyInfo(auth, policyName) {
   try {
     const response = await request.get('https://api.newrelic.com/v2/alerts_policies.json', {
       headers: {
@@ -151,15 +176,20 @@ async function getPolicies(auth, policyName) {
       json: true,
     });
 
-    const policies = response.policies.map(({ id, name }) => ({ id, name }));
+    let policy;
+    const allPolicies = response.policies
+      ? response.policies.map(({ id, name }) => ({ id, name }))
+      : [];
     if (policyName) {
-      return policies.filter((policy) => policy.name === policyName);
-    } else {
-      return [];
+      [policy] = allPolicies.filter((pol) => pol.name === policyName);
     }
+    return {
+      policy,
+      allPolicies,
+    };
   } catch (e) {
     console.error('Unable to retrieve alert policies:', e.message);
-    return [];
+    return {};
   }
 }
 
@@ -186,7 +216,7 @@ async function createPolicy(auth, name) {
   return null;
 }
 
-async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId) {
+async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
   if (channelId) {
     // add notification channel
     console.log('Linking notification channel to alert policy', policy.name);
@@ -214,8 +244,8 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId) {
     await updateCondition(auth, condition, monitorId);
   }
 
-  if (groupPolicy) {
-    const [group] = await getPolicies(auth, groupPolicy);
+  if (!incubator && groupPolicy) {
+    const [group] = policies ? policies.filter((pol) => pol.name === groupPolicy) : [];
     if (group && group.id !== policy.id) {
       console.log('Verifying group alert policy', group.name);
       await updatePolicy(auth, group, null, monitorId);
@@ -225,15 +255,40 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId) {
   }
 }
 
-async function updateOrCreatePolicies(auth, name, groupPolicy, monitorId, channelId) {
-  let [policy] = await getPolicies(auth, name);
+async function purgeIncubatorPolicy(auth, name, allPolicies) {
+  const incubatorPolicyName = getIncubatorName(name);
+  const [incubatorPolicy] = allPolicies.filter((policy) => policy.name === incubatorPolicyName);
+  if (incubatorPolicy) {
+    console.log('Removing incubator alert policy', incubatorPolicy.name);
+    try {
+      await request.delete(`https://api.newrelic.com/v2/alerts_policies/${incubatorPolicy.id}.json`, {
+        headers: {
+          'X-Api-Key': auth,
+        },
+      });
+    } catch (e) {
+      console.error('Unable to remove incubator alert policy', e.message);
+    }
+  }
+}
+
+async function updateOrCreatePolicies(auth, name, groupPolicy, monitorId, channelId, incubator) {
+  const policyName = incubator ? getIncubatorName(name) : name;
+  const info = await getPolicyInfo(auth, policyName);
+  const { allPolicies } = info;
+  let { policy } = info;
 
   if (!policy) {
     // create policy
-    policy = await createPolicy(auth, name);
+    policy = await createPolicy(auth, policyName);
   }
   // update policy
-  await updatePolicy(auth, policy, groupPolicy, monitorId, channelId);
+  await updatePolicy(auth, policy, groupPolicy, monitorId, channelId, allPolicies, incubator);
+
+  if (!incubator) {
+    // TODO: delete same name incubator policy
+    await purgeIncubatorPolicy(auth, name, allPolicies);
+  }
 }
 
 module.exports = {

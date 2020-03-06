@@ -82,11 +82,13 @@ Positionals:
   email  The email address to send alerts to                 [string] [required]
 
 Options:
+  --version       Show version number                                  [boolean]
+  --help          Show help                                            [boolean]
   --auth          Admin API Key (or env var $NEWRELIC_AUTH)   [string][required]
   --name          The name of the monitor, channel and policy           [string]
   --group_policy  The name of a common policy to add the monitor to     [string]
-  --version       Show version number                                  [boolean]
-  --help          Show help                                            [boolean]
+  --incubator     Flag as incubator setup                              [boolean]
+  --script        The path to the custom monitor script to use          [string]
 
 $ npx newrelic setup \
   https://adobeioruntime.net/api/v1/web/namespace/package/action@v1/_status_check/healthcheck.json \
