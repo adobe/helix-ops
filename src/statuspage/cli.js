@@ -144,18 +144,20 @@ class CLI {
       return comp;
     }
 
-    async function purgeIncubator(auth, pageid, name, allComps) {
-      // check current component list first to avoid duplicate API request
-      let [component] = allComps.filter((comp) => comp.name === name);
-      if (!component) {
+    async function purgeIncubator(auth, pageid, ipageid, currentComps, name) {
+      let component;
+      if (ipageid) {
         // search on dedicated incubator page
-        const result = await getComponents(auth, pageid, null, name);
+        const result = await getComponents(auth, ipageid, null, name);
         component = result.component;
+      } else if (currentComps) {
+        // search components from current page to avoid additional API call
+        [component] = currentComps.filter((comp) => comp.name === name);
       }
       if (component) {
         logger.log('Deleting incubator component', component.name);
         try {
-          await request.delete(`https://api.statuspage.io/v1/pages/${pageid}/components/${component.id}`, {
+          await request.delete(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
             json: true,
             headers: {
               Authorization: auth,
@@ -198,9 +200,10 @@ class CLI {
         // delete same name incubator component
         await purgeIncubator(
           auth,
-          getIncubatorPageId(pageId, incubatorPageId),
-          getIncubatorName(name),
+          pageId,
+          incubatorPageId,
           allComps,
+          getIncubatorName(name),
         );
       }
       logger.log('done.');
@@ -236,12 +239,6 @@ class CLI {
           describe: 'The name of an existing component group',
           required: false,
         })
-        .option('silent', {
-          type: 'boolean',
-          describe: 'Reduce output to automation email only',
-          required: false,
-          default: false,
-        })
         .option('incubator', {
           type: 'boolean',
           describe: 'Flag as incubator component',
@@ -254,7 +251,13 @@ class CLI {
           describe: 'Statuspage Page ID for incubator components',
           required: false,
           default: false,
-        });
+        })
+        .option('silent', {
+          type: 'boolean',
+          describe: 'Reduce output to automation email only',
+          required: false,
+          default: false,
+        })
     }
     return yargs
       .scriptName('statuspage')
