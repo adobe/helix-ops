@@ -13,10 +13,7 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const request = require('request-promise-native');
-
-function getIncubatorName(name) {
-  return `${name} [INCUBATOR]`;
-}
+const { getIncubatorName } = require('../utils');
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
@@ -62,7 +59,7 @@ class CLI {
       }
     }
 
-    async function getComponents(auth, pageid, group, name) {
+    async function getComponentInfo(auth, pageid, group, name) {
       try {
         const result = {};
         result.allComps = await request.get(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
@@ -148,8 +145,8 @@ class CLI {
       let component;
       if (ipageid) {
         // search on dedicated incubator page
-        const result = await getComponents(auth, ipageid, null, name);
-        component = result.component;
+        const info = await getComponentInfo(auth, ipageid, null, name);
+        component = info.component;
       } else if (currentComps) {
         // search components from current page to avoid additional API call
         [component] = currentComps.filter((comp) => comp.name === name);
@@ -179,7 +176,7 @@ class CLI {
       const compName = incubator ? getIncubatorName(name) : name;
       const compPageId = incubator ? getIncubatorPageId(pageId, incubatorPageId) : pageId;
       const groupName = incubator ? null : group;
-      const { component, compGroup, allComps } = await getComponents(
+      const { component, compGroup, allComps } = await getComponentInfo(
         auth,
         compPageId,
         groupName,
