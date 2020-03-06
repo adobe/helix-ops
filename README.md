@@ -34,14 +34,16 @@ Commands:
   statuspage setup  Create or reuse a Statuspage component
 
 Options:
-  --version      Show version number                                       [boolean]
-  --help         Show help                                                 [boolean]
-  --auth         Statuspage API Key (or env $STATUSPAGE_AUTH)    [string] [required]
-  --page_id      Statuspage Page ID (or env $STATUSPGAGE_PAGE_ID)[string] [required]
-  --name         The name of the component                                  [string]
-  --description  The description of the component                           [string]
-  --group        The name of an existing component group                    [string]
-  --silent       Reduce output to automation email only   [boolean] [default: false]
+  --version            Show version number                                       [boolean]
+  --help               Show help                                                 [boolean]
+  --auth               Statuspage API Key (or env $STATUSPAGE_AUTH)    [string] [required]
+  --page_id            Statuspage Page ID (or env $STATUSPGAGE_PAGE_ID)[string] [required]
+  --name               The name of the component                                  [string]
+  --description        The description of the component                           [string]
+  --group              The name of an existing component group                    [string]
+  --incubator          Flag as incubator component                               [boolean]
+  --incubator_page_id  Statuspage Page ID for incubator components                [string]
+  --silent             Reduce output to automation email only                    [boolean]
 
 $ npx statuspage setup --group "Delivery"
 Creating component @adobe/helix-example-service in group Delivery
