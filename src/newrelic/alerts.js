@@ -47,13 +47,13 @@ async function purgeIncubatorChannel(auth, name, allPolicies) {
   if (incubatorPolicy) {
     console.log('Removing incubator notification channel', incubatorPolicy.name);
     try {
-      await request.delete(`https://api.newrelic.com/v2/alerts_policies/${incubatorPolicy.id}.json`, {
+      await request.delete(`https://api.newrelic.com/v2/alerts_channels/${incubatorPolicy.id}.json`, {
         headers: {
           'X-Api-Key': auth,
         },
       });
     } catch (e) {
-      console.error('Unable to remove incubator alert policy', e.message);
+      console.error('Unable to remove incubator notification channel', e.message);
     }
   }
 }
