@@ -35,9 +35,10 @@ const {
   CONDITION_THRESHOLD,
 } = require('../src/newrelic/alerts');
 const { getTimedPromise } = require('./utils');
+const { getIncubatorName } = require('../src/utils');
 
 function buildArgs({
-  cmd, auth, url, email, name, groupPolicy, script,
+  cmd, auth, url, email, name, groupPolicy, script, incubator,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -45,8 +46,9 @@ function buildArgs({
   if (email) args.push(email);
   if (auth) args.push('--auth', auth);
   if (name) args.push('--name', `"${name}"`);
-  if (script) args.push('--script', `"${script}"`);
   if (groupPolicy) args.push('--group_policy', `"${groupPolicy}"`);
+  if (script) args.push('--script', `"${script}"`);
+  if (incubator) args.push('--incubator', `${incubator}`);
   return args;
 }
 
@@ -119,6 +121,15 @@ describe('Testing newrelic', () => {
       priority: CONDITION_PRIORITY,
     }],
   };
+  const incubatorChannel = {
+    ...testChannel,
+    id: '1112',
+  };
+  const incubatorPolicy = {
+    ...testPolicy,
+    id: '2223',
+  };
+  const incubator = true;
 
   before(() => {
     sinon.spy(logger, 'log');
@@ -355,7 +366,7 @@ describe('Testing newrelic', () => {
     ]));
   }).timeout(5000);
 
-  it('updates existing monitor with custom setup', async () => {
+  it('updates existing monitor with custom script', async () => {
     const expectedPayload = fs.readFileSync(path.resolve(__dirname, './fixtures/monitor_script.js'))
       .toString()
       .replace('$$$URL$$$', url);
@@ -400,6 +411,186 @@ describe('Testing newrelic', () => {
     });
 
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
+  }).timeout(5000);
+
+  it('creates a new incubator monitoring setup', async () => {
+    const test = {};
+    incubatorChannel.name = getIncubatorName(name);
+    incubatorPolicy.name = getIncubatorName(name);
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      // Getting monitors
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
+      // Creating monitor
+      .post(/.*/)
+      .reply(201, () => JSON.stringify(testMonitor))
+      // Getting monitors again
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
+      // Updating locations for monitor
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor))
+      // Updating script for monitor
+      .put(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor));
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      // Getting channels
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ channels: [] }))
+      // Creating incubator notification channel
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok1 = body.channel.name === getIncubatorName(name);
+        return JSON.stringify({ channels: [incubatorChannel] });
+      })
+      // Getting alert policies
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ policies: [] }))
+      // Creating incubator alert policy
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok2 = body.policy.name === getIncubatorName(name);
+        return JSON.stringify({ policy: incubatorPolicy });
+      })
+      // Linking incubator notification channel to incubator alert policy
+      .put(/.*/)
+      .reply(204, (uri, body) => {
+        test.ok3 = body.startsWith(`channel_ids=${incubatorChannel.id}`)
+          && body.endsWith(`policy_id=${incubatorPolicy.id}`);
+        return JSON.stringify({ policy: incubatorPolicy });
+      })
+      // Getting conditions in incubator alert policy
+      .get(/.*/)
+      .reply(200, JSON.stringify({ location_failure_conditions: [] }))
+      // Creating condition in incubator alert policy
+      .post(`/v2/alerts_location_failure_conditions/policies/${incubatorPolicy.id}.json`)
+      .reply(201, (uri, body) => {
+        test.ok4 = body.location_failure_condition.entities.includes(testMonitor.id);
+        return JSON.stringify({ location_failure_conditions: testCondition });
+      });
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy,
+      incubator,
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => test.ok1, 'Incubator notification channel not created'),
+      getTimedPromise(() => test.ok2, 'Incubator alert policy not created'),
+      getTimedPromise(() => test.ok3, 'Incubator channel not linked to incubator alert policy'),
+      getTimedPromise(() => test.ok4, 'Condition not created in incubator alert policy'),
+    ]));
+  }).timeout(5000);
+
+  it('turns incubator monitoring setup into production one', async () => {
+    const test = {};
+    incubatorChannel.name = getIncubatorName(name);
+    incubatorPolicy.name = getIncubatorName(name);
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      // Getting monitors
+      .get(/.*/)
+      .reply(200, () => {
+        test.ok1 = true;
+        return JSON.stringify({ count: 1, monitors: [testMonitor] });
+      })
+      // Updating locations for monitor
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor))
+      // Updating script for monitor
+      .put(/.*/)
+      .reply(204, JSON.stringify(testMonitor));
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      // Getting channels
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ channels: [incubatorChannel] }))
+      // Creating production notification channel
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok1 = body.channel.name === name;
+        return JSON.stringify({ channels: [testChannel] });
+      })
+      // Delete incubator notification channel
+      .delete(/.*/)
+      .reply(200, (uri) => {
+        test.ok2 = uri.endsWith(`${incubatorChannel.id}.json`);
+        return '';
+      })
+      // Getting alert policies
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({
+        policies: [
+          incubatorPolicy,
+          testGroupPolicy,
+        ],
+      }))
+      // Creating production alert policy
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok3 = body.policy.name === name;
+        return JSON.stringify({ policy: testPolicy });
+      })
+      // Linking production notification channel to production alert policy
+      .put(/.*/)
+      .reply(204, (uri, body) => {
+        test.ok4 = body.startsWith(`channel_ids=${testChannel.id}`)
+          && body.endsWith(`policy_id=${testPolicy.id}`);
+        return JSON.stringify({ policy: testPolicy });
+      })
+      // Getting conditions in production alert policy
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ location_failure_conditions: [] }))
+      // Creating condition in production alert policy
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok5 = uri.endsWith(`${testPolicy.id}.json`)
+          && body.location_failure_condition.entities.includes(testMonitor.id);
+        return JSON.stringify({ location_failure_conditions: testCondition });
+      })
+      // Getting conditions in group alert policy
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ location_failure_conditions: [testCondition] }))
+      // Updating condition in group alert policy
+      .put(/.*/)
+      .reply(204, (uri, body) => {
+        test.ok6 = body.location_failure_condition.entities.includes(testMonitor.id);
+        return JSON.stringify({ location_failure_conditions: testCondition });
+      })
+      // Delete incubator alert policy
+      .delete(/.*/)
+      .reply(200, (uri) => {
+        test.ok7 = uri.endsWith(`${incubatorPolicy.id}.json`);
+        return '';
+      });
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy,
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => test.ok1, 'Production notification channel not created'),
+      getTimedPromise(() => test.ok2, 'Incubator notification channel not deleted'),
+      getTimedPromise(() => test.ok3, 'Production alert policy not created'),
+      getTimedPromise(() => test.ok4, 'Production notification channel not linked to production alert policy'),
+      getTimedPromise(() => test.ok5, 'Condition not created in production alert policy'),
+      getTimedPromise(() => test.ok6, 'Condition in group alert policy not updated'),
+      getTimedPromise(() => test.ok7, 'Incubator alert policy not deleted'),
+    ]));
   }).timeout(5000);
 
   it('uses environment variables', async () => {
