@@ -185,7 +185,7 @@ async function getPolicyInfo(auth, policyName) {
       ? response.policies.map(({ id, name }) => ({ id, name }))
       : [];
     if (policyName) {
-      [policy] = allPolicies.filter((pol) => pol.name === policyName);
+      policy = allPolicies.find((pol) => pol.name === policyName);
     }
     return {
       policy,
