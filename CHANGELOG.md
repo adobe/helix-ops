@@ -1,3 +1,19 @@
+# [1.5.0](https://github.com/adobe/helix-ops/compare/v1.4.0...v1.5.0) (2020-03-11)
+
+
+### Bug Fixes
+
+* **monitoring:** missing semicolon ([dedb945](https://github.com/adobe/helix-ops/commit/dedb94510da5b156ae74759e02cdda1a854bae5b))
+* **monitoring:** test fro empty policy array ([a4dfae7](https://github.com/adobe/helix-ops/commit/a4dfae7a41b608a951b31b7e9ea0c01f30fda23d))
+* **monitoring:** wrong return type ([6015f36](https://github.com/adobe/helix-ops/commit/6015f361dfc9bf7f12b300e73713f1e7fd461232))
+* **monitoring:** wrong url for channel deletion ([b52c369](https://github.com/adobe/helix-ops/commit/b52c369733eb89b91a24de031cf7174e3bac20a2))
+
+
+### Features
+
+* **monitoring:** newrelic incubator ([a1d6055](https://github.com/adobe/helix-ops/commit/a1d6055b7185bb3adefe6633967c974c82c9d9ec))
+* **monitoring:** statuspage incubator ([68b47cc](https://github.com/adobe/helix-ops/commit/68b47cc662b62b44c12a1a6002b0aaaf4f7e889d))
+
 # [1.4.0](https://github.com/adobe/helix-ops/compare/v1.3.0...v1.4.0) (2020-01-31)
 
 
