@@ -13,6 +13,11 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const request = require('request-promise-native');
+const { getIncubatorName } = require('../utils');
+
+function getIncubatorPageId(pageId, incubatorPageId) {
+  return incubatorPageId || pageId;
+}
 
 class CLI {
   // eslint-disable-next-line class-methods-use-this
@@ -54,21 +59,21 @@ class CLI {
       }
     }
 
-    async function getComponents(auth, pageid, group, name) {
+    async function getComponentInfo(auth, pageid, group, name) {
       try {
-        const loadedcomponents = await request.get(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
+        const result = {};
+        result.allComps = await request.get(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
           headers: {
             Authorization: auth,
           },
           json: true,
         });
 
-        const result = {};
-        [result.component] = loadedcomponents.filter((comp) => comp.name === name);
+        result.component = result.allComps.find((comp) => comp.name === name);
 
         if (group) {
           // look for the group component
-          [result.compGroup] = loadedcomponents.filter((comp) => comp.group && comp.name === group);
+          result.compGroup = result.allComps.find((comp) => comp.group && comp.name === group);
         }
         return result;
       } catch (e) {
@@ -136,24 +141,67 @@ class CLI {
       return comp;
     }
 
+    async function purgeIncubator(auth, pageid, ipageid, currentComps, name) {
+      let component;
+      if (ipageid) {
+        // search on dedicated incubator page
+        const info = await getComponentInfo(auth, ipageid, null, name);
+        component = info.component;
+      } else if (currentComps) {
+        // search components from current page to avoid additional API call
+        component = currentComps.find((comp) => comp.name === name);
+      }
+      if (component) {
+        logger.log('Deleting incubator component', component.name);
+        try {
+          await request.delete(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
+            json: true,
+            headers: {
+              Authorization: auth,
+            },
+          });
+        } catch (e) {
+          logger.error('Unable to delete incubator component:', e.message);
+        }
+      }
+    }
+
     async function updateOrCreateComponent({
       // eslint-disable-next-line camelcase
-      auth, page_id, group, name, description, silent,
+      auth, pageId, group, name, description, silent, incubator, incubatorPageId,
     }) {
       setLogger(silent);
 
       let comp;
-      const { component, compGroup } = await getComponents(auth, page_id, group, name);
+      const compName = incubator ? getIncubatorName(name) : name;
+      const compPageId = incubator ? getIncubatorPageId(pageId, incubatorPageId) : pageId;
+      const groupName = incubator ? null : group;
+      const { component, compGroup, allComps } = await getComponentInfo(
+        auth,
+        compPageId,
+        groupName,
+        compName,
+      );
       if (component) {
-        logger.log('Reusing existing component', name);
+        logger.log('Reusing existing component', compName);
         // update component
-        comp = await updateComponent(auth, page_id, component, description, compGroup);
+        comp = await updateComponent(auth, compPageId, component, description, compGroup);
       } else {
         // create component
-        comp = await createComponent(auth, page_id, name, description, compGroup);
+        comp = await createComponent(auth, compPageId, compName, description, compGroup);
       }
       if (comp) {
         logger.log('Automation email:', comp.automation_email);
+      }
+      if (!incubator) {
+        // delete same name incubator component
+        await purgeIncubator(
+          auth,
+          pageId,
+          incubatorPageId,
+          allComps,
+          getIncubatorName(name),
+        );
       }
       logger.log('done.');
     }
@@ -187,6 +235,19 @@ class CLI {
           type: 'string',
           describe: 'The name of an existing component group',
           required: false,
+        })
+        .option('incubator', {
+          type: 'boolean',
+          describe: 'Flag as incubator component',
+          required: false,
+          default: false,
+        })
+        .option('incubator_page_id', {
+          type: 'string',
+          alias: 'incubatorPageId',
+          describe: 'Statuspage Page ID for incubator components',
+          required: false,
+          default: false,
         })
         .option('silent', {
           type: 'boolean',
