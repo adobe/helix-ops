@@ -69,11 +69,11 @@ class CLI {
           json: true,
         });
 
-        [result.component] = result.allComps.filter((comp) => comp.name === name);
+        result.component = result.allComps.find((comp) => comp.name === name);
 
         if (group) {
           // look for the group component
-          [result.compGroup] = result.allComps.filter((comp) => comp.group && comp.name === group);
+          result.compGroup = result.allComps.find((comp) => comp.group && comp.name === group);
         }
         return result;
       } catch (e) {
@@ -149,7 +149,7 @@ class CLI {
         component = info.component;
       } else if (currentComps) {
         // search components from current page to avoid additional API call
-        [component] = currentComps.filter((comp) => comp.name === name);
+        component = currentComps.find((comp) => comp.name === name);
       }
       if (component) {
         logger.log('Deleting incubator component', component.name);

@@ -30,7 +30,7 @@ async function getChannelInfo(auth, channelName, email) {
       json: true,
     });
     const allChannels = response.channels || [];
-    const [channel] = allChannels.filter((c) => c.type === CHANNEL_TYPE
+    const channel = allChannels.find((c) => c.type === CHANNEL_TYPE
       && c.name === channelName && c.configuration.recipients === email);
     return {
       channel,
@@ -43,7 +43,7 @@ async function getChannelInfo(auth, channelName, email) {
 }
 
 async function purgeIncubatorChannel(auth, name, allPolicies) {
-  const [incubatorPolicy] = allPolicies ? allPolicies.filter((policy) => policy.name === name) : [];
+  const incubatorPolicy = allPolicies ? allPolicies.find((policy) => policy.name === name) : null;
   if (incubatorPolicy) {
     console.log('Removing incubator notification channel', incubatorPolicy.name);
     try {
@@ -180,15 +180,11 @@ async function getPolicyInfo(auth, policyName) {
       json: true,
     });
 
-    let policy;
     const allPolicies = response.policies
       ? response.policies.map(({ id, name }) => ({ id, name }))
       : [];
-    if (policyName) {
-      policy = allPolicies.find((pol) => pol.name === policyName);
-    }
     return {
-      policy,
+      policy: policyName ? allPolicies.find((pol) => pol.name === policyName) : null,
       allPolicies,
     };
   } catch (e) {
@@ -249,7 +245,7 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
   }
 
   if (!incubator && groupPolicy) {
-    const [group] = policies ? policies.filter((pol) => pol.name === groupPolicy) : [];
+    const group = policies ? policies.find((pol) => pol.name === groupPolicy) : null;
     if (group && group.id !== policy.id) {
       console.log('Verifying group alert policy', group.name);
       await updatePolicy(auth, group, null, monitorId);
@@ -261,9 +257,9 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
 
 async function purgeIncubatorPolicy(auth, name, allPolicies) {
   const incubatorPolicyName = getIncubatorName(name);
-  const [incubatorPolicy] = allPolicies
-    ? allPolicies.filter((policy) => policy.name === incubatorPolicyName)
-    : [];
+  const incubatorPolicy = allPolicies
+    ? allPolicies.find((policy) => policy.name === incubatorPolicyName)
+    : null;
   if (incubatorPolicy) {
     console.log('Removing incubator alert policy', incubatorPolicy.name);
     try {
