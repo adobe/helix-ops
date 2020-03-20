@@ -42,6 +42,10 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
+        incubator:
+            type: boolean
+            default: false
+            description: Flag as incubator project
         newrelic_auth:
             type: env_var_name
             default: NEWRELIC_AUTH
@@ -70,6 +74,10 @@ commands:
             type: env_var_name
             default: STATUSPAGE_PAGE_ID
             description: The ID of the page to add components to in Statuspage
+        statuspage_incubator_page_id:
+            type: env_var_name
+            default: STATUSPAGE_INCUBATOR_PAGE_ID
+            description: The ID of the page to add incubator components to in Statuspage
         statuspage_name:
             type: string
             default: ""
@@ -87,18 +95,18 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
+              incubator="<< parameters.incubator >>"
               nrAuth="<< parameters.newrelic_auth >>"
               nrName="<< parameters.newrelic_name >>"
               nrURL="<< parameters.newrelic_url >>"
               nrScript="<< parameters.newrelic_script >>"
               nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
               spAuth="<< parameters.statuspage_auth >>"
-              spPageID="<< parameters.statuspage_page_id >>"
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
 
               # statuspage automation
-              spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"}`
+              spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"} ${incubator:+--incubator "${incubator}"}`
 
               # new relic automation
               if [ "${nrURL}" == "" ]; then
@@ -108,4 +116,4 @@ commands:
                 actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+.[0-9]+/)[0])"`
                 nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
-              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrScript:+--script "${nrScript}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} 
+              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrScript:+--script "${nrScript}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} ${incubator:+--incubator "${incubator}"}
