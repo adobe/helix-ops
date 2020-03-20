@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/adobe/helix-ops/compare/v1.5.0...v1.6.0) (2020-03-20)
+
+
+### Features
+
+* **monitoring:** add incubator support to helix-post-deploy orb ([eef3989](https://github.com/adobe/helix-ops/commit/eef3989e13a8b25240c122bca59cc73714f1a425))
+
 # [1.5.0](https://github.com/adobe/helix-ops/compare/v1.4.0...v1.5.0) (2020-03-11)
 
 
