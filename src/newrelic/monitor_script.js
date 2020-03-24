@@ -51,20 +51,17 @@ $http.get('$$$URL$$$',
           console.log('Failed to retrieve activation details:', e);
           return;
         }
-        try {
-          details.request = {};
-          console.info('Activation details:', JSON.stringify(details, null, 2));
-          if (typeof details.body === 'object') {
-            $util.insights.set('activation_duration', details.body.duration);
-            $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
-            if (Array.isArray(details.body.annotations)) {
-              details.body.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
-                $util.insights.set(`activation_${ann.key}`, ann.value);
-              });
-            }
+        details.request = {};
+        console.info('Activation details:', JSON.stringify(details, null, 2));
+        assert.equal(details.statusCode, '200', `Expected a 200 OK action response, got: ${details.statusCode}`);
+        if (typeof details.body === 'object') {
+          $util.insights.set('activation_duration', details.body.duration);
+          $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
+          if (Array.isArray(details.body.annotations)) {
+            details.body.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
+              $util.insights.set(`activation_${ann.key}`, ann.value);
+            });
           }
-        } catch (ie) {
-          console.error('Error storing insights:', ie);
         }
       });
     }
