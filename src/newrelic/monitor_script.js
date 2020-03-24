@@ -54,11 +54,15 @@ $http.get('$$$URL$$$',
         try {
           details.request = {};
           console.info('Activation details:', JSON.stringify(details, null, 2));
-          $util.insights.set('activation_duration', details.body.duration);
-          $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
-          details.body.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
-            $util.insights.set(`activation_${ann.key}`, ann.value);
-          });
+          if (typeof details.body === 'object') {
+            $util.insights.set('activation_duration', details.body.duration);
+            $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
+            if (Array.isArray(details.body.annotations)) {
+              details.body.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
+                $util.insights.set(`activation_${ann.key}`, ann.value);
+              });
+            }
+          }
         } catch (ie) {
           console.error('Error storing insights:', ie);
         }
