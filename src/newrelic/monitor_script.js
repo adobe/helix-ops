@@ -51,10 +51,12 @@ $http.get('$$$URL$$$',
           console.log('Failed to retrieve activation details:', e);
           return;
         }
+        const hasBody = typeof details.body === 'object';
         details.request = {};
         console.info('Activation details:', JSON.stringify(details, null, 2));
-        assert.equal(details.statusCode, '200', `Expected a 200 OK action response, got: ${details.statusCode}`);
-        if (typeof details.body === 'object') {
+        // store insights
+        $util.insights.set('activation_status', details.statusCode);
+        if (hasBody) {
           $util.insights.set('activation_duration', details.body.duration);
           $util.insights.set('wsk_overhead', details.body.duration - status.response_time);
           if (Array.isArray(details.body.annotations)) {
@@ -62,6 +64,17 @@ $http.get('$$$URL$$$',
               $util.insights.set(`activation_${ann.key}`, ann.value);
             });
           }
+        }
+        // check result
+        if (details.statusCode === 200) {
+          if (hasBody && typeof details.body.response === 'object'
+            && typeof details.body.response.result === 'object') {
+            const { statusCode: actionStatus } = details.body.response.result;
+            assert.equal(actionStatus, 200, `Expected a 200 OK action result, got: ${actionStatus}`);
+          }
+        } else {
+          // failed to retrieve activation details, but assuming service itself is working
+          console.info('Service operational, but unable to retrieve activation details');
         }
       });
     }
