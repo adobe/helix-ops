@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/adobe/helix-ops/compare/v1.7.0...v1.7.1) (2020-03-25)
+
+
+### Bug Fixes
+
+* **monitoring:** relax if activation result cannot be retrieved ([22aaed5](https://github.com/adobe/helix-ops/commit/22aaed534ffdefb37d47d6df3866eec0385bd139))
+
 # [1.7.0](https://github.com/adobe/helix-ops/compare/v1.6.0...v1.7.0) (2020-03-25)
 
 
