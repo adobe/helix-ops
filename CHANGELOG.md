@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/adobe/helix-ops/compare/v1.6.0...v1.7.0) (2020-03-25)
+
+
+### Bug Fixes
+
+* **monitor_script:** guard against runtime errors ([059260d](https://github.com/adobe/helix-ops/commit/059260dac3a4cbcd5bbc799584558b4f5b82e1bf)), closes [#48](https://github.com/adobe/helix-ops/issues/48)
+
+
+### Features
+
+* **monitoring:** throw if activation statusCode is not 200 ([5ccfcec](https://github.com/adobe/helix-ops/commit/5ccfcec2aa850e0a0a17960c1a1007ea4f0be1db))
+
 # [1.6.0](https://github.com/adobe/helix-ops/compare/v1.5.0...v1.6.0) (2020-03-20)
 
 
