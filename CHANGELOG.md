@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/adobe/helix-ops/compare/v1.7.1...v1.7.2) (2020-03-26)
+
+
+### Bug Fixes
+
+* **deps:** update dependency fs-extra to v9 ([70dd814](https://github.com/adobe/helix-ops/commit/70dd814f893d2e771fbb89abc7a55caa7fbd69b6))
+
 ## [1.7.1](https://github.com/adobe/helix-ops/compare/v1.7.0...v1.7.1) (2020-03-25)
 
 
