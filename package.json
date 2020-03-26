@@ -1,14 +1,14 @@
 {
   "name": "@adobe/helix-ops",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Operational tooling for Project Helix services",
   "bin": {
     "newrelic": "src/newrelic.js",
     "statuspage": "src/statuspage.js"
   },
   "scripts": {
-    "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 95 --lines 95 mocha",
-    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 95 --lines 95 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
+    "test": " nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 94 --lines 94 mocha",
+    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --branches 85 --statements 94 --lines 94 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
     "lint": "./node_modules/.bin/eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx jsdoc2md -c .jsdoc.json --files 'src/*.js'  > docs/API.md",
@@ -26,7 +26,7 @@
   "homepage": "https://github.com/adobe/helix-ops#readme",
   "dependencies": {
     "diff": "4.0.2",
-    "fs-extra": "8.1.0",
+    "fs-extra": "9.0.0",
     "get-stream": "5.1.0",
     "git-log-parser": "1.2.0",
     "request": "2.88.2",
