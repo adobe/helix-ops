@@ -37,7 +37,7 @@ $http.get('$$$URL$$$',
       console.error(body);
     }
     // retrieve activation details via OpenWhisk REST API:
-    // http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations/getActivationById
+    // https://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations/getActivationById
     const id = response.headers['x-openwhisk-activation-id'];
     if (id) {
       // $http -> https://github.com/request/request
