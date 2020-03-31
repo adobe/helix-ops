@@ -72,7 +72,7 @@ class CLI {
         .implies('type', 'script') // if type is set, a script must be provided
         .option('script', {
           type: 'string',
-          describe: 'The path to a custom monitor script ',
+          describe: 'The path to a custom monitor script',
           required: false,
         });
     }
