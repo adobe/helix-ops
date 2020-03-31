@@ -88,6 +88,7 @@ Options:
   --name          The name of the monitor, channel and policy           [string]
   --group_policy  The name of a common policy to add the monitor to     [string]
   --incubator     Flag as incubator setup                              [boolean]
+  --type          The type of monitor (api or browser)                  [string]
   --script        The path to the custom monitor script to use          [string]
 
 $ npx newrelic setup \

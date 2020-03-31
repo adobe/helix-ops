@@ -64,9 +64,15 @@ class CLI {
           describe: 'Flag as incubator setup',
           required: false,
         })
+        .option('type', {
+          type: 'string',
+          describe: 'The type of monitor (api or browser)',
+          required: false,
+        })
+        .implies('type', 'script') // if type is set, a script must be provided
         .option('script', {
           type: 'string',
-          describe: 'The path to the custom monitor script to use',
+          describe: 'The path to a custom monitor script ',
           required: false,
         });
     }
@@ -75,10 +81,10 @@ class CLI {
       .scriptName('newrelic')
       .usage('$0 <cmd>')
       .command('setup url email', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
-        auth, name, url, email, group_policy, incubator, script,
+        auth, name, url, email, group_policy, incubator, script, type,
       }) => {
         await updateOrCreatePolicies(auth, name, group_policy,
-          await updateOrCreateMonitor(auth, name, url, script),
+          await updateOrCreateMonitor(auth, name, url, script, type),
           email ? await reuseOrCreateChannel(auth, name, email, incubator) : null,
           incubator);
         console.log('done.');
