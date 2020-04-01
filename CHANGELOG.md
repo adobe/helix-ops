@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/adobe/helix-ops/compare/v1.7.2...v1.8.0) (2020-04-01)
+
+
+### Features
+
+* **monitoring:** ability to create scripted browser monitors ([#54](https://github.com/adobe/helix-ops/issues/54)) ([ad56ee1](https://github.com/adobe/helix-ops/commit/ad56ee17a731fd9b46741adab1df5fe5fdec3feb))
+
 ## [1.7.2](https://github.com/adobe/helix-ops/compare/v1.7.1...v1.7.2) (2020-03-26)
 
 
