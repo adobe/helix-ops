@@ -34,7 +34,10 @@ const MONITOR_LOCATIONS = [
   'AWS_US_WEST_1',
   'AWS_US_WEST_2',
 ];
-const MONITOR_TYPE = 'SCRIPT_API';
+const MONITOR_TYPE = {
+  api: 'SCRIPT_API',
+  browser: 'SCRIPT_BROWSER',
+};
 
 /* eslint-disable no-console */
 
@@ -75,7 +78,7 @@ async function getMonitors(auth, monitorname) {
   }
 }
 
-async function updateMonitor(auth, monitor, url, script) {
+async function updateMonitor(auth, monitor, url, script, type) {
   console.log('Updating locations for monitor', monitor.name);
   try {
     await request.patch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
@@ -84,6 +87,7 @@ async function updateMonitor(auth, monitor, url, script) {
         'X-Api-Key': auth,
       },
       body: {
+        type,
         locations: MONITOR_LOCATIONS,
       },
     });
@@ -114,12 +118,13 @@ async function updateMonitor(auth, monitor, url, script) {
   }
 }
 
-async function updateOrCreateMonitor(auth, name, url, script) {
+async function updateOrCreateMonitor(auth, name, url, script, monType) {
+  const type = MONITOR_TYPE[monType] || MONITOR_TYPE.api;
   const [monitor] = await getMonitors(auth, name);
 
   if (monitor) {
     // update
-    await updateMonitor(auth, monitor, url, script);
+    await updateMonitor(auth, monitor, url, script, type);
   } else {
     // create
     console.log('Creating monitor', name);
@@ -131,14 +136,14 @@ async function updateOrCreateMonitor(auth, name, url, script) {
         },
         body: {
           name,
-          type: MONITOR_TYPE,
+          type,
           frequency: MONITOR_FREQUENCY,
           locations: MONITOR_LOCATIONS,
           status: MONITOR_STATUS,
           slaThreshold: MONITOR_THRESHOLD,
         },
       });
-      return await updateOrCreateMonitor(auth, name, url, script);
+      return await updateOrCreateMonitor(auth, name, url, script, monType);
     } catch (e) {
       console.error('Monitor creation failed:', e.message);
       process.exit(1);

@@ -38,7 +38,7 @@ const { getTimedPromise } = require('./utils');
 const { getIncubatorName } = require('../src/utils');
 
 function buildArgs({
-  cmd, auth, url, email, name, groupPolicy, script, incubator,
+  cmd, auth, url, email, name, groupPolicy, type, script, incubator,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -47,6 +47,7 @@ function buildArgs({
   if (auth) args.push('--auth', auth);
   if (name) args.push('--name', `"${name}"`);
   if (groupPolicy) args.push('--group_policy', `"${groupPolicy}"`);
+  if (type) args.push('--type', `"${type}"`);
   if (script) args.push('--script', `"${script}"`);
   if (incubator) args.push('--incubator', `${incubator}`);
   return args;
@@ -82,8 +83,9 @@ describe('Testing newrelic', () => {
     locations: MONITOR_LOCATIONS,
     status: MONITOR_STATUS,
     slaThreshold: MONITOR_THRESHOLD,
-    type: MONITOR_TYPE,
+    type: MONITOR_TYPE.api,
   };
+  const browserMonitor = { ...testMonitor, type: MONITOR_TYPE.browser };
   const testChannel = {
     id: '1111',
     type: CHANNEL_TYPE,
@@ -173,6 +175,18 @@ describe('Testing newrelic', () => {
     assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
     assert.ok(/Missing required argument: auth/.test(output.stderr), 'expected missing required arguments');
   }).timeout(5000);
+
+  it('refuses to run without dependent arguments', async () => {
+    const output = await runShell({
+      cmd,
+      url,
+      email,
+      auth,
+      type: 'api', // type requires dependent argument script
+    });
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.ok(/Missing dependent arguments:\n type/.test(output.stderr), 'expected missing dependent arguments');
+  });
 
   it('creates a new monitoring setup', async () => {
     const test = {};
@@ -366,10 +380,54 @@ describe('Testing newrelic', () => {
     ]));
   }).timeout(5000);
 
+  it('creates new monitor with custom script', async () => {
+    let ok = false;
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
+      .post(/.*/)
+      .reply(201, () => JSON.stringify(testMonitor))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor))
+      // Updating custom script for monitor
+      .put(/.*/)
+      .reply(204, (uri, body) => {
+        ok = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
+          .toString()
+          .replace('$$$URL$$$', url);
+        return JSON.stringify(testMonitor);
+      });
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
+      .put(/.*/)
+      .reply(204, () => JSON.stringify({ policy: testPolicy }))
+      .get(/.*/)
+      .reply(200, JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy,
+      script,
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => ok, 'Custom monitor script not used'),
+    ]));
+  });
+
   it('updates existing monitor with custom script', async () => {
-    const expectedPayload = fs.readFileSync(path.resolve(__dirname, './fixtures/monitor_script.js'))
-      .toString()
-      .replace('$$$URL$$$', url);
     let ok = false;
 
     // synthetics API
@@ -378,10 +436,12 @@ describe('Testing newrelic', () => {
       .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
       .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
       .reply(204, () => JSON.stringify(testMonitor))
-      // Updating script for monitor
+      // Updating custom script for monitor
       .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
       .reply(204, (uri, body) => {
-        ok = Buffer.from(body.scriptText, 'base64').toString() === expectedPayload;
+        ok = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
+          .toString()
+          .replace('$$$URL$$$', url);
         return JSON.stringify(testMonitor);
       });
 
@@ -413,6 +473,60 @@ describe('Testing newrelic', () => {
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
   }).timeout(5000);
 
+  it('creates monitor with type browser and custom script', async () => {
+    browserMonitor.name = testMonitor.name;
+    const test = {};
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
+      // Creating browser monitor
+      .post(/.*/)
+      .reply(201, (uri, body) => {
+        test.ok1 = body.type === MONITOR_TYPE.browser;
+        return JSON.stringify(browserMonitor);
+      })
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [browserMonitor] }))
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(browserMonitor))
+      // Updating custom script for monitor
+      .put(/.*/)
+      .reply(204, (uri, body) => {
+        test.ok2 = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
+          .toString()
+          .replace('$$$URL$$$', url);
+        return JSON.stringify(browserMonitor);
+      });
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
+      .put(/.*/)
+      .reply(204, () => JSON.stringify({ policy: testPolicy }))
+      .get(/.*/)
+      .reply(200, JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy,
+      type: 'browser',
+      script,
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => test.ok1, 'Monitor with type browser not created'),
+      getTimedPromise(() => test.ok2, 'Custom monitor script not used'),
+    ]));
+  });
+
   it('creates a new incubator monitoring setup', async () => {
     const test = {};
     incubatorChannel.name = getIncubatorName(name);
@@ -420,25 +534,19 @@ describe('Testing newrelic', () => {
 
     // synthetics API
     nock('https://synthetics.newrelic.com')
-      // Getting monitors
       .get(/.*/)
       .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
-      // Creating monitor
       .post(/.*/)
       .reply(201, () => JSON.stringify(testMonitor))
-      // Getting monitors again
       .get(/.*/)
       .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      // Updating locations for monitor
       .patch(/.*/)
       .reply(204, () => JSON.stringify(testMonitor))
-      // Updating script for monitor
       .put(/.*/)
       .reply(204, () => JSON.stringify(testMonitor));
 
     // alerts API
     nock('https://api.newrelic.com')
-      // Getting channels
       .get(/.*/)
       .reply(200, () => JSON.stringify({ channels: [] }))
       // Creating incubator notification channel
@@ -447,7 +555,6 @@ describe('Testing newrelic', () => {
         test.ok1 = body.channel.name === getIncubatorName(name);
         return JSON.stringify({ channels: [incubatorChannel] });
       })
-      // Getting alert policies
       .get(/.*/)
       .reply(200, () => JSON.stringify({ policies: [] }))
       // Creating incubator alert policy
@@ -463,7 +570,6 @@ describe('Testing newrelic', () => {
           && body.endsWith(`policy_id=${incubatorPolicy.id}`);
         return JSON.stringify({ policy: incubatorPolicy });
       })
-      // Getting conditions in incubator alert policy
       .get(/.*/)
       .reply(200, JSON.stringify({ location_failure_conditions: [] }))
       // Creating condition in incubator alert policy
@@ -497,22 +603,15 @@ describe('Testing newrelic', () => {
 
     // synthetics API
     nock('https://synthetics.newrelic.com')
-      // Getting monitors
       .get(/.*/)
-      .reply(200, () => {
-        test.ok1 = true;
-        return JSON.stringify({ count: 1, monitors: [testMonitor] });
-      })
-      // Updating locations for monitor
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
       .patch(/.*/)
       .reply(204, () => JSON.stringify(testMonitor))
-      // Updating script for monitor
       .put(/.*/)
       .reply(204, JSON.stringify(testMonitor));
 
     // alerts API
     nock('https://api.newrelic.com')
-      // Getting channels
       .get(/.*/)
       .reply(200, () => JSON.stringify({ channels: [incubatorChannel] }))
       // Creating production notification channel
@@ -521,7 +620,7 @@ describe('Testing newrelic', () => {
         test.ok1 = body.channel.name === name;
         return JSON.stringify({ channels: [testChannel] });
       })
-      // Delete incubator notification channel
+      // Deleting incubator notification channel
       .delete(/.*/)
       .reply(200, (uri) => {
         test.ok2 = uri.endsWith(`${incubatorChannel.id}.json`);
@@ -548,7 +647,6 @@ describe('Testing newrelic', () => {
           && body.endsWith(`policy_id=${testPolicy.id}`);
         return JSON.stringify({ policy: testPolicy });
       })
-      // Getting conditions in production alert policy
       .get(/.*/)
       .reply(200, () => JSON.stringify({ location_failure_conditions: [] }))
       // Creating condition in production alert policy
@@ -558,7 +656,6 @@ describe('Testing newrelic', () => {
           && body.location_failure_condition.entities.includes(testMonitor.id);
         return JSON.stringify({ location_failure_conditions: testCondition });
       })
-      // Getting conditions in group alert policy
       .get(/.*/)
       .reply(200, () => JSON.stringify({ location_failure_conditions: [testCondition] }))
       // Updating condition in group alert policy
@@ -567,7 +664,7 @@ describe('Testing newrelic', () => {
         test.ok6 = body.location_failure_condition.entities.includes(testMonitor.id);
         return JSON.stringify({ location_failure_conditions: testCondition });
       })
-      // Delete incubator alert policy
+      // Deleting incubator alert policy
       .delete(/.*/)
       .reply(200, (uri) => {
         test.ok7 = uri.endsWith(`${incubatorPolicy.id}.json`);
