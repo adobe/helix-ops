@@ -5,6 +5,7 @@ executors:
     - image: circleci/node:10-stretch
     environment:
       NPM_CONFIG_PREFIX: ~/.npm-global
+      LC_ALL: en_US.UTF-8
 
 commands:
   setup:
