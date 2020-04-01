@@ -90,7 +90,9 @@ async function getOrbs() {
 async function diffOrb(orb) {
   logger.log('Checking orb %s', orb.name);
   let ret = false;
-  const pubFile = `${(await fs.ensureDir(`/tmp/${orb.name}-${Date.now()}`))}/src.yml`;
+  const tmpDir = `/tmp/${orb.name}-${Date.now()}`;
+  const pubFile = `${tmpDir}/src.yml`;
+  await fs.ensureDir(tmpDir);
   shell.exec(`~/circleci orb source ${config.namespace}/${orb.name} > "${pubFile}"`);
   if (shell.error()) {
     return ret;
