@@ -41,7 +41,7 @@ class CLI {
         .positional('email', {
           type: 'string',
           describe: 'The email address to send alerts to',
-          required: true,
+          required: false,
         })
         .option('auth', {
           type: 'string',
@@ -80,7 +80,7 @@ class CLI {
     return yargs
       .scriptName('newrelic')
       .usage('$0 <cmd>')
-      .command('setup url email', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
+      .command('setup url [email]', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
         auth, name, url, email, group_policy, incubator, script, type,
       }) => {
         await updateOrCreatePolicies(auth, name, group_policy,
