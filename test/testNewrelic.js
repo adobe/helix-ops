@@ -380,6 +380,88 @@ describe('Testing newrelic', () => {
     ]));
   }).timeout(5000);
 
+  it('ignores same name group alert policy', async () => {
+    let getConditionsInAlertPolicy = 0;
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor))
+      .put(/.*/)
+      .reply(204, JSON.stringify(testMonitor));
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ policies: [testPolicy, testGroupPolicy] }))
+      .put(/.*/)
+      .reply(200, () => JSON.stringify({ policy: testPolicy }))
+      // Getting conditions in alert policy
+      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
+      .twice() // listen twice but more than once means failure
+      .reply(200, () => {
+        getConditionsInAlertPolicy += 1;
+        return JSON.stringify({ location_failure_conditions: [testExistingCondition] });
+      });
+
+    await run({
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy: name, // reuse same name for group policy
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => (getConditionsInAlertPolicy === 1), 'Condition list retrieved from same policy more than once'),
+    ]));
+  }).timeout(5000);
+
+  it('creates a new monitoring setup without email', async () => {
+    let ok = false;
+
+    // synthetics API
+    nock('https://synthetics.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
+      .post(/.*/)
+      .reply(201, () => JSON.stringify(testMonitor))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
+      .patch(/.*/)
+      .reply(204, () => JSON.stringify(testMonitor))
+      .put(/.*/)
+      .reply(204, JSON.stringify(testMonitor));
+
+    // alerts API
+    nock('https://api.newrelic.com')
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ policies: [testGroupPolicy] }))
+      .get(/.*/)
+      .reply(200, () => JSON.stringify({ location_failure_conditions: [testCondition] }))
+      // Updating condition in group alert policy
+      .put(`/v2/alerts_location_failure_conditions/${testCondition.id}.json`)
+      .reply(200, (uri, body) => {
+        ok = body.location_failure_condition.entities.includes(testMonitor.id);
+        return JSON.stringify({ location_failure_conditions: testCondition });
+      });
+
+    await run({
+      cmd,
+      url,
+      auth,
+      name,
+      groupPolicy,
+    });
+    assert.ok(await Promise.all([
+      getTimedPromise(() => ok, 'Monitor not added to group alert policy'),
+    ]));
+  });
+
   it('creates new monitor with custom script', async () => {
     let ok = false;
 
@@ -763,7 +845,7 @@ describe('Testing newrelic', () => {
       name,
     });
 
-    assert.ok(await getTimedPromise(() => exitCount === 3, 'Did not exit with code 1 on three occasions'));
+    assert.ok(await getTimedPromise(() => exitCount === 2, 'Did not exit with code 1 on two occasions'));
     process.exit = originalExit;
   }).timeout(5000);
 });

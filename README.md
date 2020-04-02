@@ -75,11 +75,11 @@ $ npx newrelic
 newrelic <cmd> url email
 
 Commands:
-  newrelic setup url email  Create or update a New Relic setup
+  newrelic setup url [email]  Create or update a New Relic setup
 
 Positionals:
   url    The URL to check                                    [string] [required]
-  email  The email address to send alerts to                 [string] [required]
+  email  The email address to send alerts to                            [string]
 
 Options:
   --version       Show version number                                  [boolean]

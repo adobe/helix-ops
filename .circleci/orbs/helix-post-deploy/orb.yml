@@ -109,9 +109,12 @@ commands:
               spAuth="<< parameters.statuspage_auth >>"
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
+              spEmail=""
 
               # statuspage automation
-              spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"} ${incubator:+--incubator "${incubator}"}`
+              if [ "${spName}${spGroup}" != "" ]; then
+                spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"} ${incubator:+--incubator "${incubator}"}`
+              fi
 
               # new relic automation
               if [ "${nrURL}" == "" ]; then

@@ -101,10 +101,8 @@ async function reuseOrCreateChannel(auth, name, email, incubator) {
 }
 
 async function getConditions(auth, policy) {
+  if (!policy || !policy.id) return [];
   try {
-    if (!policy || !policy.id) {
-      throw Error('No policy specified');
-    }
     const response = await request.get(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
       json: true,
       headers: {
@@ -120,11 +118,9 @@ async function getConditions(auth, policy) {
 }
 
 async function createCondition(auth, policy, monitorId) {
+  if (!policy || !policy.id) return;
   console.log('Creating condition in alert policy');
   try {
-    if (!policy || !policy.id) {
-      throw Error('No policy specified');
-    }
     await request.post(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
       json: true,
       headers: {
@@ -217,7 +213,7 @@ async function createPolicy(auth, name) {
 }
 
 async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
-  if (channelId) {
+  if (channelId && policy) {
     // add notification channel
     console.log('Linking notification channel to alert policy', policy.name);
     try {
@@ -246,7 +242,12 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
 
   if (!incubator && groupPolicy) {
     const group = policies ? policies.find((pol) => pol.name === groupPolicy) : null;
-    if (group && group.id !== policy.id) {
+    if (group) {
+      // make sure policy and group policy are not the same
+      if (policy && policy.id && policy.id === group.id) {
+        console.error('Group alert policy and alert policy must differ');
+        return;
+      }
       console.log('Verifying group alert policy', group.name);
       await updatePolicy(auth, group, null, monitorId);
     } else {
@@ -280,7 +281,7 @@ async function updateOrCreatePolicies(auth, name, groupPolicy, monitorId, channe
   const { allPolicies } = info;
   let { policy } = info;
 
-  if (!policy) {
+  if (channelId && !policy) {
     // create policy
     policy = await createPolicy(auth, policyName);
   }
