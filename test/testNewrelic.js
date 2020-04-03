@@ -34,6 +34,8 @@ const {
   CONDITION_PRIORITY,
   CONDITION_THRESHOLD,
 } = require('../src/newrelic/alerts');
+const SyntheticsAPI = require('./newrelic/SyntheticsAPI');
+// const AlertsAPI = require('./newrelic/AlertsAPI');
 const { getTimedPromise } = require('./utils');
 const { getIncubatorName } = require('../src/utils');
 
@@ -76,7 +78,7 @@ describe('Testing newrelic', () => {
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
   const groupPolicy = 'Test Group Policy';
-  const script = path.resolve(__dirname, './fixtures/monitor_script.js');
+  const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
   const testMonitor = {
     id: '0000',
     frequency: MONITOR_FREQUENCY,
@@ -188,38 +190,27 @@ describe('Testing newrelic', () => {
     assert.ok(/Missing dependent arguments:\n type/.test(output.stderr), 'expected missing dependent arguments');
   });
 
-  it('creates a new monitoring setup', async () => {
+  it.only('creates a new monitoring setup', async () => {
     const test = {};
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      // Getting monitors
-      .get(/.*/)
-      .reply(200, () => {
+    new SyntheticsAPI({
+      monitor: testMonitor,
+    })
+      .on(SyntheticsAPI.GET_MONITORS, () => {
         test.ok1 = true;
-        return JSON.stringify({ count: 0, monitors: [] });
       })
-      // Creating monitor
-      .post('/synthetics/api/v3/monitors')
-      .reply(201, (uri, body) => {
-        test.ok2 = body.name === name;
-        return JSON.stringify(testMonitor);
+      .on(SyntheticsAPI.CREATE_MONITOR, (uri, req) => {
+        test.ok2 = req.name === name;
       })
-      // Getting monitors again
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      // Updating locations for monitor
-      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
-      .reply(204, (uri, body) => {
-        test.ok3 = body.locations.includes(MONITOR_LOCATIONS[0]);
-        return JSON.stringify(testMonitor);
+      .on(SyntheticsAPI.UPDATE_LOCATIONS, (uri, req) => {
+        test.ok3 = typeof req.locations === 'object'
+          && req.locations.includes(MONITOR_LOCATIONS[0]);
       })
-      // Updating script for monitor
-      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
-      .reply(204, (uri, body) => {
-        test.ok4 = Buffer.from(body.scriptText, 'base64').toString('utf-8').startsWith('/*');
-        return JSON.stringify(testMonitor);
-      });
+      .on(SyntheticsAPI.UPDATE_SCRIPT, (uri, req) => {
+        test.ok4 = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString('utf-8').startsWith('/*');
+      })
+      .start();
 
     // alerts API
     nock('https://api.newrelic.com')
