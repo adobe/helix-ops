@@ -67,4 +67,4 @@ class AbstractAPI extends EventEmitter {
   }
 }
 
-module.export = AbstractAPI;
+module.exports = AbstractAPI;
