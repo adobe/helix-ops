@@ -112,16 +112,6 @@ describe('Testing newrelic', () => {
       priority: CONDITION_PRIORITY,
     }],
   };
-  const testExistingCondition = {
-    id: '5555',
-    name: CONDITION_NAME,
-    enabled: true,
-    entities: [testMonitor.id],
-    terms: [{
-      threshold: CONDITION_THRESHOLD,
-      priority: CONDITION_PRIORITY,
-    }],
-  };
 
   function apiConfig(overrides) {
     return {
