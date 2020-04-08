@@ -1,3 +1,15 @@
+# [1.9.0](https://github.com/adobe/helix-ops/compare/v1.8.0...v1.9.0) (2020-04-02)
+
+
+### Bug Fixes
+
+* **ci:** orb release can fail [skip ci] ([#56](https://github.com/adobe/helix-ops/issues/56)) ([89c6417](https://github.com/adobe/helix-ops/commit/89c6417c135accf33dfe657e483edf7474b87490))
+
+
+### Features
+
+* **monitoring:** make email optional ([#57](https://github.com/adobe/helix-ops/issues/57)) ([35e188c](https://github.com/adobe/helix-ops/commit/35e188c3e92d8efa480961fee399b50d9f6a89c9))
+
 # [1.8.0](https://github.com/adobe/helix-ops/compare/v1.7.2...v1.8.0) (2020-04-01)
 
 
