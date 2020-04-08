@@ -11,6 +11,7 @@
  */
 /* eslint-env mocha */
 const EventEmitter = require('events');
+const nock = require('nock');
 
 /**
  * Abstract API simulator.
@@ -20,8 +21,6 @@ class AbstractAPI extends EventEmitter {
    * Creates a new API simulator.
    * @param {object} opts An object containing configuration options:
    * <ul>
-   *  <li>{boolean} new     <code>true</code> (default) to create new instances,
-   *                        <code>false</code> to update an existing instances</li>
    *  <li>{boolean} success <code>true</code> (default) to simulate normal operation,
    *                        <code>false</code> to simulate API failure</li>
    * </ul>
@@ -31,7 +30,6 @@ class AbstractAPI extends EventEmitter {
     this.errorCode = 500;
     this.errorMsg = 'Internal Server Error';
     this.cfg = {
-      new: true,
       success: true,
       ...opts,
     };
@@ -59,11 +57,24 @@ class AbstractAPI extends EventEmitter {
   }
 
   /**
-   * Sets up HTTP request interceptors using "nock".
+   * Starts HTTP request interceptors using "nock".
+   * @abstract to be implemented in extending class
    */
-  // eslint-disable-next-line class-methods-use-this
   start() {
+    if (!nock.isActive()) {
+      nock.activate();
+    }
     // nock(...)
+    return this;
+  }
+
+  /**
+   * Stops HTTP request interceptors using "nock".
+   */
+  stop() {
+    nock.restore();
+    nock.cleanAll();
+    return this;
   }
 }
 
