@@ -243,11 +243,20 @@ class NewRelicAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(NewRelicAPI.GET_CONDITIONS, uri, req);
-      const resp = JSON.stringify(ctx.cfg.new
-          && !uri.includes(ctx.cfg.groupPolicy.id)
-          && !ctx.conditionCreated
-        ? { location_failure_conditions: [] }
-        : { location_failure_conditions: [ctx.cfg.condition] });
+      const conditions = [];
+      if (ctx.cfg.new) {
+        // new alert policy has no condition yet
+        if (uri.includes(ctx.cfg.groupPolicy.id)) {
+          // group alert policy has condition, but not linked to monitor yet
+          ctx.cfg.condition.entities = [];
+          conditions.push(ctx.cfg.condition);
+        }
+      } else {
+        // existing alert policies have conditions linked to monitor
+        ctx.cfg.condition.entities = [ctx.cfg.monitor.id];
+        conditions.push(ctx.cfg.condition);
+      }
+      const resp = JSON.stringify({ location_failure_conditions: conditions });
       return ctx.reply(resp);
     };
   }
@@ -263,7 +272,6 @@ class NewRelicAPI extends AbstractAPI {
     return (uri, req) => {
       ctx.emit(NewRelicAPI.CREATE_CONDITION, uri, req);
       const resp = JSON.stringify({ location_failure_condition: ctx.cfg.condition });
-      ctx.conditionCreated = true;
       return ctx.reply(resp);
     };
   }

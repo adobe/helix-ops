@@ -277,11 +277,6 @@ describe('Testing newrelic', () => {
         test.ok3 = req.startsWith(`channel_ids=${testChannel.id}`);
       })
       .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
-      .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
-        test.ok4 = req.location_failure_condition
-          && typeof req.location_failure_condition.entities === 'object'
-          && typeof req.location_failure_condition.entities.includes(testMonitor.id);
-      })
       .start();
 
     await run(runConfig());
@@ -289,7 +284,6 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok1, 'Monitor locations not updated'),
       getTimedPromise(() => test.ok2, 'Monitor script not updated'),
       getTimedPromise(() => test.ok3, 'Channel not linked to policy'),
-      getTimedPromise(() => test.ok4, 'Condition not updated'),
     ]));
     api.stop();
   }).timeout(5000);
