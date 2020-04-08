@@ -15,7 +15,7 @@ const AbstractAPI = require('../AbstractAPI');
 
 /**
  * Simulates the New Relic APIs
- * <a href="https://docs.newrelic.com/docs/apis/synthetics-rest-api/monitor-examples/manage-synthetics-monitors-rest-api"> Synthetics v3</a< and
+ * <a href="https://docs.newrelic.com/docs/apis/synthetics-rest-api/monitor-examples/manage-synthetics-monitors-rest-api"> Synthetics v3</a> and
  * <a href="https://docs.newrelic.com/docs/alerts/rest-api-alerts/new-relic-alerts-rest-api/rest-api-calls-new-relic-alerts">Alerts v2</a>.
  */
 class NewRelicAPI extends AbstractAPI {
@@ -33,7 +33,7 @@ class NewRelicAPI extends AbstractAPI {
    *  <li>{boolean} new          <code>true</code> (default) to create a new monitoring setup,
    *                             <code>false</code> to update an existing one</li>
    *  <li>{boolean} incubator    <code>true</code> to create a new incubator monitoring setup,
-   *                             <code>false</code> (false) to create a production one</li>
+   *                             <code>false</code> (default) to create a production one</li>
    * </ul>
    */
   constructor(opts) {
