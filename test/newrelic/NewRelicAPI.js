@@ -179,7 +179,7 @@ class NewRelicAPI extends AbstractAPI {
         policies.push(ctx.cfg.policy);
       }
       if (!ctx.cfg.incubator && ctx.cfg.incubatorPolicy) {
-        // there is an nexisting incubator alert policy
+        // there is an existing incubator alert policy
         policies.push(ctx.cfg.incubatorPolicy);
       }
       return ctx.reply(JSON.stringify({ policies }));
