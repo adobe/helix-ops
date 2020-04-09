@@ -75,9 +75,8 @@ describe('Testing newrelic', () => {
   const auth = 'test-auth';
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
-  const groupPolicy = 'Test Group Policy';
   const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
-  const testMonitor = {
+  const monitor = {
     id: '0000',
     frequency: MONITOR_FREQUENCY,
     locations: MONITOR_LOCATIONS,
@@ -85,7 +84,7 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
-  const testChannel = {
+  const channel = {
     id: '1111',
     type: CHANNEL_TYPE,
     configuration: {
@@ -93,16 +92,16 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
-  const testPolicy = {
+  const policy = {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const testGroupPolicy = {
+  const groupPolicy = {
     id: '3333',
-    name: groupPolicy,
+    name: 'Test Group Policy',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const testCondition = {
+  const condition = {
     id: '4444',
     name: CONDITION_NAME,
     enabled: true,
@@ -115,23 +114,23 @@ describe('Testing newrelic', () => {
 
   function apiConfig(overrides) {
     return {
-      monitor: testMonitor,
-      channel: testChannel,
-      policy: testPolicy,
-      groupPolicy: testGroupPolicy,
-      condition: testCondition,
+      monitor,
+      channel,
+      policy,
+      groupPolicy,
+      condition,
       ...overrides,
     };
   }
 
-  function runConfig(overrides) {
+  function cliConfig(overrides) {
     return {
       cmd,
       url,
       email,
       auth,
       name,
-      groupPolicy,
+      groupPolicy: groupPolicy.name,
       ...overrides,
     };
   }
@@ -145,9 +144,9 @@ describe('Testing newrelic', () => {
 
   beforeEach(() => {
     name = namePrefix + Date.now(); // ensure unique service names
-    testMonitor.name = name;
-    testChannel.name = name;
-    testPolicy.name = name;
+    monitor.name = name;
+    channel.name = name;
+    policy.name = name;
     v += 1;
     url = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
   });
@@ -218,29 +217,29 @@ describe('Testing newrelic', () => {
         test.ok8 = req.policy.name === name;
       })
       .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
-        test.ok9 = req.startsWith(`channel_ids=${testChannel.id}`);
+        test.ok9 = req.startsWith(`channel_ids=${channel.id}`);
       })
       .on(NewRelicAPI.GET_CONDITIONS, (uri) => {
-        if (uri.includes(testPolicy.id)) {
+        if (uri.includes(policy.id)) {
           test.ok10 = true;
         }
-        if (uri.includes(testGroupPolicy.id)) {
+        if (uri.includes(groupPolicy.id)) {
           test.ok12 = true;
         }
       })
       .on(NewRelicAPI.CREATE_CONDITION, (uri, req) => {
         test.ok11 = req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && req.location_failure_condition.entities.includes(testMonitor.id);
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
       .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
         test.ok13 = req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && typeof req.location_failure_condition.entities.includes(testMonitor.id);
+          && typeof req.location_failure_condition.entities.includes(monitor.id);
       })
       .start();
 
-    await run(runConfig());
+    await run(cliConfig());
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Monitor list not retrieved'),
       getTimedPromise(() => test.ok2, 'Monitor not created'),
@@ -274,12 +273,12 @@ describe('Testing newrelic', () => {
       .on(NewRelicAPI.CREATE_CHANNEL, () => assert.fail('Unexpected notification channel creation'))
       .on(NewRelicAPI.CREATE_POLICY, () => assert.fail('Unexpected alert policy creation'))
       .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
-        test.ok3 = req.startsWith(`channel_ids=${testChannel.id}`);
+        test.ok3 = req.startsWith(`channel_ids=${channel.id}`);
       })
       .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
       .start();
 
-    await run(runConfig());
+    await run(cliConfig());
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Monitor locations not updated'),
       getTimedPromise(() => test.ok2, 'Monitor script not updated'),
@@ -292,7 +291,7 @@ describe('Testing newrelic', () => {
     let count = 0;
     const api = new NewRelicAPI(apiConfig({
       new: false,
-      groupPolicy: testPolicy, // reuse same policy as group policy
+      groupPolicy: policy, // reuse same policy as group policy
     }))
       // count retrievals of alert policy conditions
       .on(NewRelicAPI.GET_CONDITIONS, () => {
@@ -300,7 +299,7 @@ describe('Testing newrelic', () => {
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       groupPolicy: name, // reuse same name for group policy
     }));
     assert.ok(await getTimedPromise(() => count === 1, 'Condition list retrieved from same policy more than once'));
@@ -314,11 +313,11 @@ describe('Testing newrelic', () => {
       .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
         ok = req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && req.location_failure_condition.entities.includes(testMonitor.id);
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       email: null,
     }));
     assert.ok(await getTimedPromise(() => ok, 'Monitor not added to group alert policy'));
@@ -336,7 +335,7 @@ describe('Testing newrelic', () => {
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       script,
     }));
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
@@ -354,7 +353,7 @@ describe('Testing newrelic', () => {
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       script,
     }));
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
@@ -363,7 +362,7 @@ describe('Testing newrelic', () => {
 
   it('creates monitor with type browser and custom script', async () => {
     const browserMonitor = {
-      ...testMonitor,
+      ...monitor,
       type: MONITOR_TYPE.browser,
     };
     const test = {};
@@ -383,7 +382,7 @@ describe('Testing newrelic', () => {
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       type: 'browser',
       script,
     }));
@@ -396,12 +395,12 @@ describe('Testing newrelic', () => {
 
   it('creates a new incubator monitoring setup', async () => {
     const incubatorChannel = {
-      ...testChannel,
+      ...channel,
       id: '1112',
       name: getIncubatorName(name),
     };
     const incubatorPolicy = {
-      ...testPolicy,
+      ...policy,
       id: '2223',
       name: getIncubatorName(name),
     };
@@ -429,11 +428,11 @@ describe('Testing newrelic', () => {
         test.ok4 = uri.includes(incubatorPolicy.id)
           && req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && req.location_failure_condition.entities.includes(testMonitor.id);
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
       .start();
 
-    await run(runConfig({
+    await run(cliConfig({
       incubator: true,
     }));
     assert.ok(await Promise.all([
@@ -448,12 +447,12 @@ describe('Testing newrelic', () => {
   it('turns incubator monitoring setup into production one', async () => {
     const test = {};
     const incubatorChannel = {
-      ...testChannel,
+      ...channel,
       id: '1112',
       name: getIncubatorName(name),
     };
     const incubatorPolicy = {
-      ...testPolicy,
+      ...policy,
       id: '2223',
       name: getIncubatorName(name),
     };
@@ -479,17 +478,17 @@ describe('Testing newrelic', () => {
       })
       // check if condition created in production alert policy
       .on(NewRelicAPI.CREATE_CONDITION, (uri, req) => {
-        test.ok5 = uri.endsWith(`${testPolicy.id}.json`)
+        test.ok5 = uri.endsWith(`${policy.id}.json`)
           && req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && req.location_failure_condition.entities.includes(testMonitor.id);
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
       // check if condition updated in group alert policy
       .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
-        test.ok6 = uri.endsWith(`${testCondition.id}.json`)
+        test.ok6 = uri.endsWith(`${condition.id}.json`)
           && req.location_failure_condition
           && typeof req.location_failure_condition.entities === 'object'
-          && req.location_failure_condition.entities.includes(testMonitor.id);
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
       // check if incubator alert policy deleted
       .on(NewRelicAPI.DELETE_POLICY, (uri) => {
@@ -497,7 +496,7 @@ describe('Testing newrelic', () => {
       })
       .start();
 
-    await run(runConfig());
+    await run(cliConfig());
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Production notification channel not created'),
       getTimedPromise(() => test.ok2, 'Incubator notification channel not deleted'),
@@ -514,7 +513,7 @@ describe('Testing newrelic', () => {
     process.env.NEWRELIC_AUTH = auth;
     const api = new NewRelicAPI(apiConfig({ new: false })).start();
 
-    await run(runConfig({ auth: null })); // omit --auth argument to use env variable
+    await run(cliConfig({ auth: null })); // omit --auth argument to use env variable
     assert.ok(await getTimedPromise(() => logger.log.calledWith('done.'), 'Did not run successfully'));
     api.stop();
     delete process.env.NEWRELIC_AUTH;
@@ -530,7 +529,7 @@ describe('Testing newrelic', () => {
     };
     const api = new NewRelicAPI(apiConfig({ success: false })).start();
 
-    await run(runConfig());
+    await run(cliConfig());
     assert.ok(await getTimedPromise(() => exitCount === 2, 'Did not exit with code 1 on two occasions'));
     api.stop();
     process.exit = originalExit;

@@ -32,7 +32,7 @@ class NewRelicAPI extends AbstractAPI {
    *  <li>{object}  incubatorPolicy  The optional incubator <a href="https://docs.newrelic.com/docs/alerts/rest-api-alerts/new-relic-alerts-rest-api/rest-api-calls-new-relic-alerts#policies-create">policy</a> object to use</li>
    *  <li>{boolean} new          <code>true</code> (default) to create a new monitoring setup,
    *                             <code>false</code> to update an existing one</li>
-   *  <li>{boolean} incubator    <code>true</code> to create a new incubator monitoring setup,
+   *  <li>{boolean} incubator    <code>true</code> to create an incubator monitoring setup,
    *                             <code>false</code> (default) to create a production one</li>
    * </ul>
    */
@@ -271,8 +271,7 @@ class NewRelicAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(NewRelicAPI.CREATE_CONDITION, uri, req);
-      const resp = JSON.stringify({ location_failure_condition: ctx.cfg.condition });
-      return ctx.reply(resp);
+      return ctx.reply(JSON.stringify({ location_failure_condition: ctx.cfg.condition }));
     };
   }
 
