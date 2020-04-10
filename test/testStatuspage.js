@@ -345,24 +345,7 @@ describe('Testing statuspage', function testStatuspage() {
     })).start();
 
     await run(cliConfig());
-    assert.ok(await getTimedPromise(() => exitCode1, 'Process did not exit with code 1 once'));
-    api.stop();
-    process.exit = originalExit;
-  });
-
-  it('fails gracefully if update API fails', async () => {
-    let exitCode1 = false;
-    const originalExit = process.exit;
-    process.exit = (code) => {
-      exitCode1 = code === 1;
-    };
-    const api = new StatuspageAPI(apiConfig({
-      new: false,
-      success: false,
-    })).start();
-
-    await run(cliConfig());
-    assert.ok(await getTimedPromise(() => exitCode1, 'Process did not exit with code 1 once'));
+    assert.ok(await getTimedPromise(() => exitCode1, 'Process did not exit with code 1'));
     api.stop();
     process.exit = originalExit;
   });
