@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/adobe/helix-ops/compare/v1.9.0...v1.9.1) (2020-04-10)
+
+
+### Bug Fixes
+
+* **monitoring:** omit monitor type during update ([#60](https://github.com/adobe/helix-ops/issues/60)) ([b45f4c9](https://github.com/adobe/helix-ops/commit/b45f4c9733b362dde7c4c42daa616f5de6269399))
+
 # [1.9.0](https://github.com/adobe/helix-ops/compare/v1.8.0...v1.9.0) (2020-04-02)
 
 
