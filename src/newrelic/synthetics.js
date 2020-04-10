@@ -78,7 +78,7 @@ async function getMonitors(auth, monitorname) {
   }
 }
 
-async function updateMonitor(auth, monitor, url, script, type) {
+async function updateMonitor(auth, monitor, url, script) {
   console.log('Updating locations for monitor', monitor.name);
   try {
     await request.patch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
@@ -87,7 +87,6 @@ async function updateMonitor(auth, monitor, url, script, type) {
         'X-Api-Key': auth,
       },
       body: {
-        type,
         locations: MONITOR_LOCATIONS,
       },
     });
@@ -119,12 +118,11 @@ async function updateMonitor(auth, monitor, url, script, type) {
 }
 
 async function updateOrCreateMonitor(auth, name, url, script, monType) {
-  const type = MONITOR_TYPE[monType] || MONITOR_TYPE.api;
   const [monitor] = await getMonitors(auth, name);
 
   if (monitor) {
     // update
-    await updateMonitor(auth, monitor, url, script, type);
+    await updateMonitor(auth, monitor, url, script);
   } else {
     // create
     console.log('Creating monitor', name);
@@ -136,7 +134,7 @@ async function updateOrCreateMonitor(auth, name, url, script, monType) {
         },
         body: {
           name,
-          type,
+          type: MONITOR_TYPE[monType] || MONITOR_TYPE.api,
           frequency: MONITOR_FREQUENCY,
           locations: MONITOR_LOCATIONS,
           status: MONITOR_STATUS,
