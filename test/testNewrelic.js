@@ -13,7 +13,6 @@
 /* eslint-env mocha */
 
 const assert = require('assert');
-const nock = require('nock');
 const shell = require('shelljs');
 const sinon = require('sinon');
 const fs = require('fs');
@@ -34,6 +33,7 @@ const {
   CONDITION_PRIORITY,
   CONDITION_THRESHOLD,
 } = require('../src/newrelic/alerts');
+const NewRelicAPI = require('./newrelic/NewRelicAPI');
 const { getTimedPromise } = require('./utils');
 const { getIncubatorName } = require('../src/utils');
 
@@ -75,9 +75,8 @@ describe('Testing newrelic', () => {
   const auth = 'test-auth';
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
-  const groupPolicy = 'Test Group Policy';
-  const script = path.resolve(__dirname, './fixtures/monitor_script.js');
-  const testMonitor = {
+  const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
+  const monitor = {
     id: '0000',
     frequency: MONITOR_FREQUENCY,
     locations: MONITOR_LOCATIONS,
@@ -85,8 +84,7 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
-  const browserMonitor = { ...testMonitor, type: MONITOR_TYPE.browser };
-  const testChannel = {
+  const channel = {
     id: '1111',
     type: CHANNEL_TYPE,
     configuration: {
@@ -94,16 +92,16 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
-  const testPolicy = {
+  const policy = {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const testGroupPolicy = {
+  const groupPolicy = {
     id: '3333',
-    name: groupPolicy,
+    name: 'Test Group Policy',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const testCondition = {
+  const condition = {
     id: '4444',
     name: CONDITION_NAME,
     enabled: true,
@@ -113,25 +111,29 @@ describe('Testing newrelic', () => {
       priority: CONDITION_PRIORITY,
     }],
   };
-  const testExistingCondition = {
-    id: '5555',
-    name: CONDITION_NAME,
-    enabled: true,
-    entities: [testMonitor.id],
-    terms: [{
-      threshold: CONDITION_THRESHOLD,
-      priority: CONDITION_PRIORITY,
-    }],
-  };
-  const incubatorChannel = {
-    ...testChannel,
-    id: '1112',
-  };
-  const incubatorPolicy = {
-    ...testPolicy,
-    id: '2223',
-  };
-  const incubator = true;
+
+  function apiConfig(overrides) {
+    return {
+      monitor,
+      channel,
+      policy,
+      groupPolicy,
+      condition,
+      ...overrides,
+    };
+  }
+
+  function cliConfig(overrides) {
+    return {
+      cmd,
+      url,
+      email,
+      auth,
+      name,
+      groupPolicy: groupPolicy.name,
+      ...overrides,
+    };
+  }
 
   before(() => {
     sinon.spy(logger, 'log');
@@ -142,14 +144,11 @@ describe('Testing newrelic', () => {
 
   beforeEach(() => {
     name = namePrefix + Date.now(); // ensure unique service names
-    testMonitor.name = name;
-    testChannel.name = name;
-    testPolicy.name = name;
+    monitor.name = name;
+    channel.name = name;
+    policy.name = name;
     v += 1;
     url = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
-    nock.restore();
-    nock.cleanAll();
-    nock.activate();
   });
 
   after(() => {
@@ -190,102 +189,57 @@ describe('Testing newrelic', () => {
 
   it('creates a new monitoring setup', async () => {
     const test = {};
-
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      // Getting monitors
-      .get(/.*/)
-      .reply(200, () => {
+    const api = new NewRelicAPI(apiConfig())
+      .on(NewRelicAPI.GET_MONITORS, () => {
         test.ok1 = true;
-        return JSON.stringify({ count: 0, monitors: [] });
       })
-      // Creating monitor
-      .post('/synthetics/api/v3/monitors')
-      .reply(201, (uri, body) => {
-        test.ok2 = body.name === name;
-        return JSON.stringify(testMonitor);
+      .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
+        test.ok2 = req.name === name;
       })
-      // Getting monitors again
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      // Updating locations for monitor
-      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
-      .reply(204, (uri, body) => {
-        test.ok3 = body.locations.includes(MONITOR_LOCATIONS[0]);
-        return JSON.stringify(testMonitor);
+      .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
+        test.ok3 = typeof req.locations === 'object'
+          && req.locations.includes(MONITOR_LOCATIONS[0]);
       })
-      // Updating script for monitor
-      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
-      .reply(204, (uri, body) => {
-        test.ok4 = Buffer.from(body.scriptText, 'base64').toString('utf-8').startsWith('/*');
-        return JSON.stringify(testMonitor);
-      });
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      // Getting channels
-      .get('/v2/alerts_channels.json')
-      .reply(200, () => {
+      .on(NewRelicAPI.UPDATE_SCRIPT, (uri, req) => {
+        test.ok4 = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString('utf-8').startsWith('/*');
+      })
+      .on(NewRelicAPI.GET_CHANNELS, () => {
         test.ok5 = true;
-        return JSON.stringify({ channels: [] });
       })
-      // Creating notification channel
-      .post('/v2/alerts_channels.json')
-      .reply(201, (uri, body) => {
-        test.ok6 = body.channel.name === name;
-        return JSON.stringify({ channels: [testChannel] });
+      .on(NewRelicAPI.CREATE_CHANNEL, (uri, req) => {
+        test.ok6 = req.channel.name === name;
       })
-      // Getting alert policies
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => {
+      .on(NewRelicAPI.GET_POLICIES, () => {
         test.ok7 = true;
-        return JSON.stringify({ policies: [testGroupPolicy] });
       })
-      // Creating alert policy
-      .post('/v2/alerts_policies.json')
-      .reply(201, (uri, body) => {
-        test.ok8 = body.policy.name === name;
-        return JSON.stringify({ policy: testPolicy });
+      .on(NewRelicAPI.CREATE_POLICY, (uri, req) => {
+        test.ok8 = req.policy.name === name;
       })
-      // Linking notification channel to alert policy
-      .put('/v2/alerts_policy_channels.json')
-      .reply(200, (uri, body) => {
-        test.ok9 = body.startsWith(`channel_ids=${testChannel.id}`);
-        return JSON.stringify({ policy: testPolicy });
+      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
+        test.ok9 = req.startsWith(`channel_ids=${channel.id}`);
       })
-      // Getting conditions in alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .reply(200, () => {
-        test.ok10 = true;
-        return JSON.stringify({ location_failure_conditions: [] });
+      .on(NewRelicAPI.GET_CONDITIONS, (uri) => {
+        if (uri.includes(policy.id)) {
+          test.ok10 = true;
+        }
+        if (uri.includes(groupPolicy.id)) {
+          test.ok12 = true;
+        }
       })
-      // Creating condition in alert policy
-      .post(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .reply(201, (uri, body) => {
-        test.ok11 = body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
+      .on(NewRelicAPI.CREATE_CONDITION, (uri, req) => {
+        test.ok11 = req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
-      // Getting conditions in group alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testGroupPolicy.id}.json`)
-      .reply(200, () => {
-        test.ok14 = true;
-        return JSON.stringify({ location_failure_conditions: [testCondition] });
+      .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
+        test.ok13 = req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && typeof req.location_failure_condition.entities.includes(monitor.id);
       })
-      // Updating condition in group alert policy
-      .put(`/v2/alerts_location_failure_conditions/${testCondition.id}.json`)
-      .reply(200, (uri, body) => {
-        test.ok15 = body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
-      });
+      .start();
 
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
-    });
+    await run(cliConfig());
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Monitor list not retrieved'),
       getTimedPromise(() => test.ok2, 'Monitor not created'),
@@ -298,469 +252,251 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok9, 'Channel not linked to policy'),
       getTimedPromise(() => test.ok10, 'Condition list not retrieved from policy'),
       getTimedPromise(() => test.ok11, 'Condition not created'),
-      getTimedPromise(() => test.ok14, 'Condition list not retrieved from group policy'),
-      getTimedPromise(() => test.ok15, 'Group policy condition not updated'),
+      getTimedPromise(() => test.ok12, 'Condition list not retrieved from group policy'),
+      getTimedPromise(() => test.ok13, 'Group policy condition not updated'),
     ]));
+    api.stop();
   }).timeout(5000);
 
   it('detects and updates existing monitoring setup', async () => {
     const test = {};
+    const api = new NewRelicAPI(apiConfig({ new: false }))
+      .on(NewRelicAPI.CREATE_MONITOR, () => assert.fail('Unexpected monitor creation'))
+      .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
+        test.ok1 = typeof req.locations === 'object'
+          && req.locations.includes(MONITOR_LOCATIONS[0]);
+      })
+      .on(NewRelicAPI.UPDATE_SCRIPT, (uri, req) => {
+        test.ok2 = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString('utf-8').startsWith('/*');
+      })
+      .on(NewRelicAPI.CREATE_CHANNEL, () => assert.fail('Unexpected notification channel creation'))
+      .on(NewRelicAPI.CREATE_POLICY, () => assert.fail('Unexpected alert policy creation'))
+      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
+        test.ok3 = req.startsWith(`channel_ids=${channel.id}`);
+      })
+      .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
+      .start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      // Getting monitors
-      .get(/.*/)
-      .reply(200, () => {
-        test.ok1 = true;
-        return JSON.stringify({ count: 1, monitors: [testMonitor] });
-      })
-      // Updating locations for monitor
-      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
-      .reply(204, (uri, body) => {
-        test.ok2 = body.locations.includes(MONITOR_LOCATIONS[0]);
-        return JSON.stringify(testMonitor);
-      })
-      // Updating script for monitor
-      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
-      .reply(204, (uri, body) => {
-        test.ok3 = Buffer.from(body.scriptText, 'base64').toString('utf-8').startsWith('/*');
-        return JSON.stringify(testMonitor);
-      });
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      // Getting channels
-      .get('/v2/alerts_channels.json')
-      .reply(200, () => {
-        test.ok4 = true;
-        return JSON.stringify({ channels: [testChannel] });
-      })
-      // Getting alert policies
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => {
-        test.ok5 = true;
-        return JSON.stringify({ policies: [testPolicy, testGroupPolicy] });
-      })
-      // Linking notification channel to alert policy
-      .put('/v2/alerts_policy_channels.json')
-      .reply(200, (uri, body) => {
-        test.ok6 = body.startsWith(`channel_ids=${testChannel.id}`);
-        return JSON.stringify({ policy: testPolicy });
-      })
-      // Getting conditions in alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .reply(200, () => {
-        test.ok8 = true;
-        return JSON.stringify({ location_failure_conditions: [testExistingCondition] });
-      })
-      // Getting conditions in group alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testGroupPolicy.id}.json`)
-      .reply(200, () => {
-        test.ok9 = true;
-        return JSON.stringify({ location_failure_conditions: [testExistingCondition] });
-      });
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
-    });
+    await run(cliConfig());
     assert.ok(await Promise.all([
-      getTimedPromise(() => test.ok1, 'Monitor list not retrieved'),
-      getTimedPromise(() => test.ok2, 'Monitor locations not updated'),
-      getTimedPromise(() => test.ok3, 'Monitor script not updated'),
-      getTimedPromise(() => test.ok4, 'Channel list not retrieved'),
-      getTimedPromise(() => test.ok5, 'Policy list not retrieved'),
-      getTimedPromise(() => test.ok6, 'Channel not linked to policy'),
-      getTimedPromise(() => test.ok8, 'Condition list not retrieved from policy'),
-      getTimedPromise(() => test.ok9, 'Condition list not retrieved from group policy'),
+      getTimedPromise(() => test.ok1, 'Monitor locations not updated'),
+      getTimedPromise(() => test.ok2, 'Monitor script not updated'),
+      getTimedPromise(() => test.ok3, 'Channel not linked to policy'),
     ]));
+    api.stop();
   }).timeout(5000);
 
   it('ignores same name group alert policy', async () => {
-    let getConditionsInAlertPolicy = 0;
+    let count = 0;
+    const api = new NewRelicAPI(apiConfig({
+      new: false,
+      groupPolicy: policy, // reuse same policy as group policy
+    }))
+      // count retrievals of alert policy conditions
+      .on(NewRelicAPI.GET_CONDITIONS, () => {
+        count += 1;
+      })
+      .start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor))
-      .put(/.*/)
-      .reply(204, JSON.stringify(testMonitor));
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ policies: [testPolicy, testGroupPolicy] }))
-      .put(/.*/)
-      .reply(200, () => JSON.stringify({ policy: testPolicy }))
-      // Getting conditions in alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .twice() // listen twice but more than once means failure
-      .reply(200, () => {
-        getConditionsInAlertPolicy += 1;
-        return JSON.stringify({ location_failure_conditions: [testExistingCondition] });
-      });
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
+    await run(cliConfig({
       groupPolicy: name, // reuse same name for group policy
-    });
-    assert.ok(await Promise.all([
-      getTimedPromise(() => (getConditionsInAlertPolicy === 1), 'Condition list retrieved from same policy more than once'),
-    ]));
+    }));
+    assert.ok(await getTimedPromise(() => count === 1, 'Condition list retrieved from same policy more than once'));
+    api.stop();
   }).timeout(5000);
 
   it('creates a new monitoring setup without email', async () => {
     let ok = false;
+    const api = new NewRelicAPI(apiConfig())
+      // check if monitor added to group alert policy
+      .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
+        ok = req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && req.location_failure_condition.entities.includes(monitor.id);
+      })
+      .start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
-      .post(/.*/)
-      .reply(201, () => JSON.stringify(testMonitor))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor))
-      .put(/.*/)
-      .reply(204, JSON.stringify(testMonitor));
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ policies: [testGroupPolicy] }))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ location_failure_conditions: [testCondition] }))
-      // Updating condition in group alert policy
-      .put(`/v2/alerts_location_failure_conditions/${testCondition.id}.json`)
-      .reply(200, (uri, body) => {
-        ok = body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
-      });
-
-    await run({
-      cmd,
-      url,
-      auth,
-      name,
-      groupPolicy,
-    });
-    assert.ok(await Promise.all([
-      getTimedPromise(() => ok, 'Monitor not added to group alert policy'),
-    ]));
+    await run(cliConfig({
+      email: null,
+    }));
+    assert.ok(await getTimedPromise(() => ok, 'Monitor not added to group alert policy'));
+    api.stop();
   });
 
   it('creates new monitor with custom script', async () => {
     let ok = false;
+    const api = new NewRelicAPI(apiConfig())
+      .on(NewRelicAPI.UPDATE_SCRIPT, (uri, req) => {
+        ok = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString() === fs.readFileSync(script)
+            .toString()
+            .replace('$$$URL$$$', url);
+      })
+      .start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
-      .post(/.*/)
-      .reply(201, () => JSON.stringify(testMonitor))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor))
-      // Updating custom script for monitor
-      .put(/.*/)
-      .reply(204, (uri, body) => {
-        ok = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
-          .toString()
-          .replace('$$$URL$$$', url);
-        return JSON.stringify(testMonitor);
-      });
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
-      .put(/.*/)
-      .reply(204, () => JSON.stringify({ policy: testPolicy }))
-      .get(/.*/)
-      .reply(200, JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
+    await run(cliConfig({
       script,
-    });
-    assert.ok(await Promise.all([
-      getTimedPromise(() => ok, 'Custom monitor script not used'),
-    ]));
+    }));
+    assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
+    api.stop();
   });
 
   it('updates existing monitor with custom script', async () => {
     let ok = false;
+    const api = new NewRelicAPI(apiConfig({ new: false }))
+      .on(NewRelicAPI.UPDATE_SCRIPT, (uri, req) => {
+        ok = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString() === fs.readFileSync(script)
+            .toString()
+            .replace('$$$URL$$$', url);
+      })
+      .start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
-      .reply(204, () => JSON.stringify(testMonitor))
-      // Updating custom script for monitor
-      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
-      .reply(204, (uri, body) => {
-        ok = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
-          .toString()
-          .replace('$$$URL$$$', url);
-        return JSON.stringify(testMonitor);
-      });
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get('/v2/alerts_channels.json')
-      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
-      .put('/v2/alerts_policy_channels.json')
-      .reply(200, () => JSON.stringify({ policy: testPolicy }))
-      .get('/v2/alerts_policies.json')
-      .reply(200, () => JSON.stringify({ policies: [testGroupPolicy] }))
-      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .reply(200, () => JSON.stringify({ location_failure_conditions: [testExistingCondition] }))
-      .get(`/v2/alerts_location_failure_conditions/policies/${testGroupPolicy.id}.json`)
-      .reply(200, () => JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
+    await run(cliConfig({
       script,
-      groupPolicy,
-    });
-
+    }));
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
+    api.stop();
   }).timeout(5000);
 
   it('creates monitor with type browser and custom script', async () => {
-    browserMonitor.name = testMonitor.name;
+    const browserMonitor = {
+      ...monitor,
+      type: MONITOR_TYPE.browser,
+    };
     const test = {};
-
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
-      // Creating browser monitor
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok1 = body.type === MONITOR_TYPE.browser;
-        return JSON.stringify(browserMonitor);
+    const api = new NewRelicAPI(apiConfig({
+      monitor: browserMonitor,
+    }))
+      // check if monitor created with type browser
+      .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
+        test.ok1 = req.type === MONITOR_TYPE.browser;
       })
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [browserMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(browserMonitor))
-      // Updating custom script for monitor
-      .put(/.*/)
-      .reply(204, (uri, body) => {
-        test.ok2 = Buffer.from(body.scriptText, 'base64').toString() === fs.readFileSync(script)
-          .toString()
-          .replace('$$$URL$$$', url);
-        return JSON.stringify(browserMonitor);
-      });
+      // check if custom monitor script uploaded
+      .on(NewRelicAPI.UPDATE_SCRIPT, (uri, req) => {
+        test.ok2 = req.scriptText
+          && Buffer.from(req.scriptText, 'base64').toString() === fs.readFileSync(script)
+            .toString()
+            .replace('$$$URL$$$', url);
+      })
+      .start();
 
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ channels: [testChannel] }))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ policies: [testPolicy] }))
-      .put(/.*/)
-      .reply(204, () => JSON.stringify({ policy: testPolicy }))
-      .get(/.*/)
-      .reply(200, JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
+    await run(cliConfig({
       type: 'browser',
       script,
-    });
+    }));
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Monitor with type browser not created'),
       getTimedPromise(() => test.ok2, 'Custom monitor script not used'),
     ]));
+    api.stop();
   });
 
   it('creates a new incubator monitoring setup', async () => {
+    const incubatorChannel = {
+      ...channel,
+      id: '1112',
+      name: getIncubatorName(name),
+    };
+    const incubatorPolicy = {
+      ...policy,
+      id: '2223',
+      name: getIncubatorName(name),
+    };
     const test = {};
-    incubatorChannel.name = getIncubatorName(name);
-    incubatorPolicy.name = getIncubatorName(name);
-
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 0, monitors: [] }))
-      .post(/.*/)
-      .reply(201, () => JSON.stringify(testMonitor))
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor))
-      .put(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor));
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ channels: [] }))
-      // Creating incubator notification channel
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok1 = body.channel.name === getIncubatorName(name);
-        return JSON.stringify({ channels: [incubatorChannel] });
+    const api = new NewRelicAPI(apiConfig({
+      incubator: true,
+      incubatorChannel,
+      incubatorPolicy,
+    }))
+      // check if incubator channel created
+      .on(NewRelicAPI.CREATE_CHANNEL, (uri, req) => {
+        test.ok1 = req.channel && req.channel.name === getIncubatorName(name);
       })
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ policies: [] }))
-      // Creating incubator alert policy
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok2 = body.policy.name === getIncubatorName(name);
-        return JSON.stringify({ policy: incubatorPolicy });
+      // check if incubator policy created
+      .on(NewRelicAPI.CREATE_POLICY, (uri, req) => {
+        test.ok2 = req.policy && req.policy.name === getIncubatorName(name);
       })
-      // Linking incubator notification channel to incubator alert policy
-      .put(/.*/)
-      .reply(204, (uri, body) => {
-        test.ok3 = body.startsWith(`channel_ids=${incubatorChannel.id}`)
-          && body.endsWith(`policy_id=${incubatorPolicy.id}`);
-        return JSON.stringify({ policy: incubatorPolicy });
+      // check if incubator policy linked to incubator channel
+      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
+        test.ok3 = req.startsWith(`channel_ids=${incubatorChannel.id}`)
+          && req.endsWith(`policy_id=${incubatorPolicy.id}`);
       })
-      .get(/.*/)
-      .reply(200, JSON.stringify({ location_failure_conditions: [] }))
-      // Creating condition in incubator alert policy
-      .post(`/v2/alerts_location_failure_conditions/policies/${incubatorPolicy.id}.json`)
-      .reply(201, (uri, body) => {
-        test.ok4 = body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
-      });
+      // check if condition created in incubator policy and linked to monitor
+      .on(NewRelicAPI.CREATE_CONDITION, (uri, req) => {
+        test.ok4 = uri.includes(incubatorPolicy.id)
+          && req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && req.location_failure_condition.entities.includes(monitor.id);
+      })
+      .start();
 
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
-      incubator,
-    });
+    await run(cliConfig({
+      incubator: true,
+    }));
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Incubator notification channel not created'),
       getTimedPromise(() => test.ok2, 'Incubator alert policy not created'),
       getTimedPromise(() => test.ok3, 'Incubator channel not linked to incubator alert policy'),
       getTimedPromise(() => test.ok4, 'Condition not created in incubator alert policy'),
     ]));
+    api.stop();
   }).timeout(5000);
 
   it('turns incubator monitoring setup into production one', async () => {
     const test = {};
-    incubatorChannel.name = getIncubatorName(name);
-    incubatorPolicy.name = getIncubatorName(name);
-
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      .patch(/.*/)
-      .reply(204, () => JSON.stringify(testMonitor))
-      .put(/.*/)
-      .reply(204, JSON.stringify(testMonitor));
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ channels: [incubatorChannel] }))
-      // Creating production notification channel
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok1 = body.channel.name === name;
-        return JSON.stringify({ channels: [testChannel] });
+    const incubatorChannel = {
+      ...channel,
+      id: '1112',
+      name: getIncubatorName(name),
+    };
+    const incubatorPolicy = {
+      ...policy,
+      id: '2223',
+      name: getIncubatorName(name),
+    };
+    const api = new NewRelicAPI(apiConfig({
+      incubatorChannel,
+      incubatorPolicy,
+    }))
+      // check if production notification channel created in spite of existing incubator monitor
+      .on(NewRelicAPI.CREATE_CHANNEL, (uri, req) => {
+        test.ok1 = req.channel.name === name;
       })
-      // Deleting incubator notification channel
-      .delete(/.*/)
-      .reply(200, (uri) => {
+      // check if incubator notification channel deleted
+      .on(NewRelicAPI.DELETE_CHANNEL, (uri) => {
         test.ok2 = uri.endsWith(`${incubatorChannel.id}.json`);
-        return '';
       })
-      // Getting alert policies
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({
-        policies: [
-          incubatorPolicy,
-          testGroupPolicy,
-        ],
-      }))
-      // Creating production alert policy
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok3 = body.policy.name === name;
-        return JSON.stringify({ policy: testPolicy });
+      // check if production alert policy created in spite of existing incubator alert policy
+      .on(NewRelicAPI.CREATE_POLICY, (uri, req) => {
+        test.ok3 = req.policy.name === name;
       })
-      // Linking production notification channel to production alert policy
-      .put(/.*/)
-      .reply(204, (uri, body) => {
-        test.ok4 = body.startsWith(`channel_ids=${testChannel.id}`)
-          && body.endsWith(`policy_id=${testPolicy.id}`);
-        return JSON.stringify({ policy: testPolicy });
+      // check if production notification channel linked to production alert policy
+      .on(NewRelicAPI.UPDATE_POLICY, () => {
+        test.ok4 = true;
       })
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ location_failure_conditions: [] }))
-      // Creating condition in production alert policy
-      .post(/.*/)
-      .reply(201, (uri, body) => {
-        test.ok5 = uri.endsWith(`${testPolicy.id}.json`)
-          && body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
+      // check if condition created in production alert policy
+      .on(NewRelicAPI.CREATE_CONDITION, (uri, req) => {
+        test.ok5 = uri.endsWith(`${policy.id}.json`)
+          && req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
-      .get(/.*/)
-      .reply(200, () => JSON.stringify({ location_failure_conditions: [testCondition] }))
-      // Updating condition in group alert policy
-      .put(/.*/)
-      .reply(204, (uri, body) => {
-        test.ok6 = body.location_failure_condition.entities.includes(testMonitor.id);
-        return JSON.stringify({ location_failure_conditions: testCondition });
+      // check if condition updated in group alert policy
+      .on(NewRelicAPI.UPDATE_CONDITION, (uri, req) => {
+        test.ok6 = uri.endsWith(`${condition.id}.json`)
+          && req.location_failure_condition
+          && typeof req.location_failure_condition.entities === 'object'
+          && req.location_failure_condition.entities.includes(monitor.id);
       })
-      // Deleting incubator alert policy
-      .delete(/.*/)
-      .reply(200, (uri) => {
+      // check if incubator alert policy deleted
+      .on(NewRelicAPI.DELETE_POLICY, (uri) => {
         test.ok7 = uri.endsWith(`${incubatorPolicy.id}.json`);
-        return '';
-      });
+      })
+      .start();
 
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-      groupPolicy,
-    });
+    await run(cliConfig());
     assert.ok(await Promise.all([
       getTimedPromise(() => test.ok1, 'Production notification channel not created'),
       getTimedPromise(() => test.ok2, 'Incubator notification channel not deleted'),
@@ -770,49 +506,16 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok6, 'Condition in group alert policy not updated'),
       getTimedPromise(() => test.ok7, 'Incubator alert policy not deleted'),
     ]));
+    api.stop();
   }).timeout(5000);
 
   it('uses environment variables', async () => {
     process.env.NEWRELIC_AUTH = auth;
+    const api = new NewRelicAPI(apiConfig({ new: false })).start();
 
-    // synthetics API
-    nock('https://synthetics.newrelic.com')
-      // Getting monitors
-      .get(/.*/)
-      .reply(200, JSON.stringify({ count: 1, monitors: [testMonitor] }))
-      // Updating locations for monitor
-      .patch(`/synthetics/api/v3/monitors/${testMonitor.id}`)
-      .reply(204, JSON.stringify(testMonitor))
-      // Updating script for monitor
-      .put(`/synthetics/api/v3/monitors/${testMonitor.id}/script`)
-      .reply(204, JSON.stringify(testMonitor));
-
-    // alerts API
-    nock('https://api.newrelic.com')
-      // Getting channels
-      .get('/v2/alerts_channels.json')
-      .reply(200, JSON.stringify({ channels: [testChannel] }))
-      // Getting alert policies
-      .get('/v2/alerts_policies.json')
-      .reply(200, JSON.stringify({ policies: [testPolicy] }))
-      // Linking notification channel to alert policy
-      .put('/v2/alerts_policy_channels.json')
-      .reply(200, JSON.stringify({ policy: testPolicy }))
-      // Getting alert policies
-      .get('/v2/alerts_policies.json')
-      .reply(200, JSON.stringify({ policies: [testGroupPolicy] }))
-      // Getting conditions in alert policy
-      .get(`/v2/alerts_location_failure_conditions/policies/${testPolicy.id}.json`)
-      .reply(200, JSON.stringify({ location_failure_conditions: [testExistingCondition] }));
-
-    await run({
-      cmd,
-      url,
-      email,
-      name,
-    });
-
+    await run(cliConfig({ auth: null })); // omit --auth argument to use env variable
     assert.ok(await getTimedPromise(() => logger.log.calledWith('done.'), 'Did not run successfully'));
+    api.stop();
     delete process.env.NEWRELIC_AUTH;
   }).timeout(5000);
 
@@ -824,28 +527,11 @@ describe('Testing newrelic', () => {
         exitCount += 1;
       }
     };
+    const api = new NewRelicAPI(apiConfig({ success: false })).start();
 
-    nock('https://synthetics.newrelic.com')
-      .get(/.*/)
-      .reply(500, 'Internal Server Error')
-      .post(/.*/)
-      .reply(500, 'Internal Server Error');
-    nock('https://api.newrelic.com')
-      .persist()
-      .get(/.*/)
-      .reply(500, 'Internal Server Error')
-      .post(/.*/)
-      .reply(500, 'Internal Server Error');
-
-    await run({
-      cmd,
-      url,
-      email,
-      auth,
-      name,
-    });
-
+    await run(cliConfig());
     assert.ok(await getTimedPromise(() => exitCount === 2, 'Did not exit with code 1 on two occasions'));
+    api.stop();
     process.exit = originalExit;
   }).timeout(5000);
 });
