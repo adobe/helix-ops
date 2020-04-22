@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/adobe/helix-ops/compare/v1.9.1...v1.10.0) (2020-04-22)
+
+
+### Features
+
+* **monitoring:** use major action version ([#67](https://github.com/adobe/helix-ops/issues/67)) ([81cd706](https://github.com/adobe/helix-ops/commit/81cd706bb19028ed3c29d69de4f9a98a3bae5354))
+
 ## [1.9.1](https://github.com/adobe/helix-ops/compare/v1.9.0...v1.9.1) (2020-04-10)
 
 
