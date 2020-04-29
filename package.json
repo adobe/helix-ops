@@ -1,6 +1,6 @@
 {
   "name": "@adobe/helix-ops",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Operational tooling for Project Helix services",
   "bin": {
     "newrelic": "src/newrelic.js",

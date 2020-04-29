@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/adobe/helix-ops/compare/v1.11.0...v1.11.1) (2020-04-29)
+
+
+### Bug Fixes
+
+* **orb:** newrelic_frequency type is not string ([#74](https://github.com/adobe/helix-ops/issues/74)) ([a26f3cb](https://github.com/adobe/helix-ops/commit/a26f3cb6aa0d604991134577b9fccd9f08972b21))
+
 # [1.11.0](https://github.com/adobe/helix-ops/compare/v1.10.0...v1.11.0) (2020-04-29)
 
 
