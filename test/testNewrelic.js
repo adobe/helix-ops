@@ -38,7 +38,7 @@ const { getTimedPromise } = require('./utils');
 const { getIncubatorName } = require('../src/utils');
 
 function buildArgs({
-  cmd, auth, url, email, name, groupPolicy, type, script, incubator,
+  cmd, auth, url, email, name, groupPolicy, type, script, locations, frequency, incubator,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -47,9 +47,11 @@ function buildArgs({
   if (auth) args.push('--auth', auth);
   if (name) args.push('--name', `"${name}"`);
   if (groupPolicy) args.push('--group_policy', `"${groupPolicy}"`);
-  if (type) args.push('--type', `"${type}"`);
+  if (type) args.push('--type', type);
   if (script) args.push('--script', `"${script}"`);
-  if (incubator) args.push('--incubator', `${incubator}`);
+  if (locations) args.push('--locations', locations);
+  if (frequency) args.push('--frequency', frequency);
+  if (incubator) args.push('--incubator', incubator);
   return args;
 }
 
@@ -76,6 +78,8 @@ describe('Testing newrelic', () => {
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
   const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
+  const locations = MONITOR_LOCATIONS.slice(3, 6).join(', ');
+  const frequency = 5;
   const monitor = {
     id: '0000',
     frequency: MONITOR_FREQUENCY,
@@ -390,6 +394,36 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok1, 'Monitor with type browser not created'),
       getTimedPromise(() => test.ok2, 'Custom monitor script not used'),
     ]));
+    api.stop();
+  });
+
+  it('creates new monitor with custom locations and frequency', async () => {
+    let ok = false;
+    const api = new NewRelicAPI(apiConfig())
+      .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
+        ok = typeof req.locations === 'object'
+          && req.locations.join(', ') === locations
+          && req.frequency === frequency;
+      })
+      .start();
+
+    await run(cliConfig({ locations, frequency }));
+    assert.ok(await getTimedPromise(() => ok, 'Custom locations or frequency not used'));
+    api.stop();
+  });
+
+  it('updates an existing monitor with custom locations and frequency', async () => {
+    let ok = false;
+    const api = new NewRelicAPI(apiConfig({ new: false }))
+      .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
+        ok = typeof req.locations === 'object'
+          && req.locations.join(', ') === locations
+          && req.frequency === frequency;
+      })
+      .start();
+
+    await run(cliConfig({ locations, frequency }));
+    assert.ok(await getTimedPromise(() => ok, 'Custom locations or frequency not used'));
     api.stop();
   });
 

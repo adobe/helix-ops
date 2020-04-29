@@ -61,7 +61,15 @@ commands:
         newrelic_type: 
             type: string
             default: ""
-            description: The type of New Relic monitor (api or browser)
+            description: The type of monitor (api or browser)
+        newrelic_locations: 
+            type: string
+            default: ""
+            description: The comma-separated list of locations to use
+        newrelic_frequency: 
+            type: string
+            default: ""
+            description: The frequency to trigger the monitor in minutes
         newrelic_script: 
             type: string
             default: ""
@@ -104,6 +112,8 @@ commands:
               nrName="<< parameters.newrelic_name >>"
               nrURL="<< parameters.newrelic_url >>"
               nrType="<< parameters.newrelic_type >>"
+              nrLocations="<< parameters.newrelic_locations >>"
+              nrFrequency="<< parameters.newrelic_frequency >>"
               nrScript="<< parameters.newrelic_script >>"
               nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
               spAuth="<< parameters.statuspage_auth >>"
@@ -124,4 +134,4 @@ commands:
                 actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
                 nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
-              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrType:+--type "${nrType}"} ${nrScript:+--script "${nrScript}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} ${incubator:+--incubator "${incubator}"}
+              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrType:+--type ${nrType}} ${nrLocations:+--locations ${nrLocations}} ${nrFrequency:+--frequency ${nrFrequency}} ${nrScript:+--script "${nrScript}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} ${incubator:+--incubator ${incubator}}

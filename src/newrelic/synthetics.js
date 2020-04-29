@@ -78,8 +78,8 @@ async function getMonitors(auth, monitorname) {
   }
 }
 
-async function updateMonitor(auth, monitor, url, script) {
-  console.log('Updating locations for monitor', monitor.name);
+async function updateMonitor(auth, monitor, url, script, locations, frequency) {
+  console.log('Updating locations and frequency for monitor', monitor.name);
   try {
     await request.patch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
       json: true,
@@ -87,11 +87,12 @@ async function updateMonitor(auth, monitor, url, script) {
         'X-Api-Key': auth,
       },
       body: {
-        locations: MONITOR_LOCATIONS,
+        locations,
+        frequency,
       },
     });
   } catch (e) {
-    console.error('Unable to update locations for monitor:', e.message);
+    console.error('Unable to update locations and frequency for monitor:', e.message);
   }
 
   console.log('Updating script for monitor', monitor.name);
@@ -117,12 +118,14 @@ async function updateMonitor(auth, monitor, url, script) {
   }
 }
 
-async function updateOrCreateMonitor(auth, name, url, script, monType) {
+async function updateOrCreateMonitor(auth, name, url, script, monType, monLoc, monFreq) {
   const [monitor] = await getMonitors(auth, name);
-
+  const type = monType ? MONITOR_TYPE[monType] : MONITOR_TYPE.api;
+  const locations = monLoc ? monLoc.split(',').map((loc) => loc.trim()) : MONITOR_LOCATIONS;
+  const frequency = monFreq || MONITOR_FREQUENCY;
   if (monitor) {
     // update
-    await updateMonitor(auth, monitor, url, script);
+    await updateMonitor(auth, monitor, url, script, locations, frequency);
   } else {
     // create
     console.log('Creating monitor', name);
@@ -134,14 +137,14 @@ async function updateOrCreateMonitor(auth, name, url, script, monType) {
         },
         body: {
           name,
-          type: MONITOR_TYPE[monType] || MONITOR_TYPE.api,
-          frequency: MONITOR_FREQUENCY,
-          locations: MONITOR_LOCATIONS,
+          type,
+          frequency,
+          locations,
           status: MONITOR_STATUS,
           slaThreshold: MONITOR_THRESHOLD,
         },
       });
-      return await updateOrCreateMonitor(auth, name, url, script, monType);
+      return await updateOrCreateMonitor(auth, name, url, script, monType, monLoc, monFreq);
     } catch (e) {
       console.error('Monitor creation failed:', e.message);
       process.exit(1);
