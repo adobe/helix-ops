@@ -64,6 +64,16 @@ class CLI {
           describe: 'Flag as incubator setup',
           required: false,
         })
+        .option('locations', {
+          type: 'string',
+          describe: 'The comma-separated list of locations to use',
+          required: false,
+        })
+        .option('frequency', {
+          type: 'number',
+          describe: 'The frequency to trigger the monitor in minutes',
+          required: false,
+        })
         .option('type', {
           type: 'string',
           describe: 'The type of monitor (api or browser)',
@@ -81,10 +91,10 @@ class CLI {
       .scriptName('newrelic')
       .usage('$0 <cmd>')
       .command('setup url [email]', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
-        auth, name, url, email, group_policy, incubator, script, type,
+        auth, name, url, email, group_policy, incubator, script, type, locations, frequency,
       }) => {
         await updateOrCreatePolicies(auth, name, group_policy,
-          await updateOrCreateMonitor(auth, name, url, script, type),
+          await updateOrCreateMonitor(auth, name, url, script, type, locations, frequency),
           email ? await reuseOrCreateChannel(auth, name, email, incubator) : null,
           incubator);
         console.log('done.');

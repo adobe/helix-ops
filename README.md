@@ -88,6 +88,8 @@ Options:
   --name          The name of the monitor, channel and policy           [string]
   --group_policy  The name of a common policy to add the monitor to     [string]
   --incubator     Flag as incubator setup                              [boolean]
+  --locations     The comma-separated list of locations to use          [string]
+  --frequency     The frequency to trigger the monitor in minutes       [number]
   --type          The type of monitor (api or browser)                  [string]
   --script        The path to a custom monitor script                   [string]
 
@@ -95,7 +97,7 @@ $ npx newrelic setup \
   https://adobeioruntime.net/api/v1/web/namespace/package/action@v1/_status_check/healthcheck.json \
   component+id@notifications.statuspage.io --group_policy "Delivery"
 Creating monitor @adobe/helix-example-service
-Updating locations for monitor @adobe/helix-example-service
+Updating locations and frequency for monitor @adobe/helix-example-service
 Updating script for monitor @adobe/helix-example-service
 Creating notification channel @adobe/helix-example-service
 Creating alert policy @adobe/helix-example-service
