@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/adobe/helix-ops/compare/v1.10.0...v1.11.0) (2020-04-29)
+
+
+### Features
+
+* **monitoring:** optional monitor locations and frequency ([#72](https://github.com/adobe/helix-ops/issues/72)) ([e15baa1](https://github.com/adobe/helix-ops/commit/e15baa190397b0744df9a941c50dd6bf8026ca4b))
+
 # [1.10.0](https://github.com/adobe/helix-ops/compare/v1.9.1...v1.10.0) (2020-04-22)
 
 
