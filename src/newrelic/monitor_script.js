@@ -19,7 +19,7 @@ const assert = require('assert');
 $http.get({
   url: '$$$URL$$$',
   headers: {
-    // make sure activation records gets persisted
+    // make sure activation record gets persisted
     'X-OW-EXTRA-LOGGING': 'on',
   },
 },
