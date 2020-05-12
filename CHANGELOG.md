@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/adobe/helix-ops/compare/v1.11.1...v1.11.2) (2020-05-12)
+
+
+### Bug Fixes
+
+* **montoring:** ensure activation record is always persisted ([67a432a](https://github.com/adobe/helix-ops/commit/67a432a1b76240b613e5b314fc31ff7fd69dfecf))
+
 ## [1.11.1](https://github.com/adobe/helix-ops/compare/v1.11.0...v1.11.1) (2020-04-29)
 
 
