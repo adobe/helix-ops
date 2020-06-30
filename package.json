@@ -48,7 +48,7 @@
     "cz-conventional-changelog": "3.2.0",
     "eslint": "7.3.1",
     "eslint-plugin-header": "3.0.0",
-    "eslint-plugin-import": "2.21.2",
+    "eslint-plugin-import": "2.22.0",
     "events": "3.1.0",
     "istanbul": "1.1.0-alpha.1",
     "jsdoc-to-markdown": "6.0.1",
@@ -58,7 +58,7 @@
     "mocha": "8.0.1",
     "nock": "13.0.0",
     "nyc": "15.1.0",
-    "semantic-release": "17.1.0",
+    "semantic-release": "17.1.1",
     "sinon": "9.0.2"
   },
   "lint-staged": {
