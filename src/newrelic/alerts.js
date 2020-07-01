@@ -254,8 +254,12 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
         method: 'PUT',
         headers: {
           'X-Api-Key': auth,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `channel_ids=${encodeURIComponent(channelId)}&policy_id=${encodeURIComponent(policy.id)}`,
+        body: new URLSearchParams({
+          channel_ids: channelId,
+          policy_id: policy.id,
+        }).toString(),
       });
       const body = await resp.text();
       if (!resp.ok) {
