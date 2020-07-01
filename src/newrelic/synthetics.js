@@ -10,9 +10,13 @@
  * governing permissions and limitations under the License.
  */
 
-const request = require('request-promise-native');
+const fetchAPI = require('@adobe/helix-fetch');
 const fs = require('fs');
 const path = require('path');
+
+const { fetch } = process.env.HELIX_FETCH_FORCE_HTTP1
+  ? fetchAPI.context({ httpsProtocols: ['http1'] })
+  : fetchAPI;
 
 const MONITOR_FREQUENCY = 15;
 const MONITOR_STATUS = 'ENABLED';
@@ -53,17 +57,21 @@ async function getMonitors(auth, monitorname) {
     let more = true;
     const loadedmonitors = [];
     while (more) {
-      // eslint-disable-next-line no-await-in-loop
-      const response = await request.get(`https://synthetics.newrelic.com/synthetics/api/v3/monitors?limit=100&offset=${loadedmonitors.length}`, {
+      /* eslint-disable no-await-in-loop */
+      const resp = await fetch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors?limit=100&offset=${loadedmonitors.length}`, {
         headers: {
           'X-Api-Key': auth,
         },
-        json: true,
       });
-      if (response.count < 10) {
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+      const body = await resp.json();
+      if (body.count < 10) {
         more = false;
       }
-      loadedmonitors.push(...response.monitors);
+      loadedmonitors.push(...body.monitors);
+      /* eslint-enable no-await-in-loop */
     }
 
     const monitors = loadedmonitors.map(({ id, name }) => ({ id, name }));
@@ -81,16 +89,20 @@ async function getMonitors(auth, monitorname) {
 async function updateMonitor(auth, monitor, url, script, locations, frequency) {
   console.log('Updating locations and frequency for monitor', monitor.name);
   try {
-    await request.patch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
-      json: true,
+    const resp = await fetch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}`, {
+      method: 'PATCH',
       headers: {
         'X-Api-Key': auth,
       },
-      body: {
+      json: {
         locations,
         frequency,
       },
     });
+    const body = await resp.text();
+    if (!resp.ok) {
+      throw new Error(body);
+    }
   } catch (e) {
     console.error('Unable to update locations and frequency for monitor:', e.message);
   }
@@ -104,15 +116,19 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
     .replace('$$$NS$$$', getNS(url)))
     .toString('base64');
   try {
-    await request.put(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}/script`, {
-      json: true,
+    const resp = await fetch(`https://synthetics.newrelic.com/synthetics/api/v3/monitors/${monitor.id}/script`, {
+      method: 'PUT',
       headers: {
         'X-Api-Key': auth,
       },
-      body: {
+      json: {
         scriptText,
       },
     });
+    const body = await resp.text();
+    if (!resp.ok) {
+      throw new Error(body);
+    }
   } catch (e) {
     console.error('Unable to update script for monitor:', e.message);
   }
@@ -130,12 +146,12 @@ async function updateOrCreateMonitor(auth, name, url, script, monType, monLoc, m
     // create
     console.log('Creating monitor', name);
     try {
-      await request.post('https://synthetics.newrelic.com/synthetics/api/v3/monitors', {
-        json: true,
+      const resp = await fetch('https://synthetics.newrelic.com/synthetics/api/v3/monitors', {
+        method: 'POST',
         headers: {
           'X-Api-Key': auth,
         },
-        body: {
+        json: {
           name,
           type,
           frequency,
@@ -144,6 +160,10 @@ async function updateOrCreateMonitor(auth, name, url, script, monType, monLoc, m
           slaThreshold: MONITOR_THRESHOLD,
         },
       });
+      const body = await resp.text();
+      if (!resp.ok) {
+        throw new Error(body);
+      }
       return await updateOrCreateMonitor(auth, name, url, script, monType, monLoc, monFreq);
     } catch (e) {
       console.error('Monitor creation failed:', e.message);

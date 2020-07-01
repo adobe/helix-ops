@@ -215,7 +215,7 @@ class NewRelicAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(NewRelicAPI.UPDATE_POLICY, uri, req);
-      return ctx.reply(uri, req, '');
+      return ctx.reply('');
     };
   }
 
@@ -285,7 +285,7 @@ class NewRelicAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(NewRelicAPI.UPDATE_CONDITION, uri, req);
-      return ctx.reply(uri, req, '');
+      return ctx.reply('');
     };
   }
 
