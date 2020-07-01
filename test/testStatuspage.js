@@ -20,6 +20,8 @@ const Statuspage = require('../src/statuspage/cli');
 const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');
 
+process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
+
 function buildArgs({
   cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,
 } = {}) {
