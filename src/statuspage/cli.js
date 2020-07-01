@@ -71,8 +71,10 @@ class CLI {
             Authorization: auth,
           },
         });
+        if (!resp.ok) {
+          throw new Error(await resp.text());
+        }
         result.allComps = await resp.json();
-
         result.component = result.allComps.find((comp) => comp.name === name);
 
         if (group) {
@@ -139,6 +141,9 @@ class CLI {
               component,
             },
           });
+          if (!resp.ok) {
+            throw new Error(await resp.text());
+          }
           return await resp.json();
         } catch (e) {
           logger.error('Component update failed:', e.message);
@@ -160,13 +165,17 @@ class CLI {
       if (component) {
         logger.log('Deleting incubator component', component.name);
         try {
-          await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
+          const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
             json: true,
             method: 'DELETE',
             headers: {
               Authorization: auth,
             },
           });
+          const body = await resp.json();
+          if (!resp.ok) {
+            throw new Error(body);
+          }
         } catch (e) {
           logger.error('Unable to delete incubator component:', e.message);
         }
