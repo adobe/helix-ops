@@ -1,3 +1,10 @@
+## [1.11.3](https://github.com/adobe/helix-ops/compare/v1.11.2...v1.11.3) (2020-07-02)
+
+
+### Bug Fixes
+
+* **deps:** pin dependency @adobe/helix-fetch to 1.7.0 ([3b3b013](https://github.com/adobe/helix-ops/commit/3b3b013274af9626d0ca9b2af552d8cef45562d8))
+
 ## [1.11.2](https://github.com/adobe/helix-ops/compare/v1.11.1...v1.11.2) (2020-05-12)
 
 
