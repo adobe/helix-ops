@@ -16,6 +16,8 @@ const assert = require('assert');
 const shell = require('shelljs');
 const sinon = require('sinon');
 
+process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
+
 const Statuspage = require('../src/statuspage/cli');
 const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');

@@ -18,6 +18,8 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 
+process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
+
 const NewRelic = require('../src/newrelic/cli');
 const {
   MONITOR_FREQUENCY,
@@ -326,7 +328,7 @@ describe('Testing newrelic', () => {
     }));
     assert.ok(await getTimedPromise(() => ok, 'Monitor not added to group alert policy'));
     api.stop();
-  });
+  }).timeout(5000);
 
   it('creates new monitor with custom script', async () => {
     let ok = false;
@@ -344,7 +346,7 @@ describe('Testing newrelic', () => {
     }));
     assert.ok(await getTimedPromise(() => ok, 'Custom monitor script not used'));
     api.stop();
-  });
+  }).timeout(5000);
 
   it('updates existing monitor with custom script', async () => {
     let ok = false;
@@ -395,7 +397,7 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok2, 'Custom monitor script not used'),
     ]));
     api.stop();
-  });
+  }).timeout(5000);
 
   it('creates new monitor with custom locations and frequency', async () => {
     let ok = false;
@@ -410,7 +412,7 @@ describe('Testing newrelic', () => {
     await run(cliConfig({ locations, frequency }));
     assert.ok(await getTimedPromise(() => ok, 'Custom locations or frequency not used'));
     api.stop();
-  });
+  }).timeout(5000);
 
   it('updates an existing monitor with custom locations and frequency', async () => {
     let ok = false;
@@ -425,7 +427,7 @@ describe('Testing newrelic', () => {
     await run(cliConfig({ locations, frequency }));
     assert.ok(await getTimedPromise(() => ok, 'Custom locations or frequency not used'));
     api.stop();
-  });
+  }).timeout(5000);
 
   it('creates a new incubator monitoring setup', async () => {
     const incubatorChannel = {

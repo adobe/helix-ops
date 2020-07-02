@@ -12,8 +12,12 @@
 
 const yargs = require('yargs');
 const fs = require('fs');
-const request = require('request-promise-native');
+const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
+
+const { fetch } = process.env.HELIX_FETCH_FORCE_HTTP1
+  ? fetchAPI.context({ httpsProtocols: ['http1'] })
+  : fetchAPI;
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
@@ -62,13 +66,15 @@ class CLI {
     async function getComponentInfo(auth, pageid, group, name) {
       try {
         const result = {};
-        result.allComps = await request.get(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
+        const resp = await fetch(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
           headers: {
             Authorization: auth,
           },
-          json: true,
         });
-
+        if (!resp.ok) {
+          throw new Error(await resp.text());
+        }
+        result.allComps = await resp.json();
         result.component = result.allComps.find((comp) => comp.name === name);
 
         if (group) {
@@ -98,15 +104,16 @@ class CLI {
       }
       logger.log(msg);
       try {
-        return await request.post(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
-          json: true,
+        const resp = await fetch(`https://api.statuspage.io/v1/pages/${pageid}/components`, {
+          method: 'POST',
           headers: {
             Authorization: auth,
           },
-          body: {
+          json: {
             component,
           },
         });
+        return await resp.json();
       } catch (e) {
         logger.error('Component creation failed:', e.message);
         process.exit(1);
@@ -125,15 +132,19 @@ class CLI {
       if (Object.keys(component).length > 0) {
         logger.log('Updating component', comp.name);
         try {
-          return await request.patch(`https://api.statuspage.io/v1/pages/${pageid}/components/${comp.id}`, {
-            json: true,
+          const resp = await fetch(`https://api.statuspage.io/v1/pages/${pageid}/components/${comp.id}`, {
+            method: 'PATCH',
             headers: {
               Authorization: auth,
             },
-            body: {
+            json: {
               component,
             },
           });
+          if (!resp.ok) {
+            throw new Error(await resp.text());
+          }
+          return await resp.json();
         } catch (e) {
           logger.error('Component update failed:', e.message);
         }
@@ -154,12 +165,17 @@ class CLI {
       if (component) {
         logger.log('Deleting incubator component', component.name);
         try {
-          await request.delete(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
+          const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
             json: true,
+            method: 'DELETE',
             headers: {
               Authorization: auth,
             },
           });
+          const body = await resp.json();
+          if (!resp.ok) {
+            throw new Error(body);
+          }
         } catch (e) {
           logger.error('Unable to delete incubator component:', e.message);
         }

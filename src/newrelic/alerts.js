@@ -10,8 +10,12 @@
  * governing permissions and limitations under the License.
  */
 
-const request = require('request-promise-native');
+const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
+
+const { fetch } = process.env.HELIX_FETCH_FORCE_HTTP1
+  ? fetchAPI.context({ httpsProtocols: ['http1'] })
+  : fetchAPI;
 
 const CHANNEL_TYPE = 'email';
 const INCIDENT_PREFERENCE = 'PER_POLICY';
@@ -23,13 +27,16 @@ const CONDITION_THRESHOLD = 2;
 
 async function getChannelInfo(auth, channelName, email) {
   try {
-    const response = await request.get('https://api.newrelic.com/v2/alerts_channels.json', {
+    const resp = await fetch('https://api.newrelic.com/v2/alerts_channels.json', {
       headers: {
         'X-Api-Key': auth,
       },
-      json: true,
     });
-    const allChannels = response.channels || [];
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+    const body = await resp.json();
+    const allChannels = body.channels || [];
     const channel = allChannels.find((c) => c.type === CHANNEL_TYPE
       && c.name === channelName && c.configuration.recipients === email);
     return {
@@ -47,11 +54,16 @@ async function purgeIncubatorChannel(auth, name, allPolicies) {
   if (incubatorPolicy) {
     console.log('Removing incubator notification channel', incubatorPolicy.name);
     try {
-      await request.delete(`https://api.newrelic.com/v2/alerts_channels/${incubatorPolicy.id}.json`, {
+      const resp = await fetch(`https://api.newrelic.com/v2/alerts_channels/${incubatorPolicy.id}.json`, {
+        method: 'DELETE',
         headers: {
           'X-Api-Key': auth,
         },
       });
+      const body = await resp.text();
+      if (!resp.ok) {
+        throw new Error(body);
+      }
     } catch (e) {
       console.error('Unable to remove incubator notification channel', e.message);
     }
@@ -70,12 +82,12 @@ async function reuseOrCreateChannel(auth, name, email, incubator) {
     console.log('Creating notification channel', channelName);
 
     try {
-      const response = await request.post('https://api.newrelic.com/v2/alerts_channels.json', {
-        json: true,
+      const resp = await fetch('https://api.newrelic.com/v2/alerts_channels.json', {
+        method: 'POST',
         headers: {
           'X-Api-Key': auth,
         },
-        body: {
+        json: {
           channel: {
             name: channelName,
             type: CHANNEL_TYPE,
@@ -86,7 +98,11 @@ async function reuseOrCreateChannel(auth, name, email, incubator) {
           },
         },
       });
-      [channel] = response.channels;
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+      const body = await resp.json();
+      [channel] = body.channels || [];
 
       if (!incubator) {
         // delete same name incubator channel
@@ -103,13 +119,16 @@ async function reuseOrCreateChannel(auth, name, email, incubator) {
 async function getConditions(auth, policy) {
   if (!policy || !policy.id) return [];
   try {
-    const response = await request.get(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
-      json: true,
+    const resp = await fetch(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
       headers: {
         'X-Api-Key': auth,
       },
     });
-    const conds = response.location_failure_conditions;
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+    const body = await resp.json();
+    const conds = body.location_failure_conditions || [];
     return conds.filter((condition) => condition.name === CONDITION_NAME);
   } catch (e) {
     console.error('Unable to retrieve conditions:', e.message);
@@ -121,12 +140,12 @@ async function createCondition(auth, policy, monitorId) {
   if (!policy || !policy.id) return;
   console.log('Creating condition in alert policy');
   try {
-    await request.post(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
-      json: true,
+    const resp = await fetch(`https://api.newrelic.com/v2/alerts_location_failure_conditions/policies/${policy.id}.json`, {
+      method: 'POST',
       headers: {
         'X-Api-Key': auth,
       },
-      body: {
+      json: {
         location_failure_condition: {
           name: CONDITION_NAME,
           enabled: true,
@@ -140,6 +159,10 @@ async function createCondition(auth, policy, monitorId) {
         },
       },
     });
+    const body = await resp.text();
+    if (!resp.ok) {
+      throw new Error(body);
+    }
   } catch (e) {
     console.error('Unable to add alert policy condition:', e.message);
   }
@@ -152,15 +175,19 @@ async function updateCondition(auth, condition, monitorId) {
     } else {
       console.log('Updating alert policy condition');
       condition.entities.push(monitorId);
-      await request.put(`https://api.newrelic.com/v2/alerts_location_failure_conditions/${condition.id}.json`, {
-        json: true,
+      const resp = await fetch(`https://api.newrelic.com/v2/alerts_location_failure_conditions/${condition.id}.json`, {
+        method: 'PUT',
         headers: {
           'X-Api-Key': auth,
         },
-        body: {
+        json: {
           location_failure_condition: condition,
         },
       });
+      const body = await resp.text();
+      if (!resp.ok) {
+        throw new Error(body);
+      }
     }
   } catch (e) {
     console.error('Unable to update alert policy condition', e.message);
@@ -169,15 +196,17 @@ async function updateCondition(auth, condition, monitorId) {
 
 async function getPolicyInfo(auth, policyName) {
   try {
-    const response = await request.get('https://api.newrelic.com/v2/alerts_policies.json', {
+    const resp = await fetch('https://api.newrelic.com/v2/alerts_policies.json', {
       headers: {
         'X-Api-Key': auth,
       },
-      json: true,
     });
-
-    const allPolicies = response.policies
-      ? response.policies.map(({ id, name }) => ({ id, name }))
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+    const body = await resp.json();
+    const allPolicies = body.policies
+      ? body.policies.map(({ id, name }) => ({ id, name }))
       : [];
     return {
       policy: policyName ? allPolicies.find((pol) => pol.name === policyName) : null,
@@ -192,19 +221,23 @@ async function getPolicyInfo(auth, policyName) {
 async function createPolicy(auth, name) {
   console.log('Creating alert policy', name);
   try {
-    const response = await request.post('https://api.newrelic.com/v2/alerts_policies.json', {
-      json: true,
+    const resp = await fetch('https://api.newrelic.com/v2/alerts_policies.json', {
+      method: 'POST',
       headers: {
         'X-Api-Key': auth,
       },
-      body: {
+      json: {
         policy: {
           name,
           incident_preference: INCIDENT_PREFERENCE,
         },
       },
     });
-    return response.policy;
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+    const body = await resp.json();
+    return body.policy;
   } catch (e) {
     console.error('Alert policy creation failed:', e.message);
     process.exit(1);
@@ -217,15 +250,21 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
     // add notification channel
     console.log('Linking notification channel to alert policy', policy.name);
     try {
-      await request.put('https://api.newrelic.com/v2/alerts_policy_channels.json', {
+      const resp = await fetch('https://api.newrelic.com/v2/alerts_policy_channels.json', {
+        method: 'PUT',
         headers: {
           'X-Api-Key': auth,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
+        body: new URLSearchParams({
           channel_ids: channelId,
           policy_id: policy.id,
-        },
+        }).toString(),
       });
+      const body = await resp.text();
+      if (!resp.ok) {
+        throw new Error(body);
+      }
     } catch (e) {
       console.error('Unable to add notification channel to alert policy', e.message);
     }
@@ -264,11 +303,16 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
   if (incubatorPolicy) {
     console.log('Removing incubator alert policy', incubatorPolicy.name);
     try {
-      await request.delete(`https://api.newrelic.com/v2/alerts_policies/${incubatorPolicy.id}.json`, {
+      const resp = await fetch(`https://api.newrelic.com/v2/alerts_policies/${incubatorPolicy.id}.json`, {
+        method: 'DELETE',
         headers: {
           'X-Api-Key': auth,
         },
       });
+      const body = await resp.text();
+      if (!resp.ok) {
+        throw new Error(body);
+      }
     } catch (e) {
       console.error('Unable to remove incubator alert policy', e.message);
     }
