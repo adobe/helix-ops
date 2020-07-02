@@ -1,3 +1,10 @@
+## [1.11.4](https://github.com/adobe/helix-ops/compare/v1.11.3...v1.11.4) (2020-07-02)
+
+
+### Bug Fixes
+
+* **deps:** update dependency yargs to v15.4.0 ([17416fb](https://github.com/adobe/helix-ops/commit/17416fb0f5e8f4462ecdd21ff3e1c98079915af6))
+
 ## [1.11.3](https://github.com/adobe/helix-ops/compare/v1.11.2...v1.11.3) (2020-07-02)
 
 
