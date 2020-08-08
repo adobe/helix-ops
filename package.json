@@ -54,7 +54,7 @@
     "junit-report-builder": "2.1.0",
     "lint-staged": "10.2.11",
     "lodash": "4.17.19",
-    "mocha": "8.1.0",
+    "mocha": "8.1.1",
     "nock": "13.0.3",
     "nyc": "15.1.0",
     "semantic-release": "17.1.1",
