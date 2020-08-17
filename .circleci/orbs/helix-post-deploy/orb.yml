@@ -100,6 +100,9 @@ commands:
             description: The name of the component group in Statuspage to add the new component to
     steps:
       - run:
+          name: Ensure Installation of CLI
+          command: if [ ! -f ./node_modules/.bin/newrelic ]; then npm i --no-save @adobe/helix-ops; fi
+      - run:
           name: Monitoring Setup
           command: |
               # config params
