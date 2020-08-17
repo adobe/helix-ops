@@ -1,3 +1,17 @@
+# [1.12.0](https://github.com/adobe/helix-ops/compare/v1.11.7...v1.12.0) (2020-08-17)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/helix-fetch to v1.9.0 ([031dcaf](https://github.com/adobe/helix-ops/commit/031dcaf13634722685d7fc6b88f3b5e450d5e724))
+* **deps:** update dependency @adobe/helix-fetch to v1.9.1 ([c71b0eb](https://github.com/adobe/helix-ops/commit/c71b0eb08f3e928c771cf1f986830bd8e2c9c8f9))
+
+
+### Features
+
+* rename default branch from "master" to "main" ([ccdbe06](https://github.com/adobe/helix-ops/commit/ccdbe06a4bead5ae2ed12641dd56a706871d89f3))
+* **orb:** install CLI if not already installed ([6b63007](https://github.com/adobe/helix-ops/commit/6b63007d4c547c13866202172c8ee1da14a35ac8))
+
 ## [1.11.7](https://github.com/adobe/helix-ops/compare/v1.11.6...v1.11.7) (2020-07-22)
 
 
