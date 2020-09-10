@@ -1,2 +1,5 @@
 .vscode/*
 coverage/*
+src/newrelic.js
+src/orb-release.js
+src/statuspage.js
