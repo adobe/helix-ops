@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/adobe/helix-ops/compare/v1.12.1...v1.12.2) (2020-11-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency diff to v5 ([#135](https://github.com/adobe/helix-ops/issues/135)) ([0d2cf06](https://github.com/adobe/helix-ops/commit/0d2cf06b3a86f77eb4d60d7938d3f41eca921815))
+
 ## [1.12.1](https://github.com/adobe/helix-ops/compare/v1.12.0...v1.12.1) (2020-09-15)
 
 
