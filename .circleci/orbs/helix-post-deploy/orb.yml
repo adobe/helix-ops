@@ -122,9 +122,9 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
-              aws=<< aws >>
-              awApi="<< aws_api >>"
-              awsRegion="<< aws_region >>"
+              aws=<< parameters.aws >>
+              awApi="<< parameters.aws_api >>"
+              awsRegion="<< parameters.aws_region >>"
               incubator=<< parameters.incubator >>
               nrAuth="<< parameters.newrelic_auth >>"
               nrName="<< parameters.newrelic_name >>"
