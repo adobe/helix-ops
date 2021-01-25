@@ -120,6 +120,7 @@ async function reuseOrCreateChannel(auth, names, emails, incubator) {
     if (channel) {
       channels.push(channel);
     }
+    return channel;
   }));
   // return channel ids ordered by names
   return names
