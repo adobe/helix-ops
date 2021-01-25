@@ -107,7 +107,7 @@ class StatuspageAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(StatuspageAPI.DELETE_COMPONENT, uri, req);
-      return ctx.reply('');
+      return ctx.reply('{}');
     };
   }
 

@@ -383,4 +383,38 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
     process.exit = originalExit;
   }).timeout(10000);
+
+  it('fails gracefully if update API fails', async () => {
+    let exitCode1 = false;
+    const originalExit = process.exit;
+    process.exit = (code) => {
+      exitCode1 = code === 1;
+    };
+    const api = new StatuspageAPI(apiConfig({ new: false, success: false })).start();
+
+    await run(cliConfig());
+    assert.ok(await getTimedPromise(() => !exitCode1, 'Process did exit with code 1'));
+    api.stop();
+    process.exit = originalExit;
+  }).timeout(10000);
+
+  it('fails gracefully if delete API fails', async () => {
+    let exitCode1 = false;
+    const originalExit = process.exit;
+    process.exit = (code) => {
+      exitCode1 = code === 1;
+    };
+    const api = new StatuspageAPI(apiConfig({
+      incubatorComponent: { ...component, name: component.name += ' [INCUBATOR]' },
+    }))
+      .on(StatuspageAPI.CREATE_COMPONENT, () => {
+        api.cfg.success = false;
+      })
+      .start();
+
+    await run(cliConfig());
+    assert.ok(await getTimedPromise(() => !exitCode1, 'Process did exit with code 1'));
+    api.stop();
+    process.exit = originalExit;
+  }).timeout(10000);
 });

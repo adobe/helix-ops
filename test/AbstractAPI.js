@@ -28,7 +28,7 @@ class AbstractAPI extends EventEmitter {
   constructor(opts) {
     super();
     this.errorCode = 500;
-    this.errorMsg = 'Internal Server Error';
+    this.errorMsg = `{"status":${this.errorCode},"message":"Internal Server Error"}`;
     this.cfg = {
       success: true,
       ...opts,
