@@ -184,41 +184,49 @@ class CLI {
 
     async function updateOrCreateComponent({
       // eslint-disable-next-line camelcase
-      auth, pageId, group, name, description, silent, incubator, incubatorPageId,
+      auth, pageId, group, name, description, aws, silent, incubator, incubatorPageId,
     }) {
       setLogger(silent);
 
-      let comp;
-      const compName = incubator ? getIncubatorName(name) : name;
-      const compPageId = incubator ? getIncubatorPageId(pageId, incubatorPageId) : pageId;
-      const groupName = incubator ? null : group;
-      const { component, compGroup, allComps } = await getComponentInfo(
-        auth,
-        compPageId,
-        groupName,
-        compName,
-      );
-      if (component) {
-        logger.log('Reusing existing component', compName);
-        // update component
-        comp = await updateComponent(auth, compPageId, component, description, compGroup);
-      } else {
-        // create component
-        comp = await createComponent(auth, compPageId, compName, description, compGroup);
+      const names = [name];
+      if (aws) {
+        names.push(`${[name]} (AWS)`);
       }
-      if (comp) {
-        logger.log('Automation email:', comp.automation_email);
-      }
-      if (!incubator) {
-        // delete same name incubator component
-        await purgeIncubator(
-          auth,
-          pageId,
-          incubatorPageId,
-          allComps,
-          getIncubatorName(name),
-        );
-      }
+
+      const emails = [
+        ...await Promise.all(names.map(async (cname) => {
+          let comp;
+          const compName = incubator ? getIncubatorName(cname) : cname;
+          const compPageId = incubator ? getIncubatorPageId(pageId, incubatorPageId) : pageId;
+          const groupName = incubator ? null : group;
+          const { component, compGroup, allComps } = await getComponentInfo(
+            auth,
+            compPageId,
+            groupName,
+            compName,
+          );
+          if (component) {
+            logger.log('Reusing existing component', compName);
+            // update component
+            comp = await updateComponent(auth, compPageId, component, description, compGroup);
+          } else {
+            // create component
+            comp = await createComponent(auth, compPageId, compName, description, compGroup);
+          }
+          if (!incubator) {
+            // delete same name incubator component
+            await purgeIncubator(
+              auth,
+              pageId,
+              incubatorPageId,
+              allComps,
+              getIncubatorName(cname),
+            );
+          }
+          return comp ? comp.automation_email : '';
+        })),
+      ];
+      logger.log('Automation email:', emails.join(' '));
       logger.log('done.');
     }
 
@@ -262,6 +270,12 @@ class CLI {
           type: 'string',
           alias: 'incubatorPageId',
           describe: 'Statuspage Page ID for incubator components',
+          required: false,
+          default: false,
+        })
+        .option('aws', {
+          type: 'boolean',
+          describe: 'The action is also deployed in AWS',
           required: false,
           default: false,
         })

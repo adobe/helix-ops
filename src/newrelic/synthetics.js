@@ -75,8 +75,8 @@ async function getMonitors(auth, monitorname) {
     }
 
     const monitors = loadedmonitors.map(({ id, name }) => ({ id, name }));
-    if (monitorname) {
-      return monitors.filter((monitor) => monitor.name === monitorname);
+    if (typeof monitorname === 'object') {
+      return monitors.filter((monitor) => monitorname.includes(monitor.name));
     } else {
       return [];
     }
@@ -134,43 +134,54 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
   }
 }
 
-async function updateOrCreateMonitor(auth, name, url, script, monType, monLoc, monFreq) {
-  const [monitor] = await getMonitors(auth, name);
+async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq) {
+  const monitors = await getMonitors(auth, names);
   const type = monType ? MONITOR_TYPE[monType] : MONITOR_TYPE.api;
   const locations = monLoc ? monLoc.split(',').map((loc) => loc.trim()) : MONITOR_LOCATIONS;
   const frequency = monFreq || MONITOR_FREQUENCY;
-  if (monitor) {
+  if (monitors.length === names.length) {
     // update
-    await updateMonitor(auth, monitor, url, script, locations, frequency);
+    await Promise.all(names.map(async (name, i) => {
+      const monitor = monitors.find((mon) => mon.name === name);
+      await updateMonitor(auth, monitor, urls[i], script, locations, frequency);
+    }));
   } else {
     // create
-    console.log('Creating monitor', name);
-    try {
-      const resp = await fetch('https://synthetics.newrelic.com/synthetics/api/v3/monitors', {
-        method: 'POST',
-        headers: {
-          'X-Api-Key': auth,
-        },
-        json: {
-          name,
-          type,
-          frequency,
-          locations,
-          status: MONITOR_STATUS,
-          slaThreshold: MONITOR_THRESHOLD,
-        },
-      });
-      const body = await resp.text();
-      if (!resp.ok) {
-        throw new Error(body);
+    await Promise.all(names.map(async (name) => {
+      console.log('Creating monitor', name);
+      try {
+        const resp = await fetch('https://synthetics.newrelic.com/synthetics/api/v3/monitors', {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': auth,
+          },
+          json: {
+            name,
+            type,
+            frequency,
+            locations,
+            status: MONITOR_STATUS,
+            slaThreshold: MONITOR_THRESHOLD,
+          },
+        });
+        const body = await resp.text();
+        if (!resp.ok) {
+          throw new Error(body);
+        }
+        console.log('Monitor created', name);
+      } catch (e) {
+        console.error('Monitor creation failed:', e.message);
+        process.exit(1);
       }
-      return await updateOrCreateMonitor(auth, name, url, script, monType, monLoc, monFreq);
-    } catch (e) {
-      console.error('Monitor creation failed:', e.message);
-      process.exit(1);
-    }
+    }));
+    // call recursively to update created monitor
+    return updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq);
   }
-  return monitor ? monitor.id : null;
+  // return monitor ids ordered by name
+  return names
+    .map((name) => monitors.find((mon) => mon.name === name))
+    .map((mon) => mon.id || null)
+    .filter((id) => !!id);
 }
 
 module.exports = {

@@ -20,7 +20,7 @@ function getTimedPromise(fn, err, time) {
       } else {
         reject(new Error(err));
       }
-    }, time || 1500);
+    }, time || 3000);
   });
 }
 

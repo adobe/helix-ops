@@ -42,6 +42,18 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
+        aws:
+            type: boolean
+            default: false
+            description: The action is also deployed in AWS
+        aws_api:
+            type: string
+            default: ""
+            description: The AWS API to use if AWS is set (defaults to $HLX_AWS_API)
+        aws_region:
+            type: string
+            default: ""
+            description: The AWS region to use if AWS is set (defaults to $HLX_AWS_REGION)
         incubator:
             type: boolean
             default: false
@@ -110,7 +122,10 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
-              incubator="<< parameters.incubator >>"
+              aws=<< aws >>
+              awApi="<< aws_api >>"
+              awsRegion="<< aws_region >>"
+              incubator=<< parameters.incubator >>
               nrAuth="<< parameters.newrelic_auth >>"
               nrName="<< parameters.newrelic_name >>"
               nrURL="<< parameters.newrelic_url >>"
@@ -126,7 +141,11 @@ commands:
 
               # statuspage automation
               if [ "${spName}${spGroup}" != "" ]; then
-                spEmail=`node ${toolPath}/statuspage setup --silent ${spName:+--name "${spName}"} ${spGroup:+--group "${spGroup}"} ${incubator:+--incubator "${incubator}"}`
+                spEmail=`node ${toolPath}/statuspage setup --silent \
+                  ${spName:+--name "${spName}"} \
+                  ${spGroup:+--group "${spGroup}"} \
+                  ${incubator:+--incubator "${incubator}"}`
+                  ${aws:+--aws ${aws}}
               fi
 
               # new relic automation
@@ -135,6 +154,18 @@ commands:
                   actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
                 fi
                 actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
-                nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
+                nrURL="--url https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
-              node ${toolPath}/newrelic setup ${nrURL} ${spEmail} ${nrName:+--name "${nrName}"} ${nrType:+--type ${nrType}} ${nrLocations:+--locations ${nrLocations}} ${nrFrequency:+--frequency ${nrFrequency}} ${nrScript:+--script "${nrScript}"} ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} ${incubator:+--incubator ${incubator}}
+              if [ $aws = true ]; then
+                nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/helix-services/word2md/v2/_status_check/healthcheck.json"
+                nrName="${nrName} --name ${nrName}.aws"
+              fi
+              node ${toolPath}/newrelic setup ${nrURL}} \
+                ${nrName:+--name ${nrName}} \
+                ${spEmail:+--email ${spEmail}} \
+                ${nrType:+--type ${nrType}} \
+                ${nrLocations:+--locations ${nrLocations}} \
+                ${nrFrequency:+--frequency ${nrFrequency}} \
+                ${nrScript:+--script "${nrScript}"} \
+                ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} \
+                ${incubator:+--incubator ${incubator}} \
