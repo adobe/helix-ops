@@ -120,8 +120,8 @@ class CLI {
       } catch (e) {
         logger.error('Component creation failed:', e.message);
         process.exit(1);
+        return null; // this is here for testing
       }
-      return null;
     }
 
     async function updateComponent(auth, pageid, comp, description, group) {

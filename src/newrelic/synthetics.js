@@ -147,6 +147,7 @@ async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc,
     }));
   } else {
     // create
+    let success = true;
     await Promise.all(names.map(async (name) => {
       console.log('Creating monitor', name);
       try {
@@ -165,17 +166,22 @@ async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc,
           },
         });
         const body = await resp.text();
-        if (!resp.ok) {
+        success = resp.ok;
+        if (!success) {
           throw new Error(body);
         }
         console.log('Monitor created', name);
       } catch (e) {
         console.error('Monitor creation failed:', e.message);
-        process.exit(1);
       }
     }));
-    // call recursively to update created monitor
-    return updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq);
+    if (success) {
+      // call recursively to update created monitor
+      return updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq);
+    } else {
+      process.exit(1);
+      return null; // this is here for testing
+    }
   }
   // return monitor ids ordered by name
   return names

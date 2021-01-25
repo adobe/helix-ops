@@ -622,7 +622,7 @@ describe('Testing newrelic', () => {
     delete process.env.NEWRELIC_AUTH;
   }).timeout(5000);
 
-  it.skip('exits with code 1 if API calls fail', async () => {
+  it('exits with code 1 if API calls fail', async () => {
     let exitCount = 0;
     const originalExit = process.exit;
     process.exit = (code) => {
@@ -633,7 +633,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig({ success: false })).start();
 
     await run(cliConfig());
-    assert.ok(await getTimedPromise(() => exitCount === 2, 'Did not exit with code 1 on two occasions'));
+    assert.ok(await getTimedPromise(() => exitCount === 2, `Did not exit with code 1 on two occasions, but ${exitCount}`));
     api.stop();
     process.exit = originalExit;
   }).timeout(5000);

@@ -114,9 +114,12 @@ async function reuseOrCreateChannel(auth, names, emails, incubator) {
       } catch (e) {
         console.error('Notification channel creation failed:', e.message);
         process.exit(1);
+        return null; // this is here for testing
       }
     }
-    channels.push(channel);
+    if (channel) {
+      channels.push(channel);
+    }
   }));
   // return channel ids ordered by names
   return names
@@ -250,11 +253,14 @@ async function createPolicy(auth, name) {
   } catch (e) {
     console.error('Alert policy creation failed:', e.message);
     process.exit(1);
+    return null; // this is here for testing
   }
-  return null;
 }
 
 async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
+  if (!monitorId) {
+    return;
+  }
   if (channelId && policy) {
     // add notification channel
     console.log('Linking notification channel to alert policy', policy.name);
@@ -331,7 +337,7 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
 async function updateOrCreatePolicies(auth, names, groupPolicy, monitorIds, channelIds, incubator) {
   await Promise.all(names.map(async (name, i) => {
     const channelId = channelIds ? channelIds[i] : null;
-    const monitorId = monitorIds[i];
+    const monitorId = monitorIds ? monitorIds[i] : null;
     const policyName = incubator ? getIncubatorName(name) : name;
     const info = await getPolicyInfo(auth, policyName);
     const { allPolicies } = info;

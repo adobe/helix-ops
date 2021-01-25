@@ -94,7 +94,10 @@ class StatuspageAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(StatuspageAPI.UPDATE_COMPONENT, uri, req);
-      return ctx.reply('');
+      const comp = ctx.cfg.incubator && ctx.cfg.incubatorComponent
+        ? ctx.cfg.incubatorComponent
+        : ctx.cfg.component;
+      return ctx.reply(JSON.stringify(comp));
     };
   }
 
