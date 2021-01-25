@@ -113,6 +113,9 @@ class CLI {
             component,
           },
         });
+        if (!resp.ok) {
+          throw new Error(await resp.text());
+        }
         return await resp.json();
       } catch (e) {
         logger.error('Component creation failed:', e.message);

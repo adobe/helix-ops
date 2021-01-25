@@ -48,7 +48,7 @@ async function runShell(opts = {}) {
 }
 
 describe('Testing statuspage', function testStatuspage() {
-  this.timeout(5000);
+  this.timeout(10000);
   let name;
   const logger = console;
 
@@ -161,7 +161,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('creates new AWS component', async () => {
     const compsCreated = [];
@@ -176,7 +176,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compsCreated.length === 2, 'AWS component not created'));
     assert.ok(logger.log.calledWith('Automation email:', emails), `console.log not called with ${emails}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('detects and updates existing component', async () => {
     let listRetrieved = false;
@@ -196,7 +196,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compUpdated, 'Component not updated'));
     assert.ok(logger.log.calledWith('Updating component', name), `console.log not called with ${name}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('detects and updates existing AWS component', async () => {
     const awsName = `${name} (AWS)`;
@@ -213,7 +213,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => logger.log.calledWith('Updating component', awsName),
       `console.log not called with ${awsName}`));
     api.stop();
-  }).timeout(10000);
+  });
 
   it('adds new component to group', async () => {
     let compCreated = false;
@@ -227,7 +227,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created in group'));
     assert.ok(logger.log.calledWith(`Creating component ${name} in group ${group}`), `console.log not called with ${name} and ${group}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('adds existing component to group', async () => {
     let compUpdated = false;
@@ -240,7 +240,7 @@ describe('Testing statuspage', function testStatuspage() {
     await run(cliConfig({ group }));
     assert.ok(await getTimedPromise(() => compUpdated, 'Component not added to group'));
     api.stop();
-  }).timeout(10000);
+  });
 
   it('outputs only email in silent mode', async () => {
     let compCreated = false;
@@ -258,7 +258,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledOnceWith(email), `console.log not called once with ${email}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('creates incubator component', async () => {
     let compCreated = false;
@@ -276,7 +276,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Incubator component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('creates incubator component on dedicated page', async () => {
     let compCreated = false;
@@ -296,7 +296,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Incubator component not created on dedicated page'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
     api.stop();
-  }).timeout(10000);
+  });
 
   it('creates production component and removes incubator component from same page', async () => {
     let compCreated = false;
@@ -319,7 +319,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Production component not created'));
     assert.ok(await getTimedPromise(() => compRemoved, 'Incubator component not removed from same page'));
     api.stop();
-  }).timeout(10000);
+  });
 
   it('creates production component and removes incubator component from dedicated page', async () => {
     let compCreated = false;
@@ -346,7 +346,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => compCreated, 'Production component not created'));
     assert.ok(await getTimedPromise(() => compRemoved, 'Incubator component not removed from dedicated page'));
     api.stop();
-  }).timeout(10000);
+  });
 
   it('uses environment variables', async () => {
     let compCreated = false;
@@ -366,9 +366,9 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
     delete process.env.STATUSPAGE_AUTH;
     delete process.env.STATUSPAGE_PAGE_ID;
-  }).timeout(10000);
+  });
 
-  it('exits with code 1 if create API fails', async () => {
+  it.only('exits with code 1 if create API fails', async () => {
     let exitCode1 = false;
     const originalExit = process.exit;
     process.exit = (code) => {
@@ -382,7 +382,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => exitCode1, 'Process did not exit with code 1'));
     api.stop();
     process.exit = originalExit;
-  }).timeout(10000);
+  });
 
   it('fails gracefully if update API fails', async () => {
     let exitCode1 = false;
@@ -396,7 +396,7 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => !exitCode1, 'Process did exit with code 1'));
     api.stop();
     process.exit = originalExit;
-  }).timeout(10000);
+  });
 
   it('fails gracefully if delete API fails', async () => {
     let exitCode1 = false;
@@ -416,5 +416,5 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => !exitCode1, 'Process did exit with code 1'));
     api.stop();
     process.exit = originalExit;
-  }).timeout(10000);
+  });
 });
