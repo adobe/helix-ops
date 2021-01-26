@@ -114,7 +114,7 @@ class CLI {
           headers: {
             Authorization: auth,
           },
-          json: {
+          body: {
             component,
           },
         });
@@ -145,7 +145,7 @@ class CLI {
             headers: {
               Authorization: auth,
             },
-            json: {
+            body: {
               component,
             },
           });
@@ -174,7 +174,7 @@ class CLI {
         logger.log('Deleting incubator component', component.name);
         try {
           const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
-            json: true,
+            body: true,
             method: 'DELETE',
             headers: {
               Authorization: auth,

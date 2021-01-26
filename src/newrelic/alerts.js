@@ -95,7 +95,7 @@ async function reuseOrCreateChannel(auth, names, emails, incubator) {
           headers: {
             'X-Api-Key': auth,
           },
-          json: {
+          body: {
             channel: {
               name: channelName,
               type: CHANNEL_TYPE,
@@ -163,7 +163,7 @@ async function createCondition(auth, policy, monitorId) {
       headers: {
         'X-Api-Key': auth,
       },
-      json: {
+      body: {
         location_failure_condition: {
           name: CONDITION_NAME,
           enabled: true,
@@ -198,7 +198,7 @@ async function updateCondition(auth, condition, monitorId) {
         headers: {
           'X-Api-Key': auth,
         },
-        json: {
+        body: {
           location_failure_condition: condition,
         },
       });
@@ -244,7 +244,7 @@ async function createPolicy(auth, name) {
       headers: {
         'X-Api-Key': auth,
       },
-      json: {
+      body: {
         policy: {
           name,
           incident_preference: INCIDENT_PREFERENCE,

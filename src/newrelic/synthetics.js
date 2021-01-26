@@ -99,7 +99,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
       headers: {
         'X-Api-Key': auth,
       },
-      json: {
+      body: {
         locations,
         frequency,
       },
@@ -126,7 +126,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
       headers: {
         'X-Api-Key': auth,
       },
-      json: {
+      body: {
         scriptText,
       },
     });
@@ -161,7 +161,7 @@ async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc,
           headers: {
             'X-Api-Key': auth,
           },
-          json: {
+          body: {
             name,
             type,
             frequency,
