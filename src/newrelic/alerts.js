@@ -70,50 +70,63 @@ async function purgeIncubatorChannel(auth, name, allPolicies) {
   }
 }
 
-async function reuseOrCreateChannel(auth, name, email, incubator) {
-  const channelName = incubator ? getIncubatorName(name) : name;
-  const info = await getChannelInfo(auth, channelName, email);
-  const { allChannels } = info;
-  let { channel } = info;
+async function reuseOrCreateChannel(auth, names, emails, incubator) {
+  const channels = [];
+  await Promise.all(names.map(async (name, i) => {
+    const channelName = incubator ? getIncubatorName(name) : name;
+    const email = emails[i];
+    const info = await getChannelInfo(auth, channelName, email);
+    const { allChannels } = info;
+    let { channel } = info;
 
-  if (channel) {
-    console.log(`Reusing notification channel ${channel.name}`);
-  } else {
-    console.log('Creating notification channel', channelName);
+    if (channel) {
+      console.log(`Reusing notification channel ${channel.name}`);
+    } else {
+      console.log('Creating notification channel', channelName);
 
-    try {
-      const resp = await fetch('https://api.newrelic.com/v2/alerts_channels.json', {
-        method: 'POST',
-        headers: {
-          'X-Api-Key': auth,
-        },
-        json: {
-          channel: {
-            name: channelName,
-            type: CHANNEL_TYPE,
-            configuration: {
-              recipients: email,
-              include_json_attachment: false,
+      try {
+        const resp = await fetch('https://api.newrelic.com/v2/alerts_channels.json', {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': auth,
+          },
+          json: {
+            channel: {
+              name: channelName,
+              type: CHANNEL_TYPE,
+              configuration: {
+                recipients: email,
+                include_json_attachment: false,
+              },
             },
           },
-        },
-      });
-      if (!resp.ok) {
-        throw new Error(await resp.text());
-      }
-      const body = await resp.json();
-      [channel] = body.channels || [];
+        });
+        if (!resp.ok) {
+          throw new Error(await resp.text());
+        }
+        const body = await resp.json();
+        [channel] = body.channels || [];
 
-      if (!incubator) {
-        // delete same name incubator channel
-        purgeIncubatorChannel(auth, getIncubatorName(name), allChannels);
+        if (!incubator) {
+          // delete same name incubator channel
+          purgeIncubatorChannel(auth, getIncubatorName(name), allChannels);
+        }
+      } catch (e) {
+        console.error('Notification channel creation failed:', e.message);
+        process.exit(1);
+        return null; // this is here for testing
       }
-    } catch (e) {
-      console.error('Notification channel creation failed:', e.message);
-      process.exit(1);
     }
-  }
-  return channel ? channel.id : null;
+    if (channel) {
+      channels.push(channel);
+    }
+    return channel;
+  }));
+  // return channel ids ordered by names
+  return names
+    .map((name) => channels.find((ch) => ch.name === (incubator ? getIncubatorName(name) : name)))
+    .filter((channel) => !!channel)
+    .map((channel) => channel.id);
 }
 
 async function getConditions(auth, policy) {
@@ -241,11 +254,14 @@ async function createPolicy(auth, name) {
   } catch (e) {
     console.error('Alert policy creation failed:', e.message);
     process.exit(1);
+    return null; // this is here for testing
   }
-  return null;
 }
 
 async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
+  if (!monitorId) {
+    return;
+  }
   if (channelId && policy) {
     // add notification channel
     console.log('Linking notification channel to alert policy', policy.name);
@@ -319,23 +335,28 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
   }
 }
 
-async function updateOrCreatePolicies(auth, name, groupPolicy, monitorId, channelId, incubator) {
-  const policyName = incubator ? getIncubatorName(name) : name;
-  const info = await getPolicyInfo(auth, policyName);
-  const { allPolicies } = info;
-  let { policy } = info;
+async function updateOrCreatePolicies(auth, names, groupPolicy, monitorIds, channelIds, incubator) {
+  await Promise.all(names.map(async (name, i) => {
+    const channelId = channelIds ? channelIds[i] : null;
+    const monitorId = monitorIds ? monitorIds[i] : null;
+    const policyName = incubator ? getIncubatorName(name) : name;
+    const info = await getPolicyInfo(auth, policyName);
+    const { allPolicies } = info;
+    let { policy } = info;
 
-  if (channelId && !policy) {
-    // create policy
-    policy = await createPolicy(auth, policyName);
-  }
-  // update policy
-  await updatePolicy(auth, policy, groupPolicy, monitorId, channelId, allPolicies, incubator);
+    if (channelId && !policy) {
+      // create policy
+      policy = await createPolicy(auth, policyName);
+    }
+    // update policy
+    await updatePolicy(auth, policy, groupPolicy, monitorId, channelId, allPolicies, incubator);
 
-  if (!incubator) {
-    // TODO: delete same name incubator policy
-    await purgeIncubatorPolicy(auth, name, allPolicies);
-  }
+    if (!incubator) {
+      // TODO: delete same name incubator policy
+      await purgeIncubatorPolicy(auth, name, allPolicies);
+    }
+    return policy;
+  }));
 }
 
 module.exports = {

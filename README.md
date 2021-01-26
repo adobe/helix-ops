@@ -26,7 +26,7 @@ $ npm install -D @adobe/helix-ops
 
 Usage:
 
-```bash
+```
 $ npx statuspage
 statuspage <cmd>
 
@@ -34,16 +34,26 @@ Commands:
   statuspage setup  Create or reuse a Statuspage component
 
 Options:
-  --version            Show version number                                       [boolean]
-  --help               Show help                                                 [boolean]
-  --auth               Statuspage API Key (or env $STATUSPAGE_AUTH)    [string] [required]
-  --page_id            Statuspage Page ID (or env $STATUSPGAGE_PAGE_ID)[string] [required]
-  --name               The name of the component                                  [string]
-  --description        The description of the component                           [string]
-  --group              The name of an existing component group                    [string]
-  --incubator          Flag as incubator component                               [boolean]
-  --incubator_page_id  Statuspage Page ID for incubator components                [string]
-  --silent             Reduce output to automation email only                    [boolean]
+  --version  Show version number                                       [boolean]
+  --help     Show help                                                 [boolean]
+  --auth                                  Statuspage API Key (or env
+                                          $STATUSPAGE_AUTH)  [string] [required]
+  --page_id, --pageId                     Statuspage Page ID (or env
+                                          $STATUSPAGE_PAGE_ID)
+                                                             [string] [required]
+  --name                                  The name of the component     [string]
+  --description                           The description of the component
+                                                                        [string]
+  --group                                 The name of an existing component
+                                          group                         [string]
+  --incubator                             Flag as incubator component
+                                                      [boolean] [default: false]
+  --incubator_page_id, --incubatorPageId  Statuspage Page ID for incubator
+                                          components   [string] [default: false]
+  --aws                                   The action is also deployed in AWS
+                                                      [boolean] [default: false]
+  --silent                                Reduce output to automation email only
+                                                      [boolean] [default: false]
 
 $ npx statuspage setup --group "Delivery"
 Creating component @adobe/helix-example-service in group Delivery
@@ -51,7 +61,7 @@ Automation email: component+id@notifications.statuspage.io
 done.
 ```
 Note: You can directly reuse the output of `statuspage` in your shell by adding the `--silent` parameter:
-```bash
+```
 $ npx statuspage setup --group "Delivery" --silent
 component+id@notifications.statuspage.io
 ```
@@ -70,23 +80,21 @@ By default, the check will use the package `name` and `description` from your `p
 
 Usage:
 
-```bash
+```
 $ npx newrelic
-newrelic <cmd> url email
+newrelic <cmd>
 
 Commands:
-  newrelic setup url [email]  Create or update a New Relic setup
-
-Positionals:
-  url    The URL to check                                    [string] [required]
-  email  The email address to send alerts to                            [string]
+  newrelic setup  Create or update a New Relic setup
 
 Options:
   --version       Show version number                                  [boolean]
   --help          Show help                                            [boolean]
-  --auth          Admin API Key (or env var $NEWRELIC_AUTH)   [string][required]
-  --name          The name of the monitor, channel and policy           [string]
-  --group_policy  The name of a common policy to add the monitor to     [string]
+  --auth          Admin API Key (or env var $NEWRELIC_AUTH)  [string] [required]
+  --url           The URL(s) to check                         [array] [required]
+  --email         The email address(es) to send alerts to                [array]
+  --name          The name(s) of the monitor, channel and policy         [array]
+  --group_policy  The name of a common policy to add the monitor(s) to  [string]
   --incubator     Flag as incubator setup                              [boolean]
   --locations     The comma-separated list of locations to use          [string]
   --frequency     The frequency to trigger the monitor in minutes       [number]
@@ -94,8 +102,8 @@ Options:
   --script        The path to a custom monitor script                   [string]
 
 $ npx newrelic setup \
-  https://adobeioruntime.net/api/v1/web/namespace/package/action@v1/_status_check/healthcheck.json \
-  component+id@notifications.statuspage.io --group_policy "Delivery"
+  --url https://adobeioruntime.net/api/v1/web/namespace/package/action@v1/_status_check/healthcheck.json \
+  --email component+id@notifications.statuspage.io --group_policy "Delivery"
 Creating monitor @adobe/helix-example-service
 Updating locations and frequency for monitor @adobe/helix-example-service
 Updating script for monitor @adobe/helix-example-service

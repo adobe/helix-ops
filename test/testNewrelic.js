@@ -44,10 +44,10 @@ function buildArgs({
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
-  if (url) args.push(url);
-  if (email) args.push(email);
   if (auth) args.push('--auth', auth);
-  if (name) args.push('--name', `"${name}"`);
+  if (url) url.forEach((u) => args.push('--url', u));
+  if (email) email.forEach((e) => args.push('--email', e));
+  if (name) name.forEach((n) => args.push('--name', `"${n}"`));
   if (groupPolicy) args.push('--group_policy', `"${groupPolicy}"`);
   if (type) args.push('--type', type);
   if (script) args.push('--script', `"${script}"`);
@@ -90,6 +90,10 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
+  const awsMonitor = {
+    ...monitor,
+    id: '0001',
+  };
   const channel = {
     id: '1111',
     type: CHANNEL_TYPE,
@@ -98,9 +102,17 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
+  const awsChannel = {
+    ...channel,
+    id: '1112',
+  };
   const policy = {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
+  };
+  const awsPolicy = {
+    ...policy,
+    id: '2223',
   };
   const groupPolicy = {
     id: '3333',
@@ -132,10 +144,10 @@ describe('Testing newrelic', () => {
   function cliConfig(overrides) {
     return {
       cmd,
-      url,
-      email,
       auth,
-      name,
+      url: [url],
+      email: [email],
+      name: [name],
       groupPolicy: groupPolicy.name,
       ...overrides,
     };
@@ -174,8 +186,8 @@ describe('Testing newrelic', () => {
   it('refuses to run without required arguments', async () => {
     const output = await runShell({
       cmd,
-      url,
-      email,
+      url: [url],
+      email: [email],
     });
     assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
     assert.ok(/Missing required argument: auth/.test(output.stderr), 'expected missing required arguments');
@@ -184,8 +196,8 @@ describe('Testing newrelic', () => {
   it('refuses to run without dependent arguments', async () => {
     const output = await runShell({
       cmd,
-      url,
-      email,
+      url: [url],
+      email: [email],
       auth,
       type: 'api', // type requires dependent argument script
     });
@@ -264,6 +276,30 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
+  it('creates a new AWS monitoring setup', async () => {
+    awsMonitor.name = `${name}.aws`;
+    const awsUrl = `https://test-aws-api.execute-api.test-region.amazonaws.com/foo/bar/sample/v${v}/_status_check/healthcheck.json`;
+    const awsEmail = 'component+123456@notifications.statuspage.io';
+    const monitorsCreated = [];
+    const api = new NewRelicAPI(apiConfig({
+      aws: true,
+      awsMonitor,
+    }))
+      .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
+        monitorsCreated.push(req.name);
+      })
+      .start();
+
+    await run(cliConfig({
+      url: [url, awsUrl],
+      email: [email, awsEmail],
+      name: [name, awsMonitor.name],
+    }));
+    assert.ok(await getTimedPromise(() => monitorsCreated.length === 2, 'AWS monitor not created'));
+    assert.ok(monitorsCreated.includes(awsMonitor.name), 'AWS monitor not named as expected');
+    api.stop();
+  }).timeout(10000);
+
   it('detects and updates existing monitoring setup', async () => {
     const test = {};
     const api = new NewRelicAPI(apiConfig({ new: false }))
@@ -292,6 +328,37 @@ describe('Testing newrelic', () => {
     ]));
     api.stop();
   }).timeout(5000);
+
+  it('updates existing AWS monitoring setup', async () => {
+    const awsName = `${name}.aws`;
+    awsMonitor.name = awsName;
+    awsChannel.name = awsName;
+    awsPolicy.name = awsName;
+    let updated = false;
+    const api = new NewRelicAPI(apiConfig({
+      new: false,
+      aws: true,
+      awsMonitor,
+      awsChannel,
+      awsPolicy,
+    }))
+      .on(NewRelicAPI.CREATE_MONITOR, () => assert.fail('Unexpected monitor creation'))
+      .on(NewRelicAPI.CREATE_CHANNEL, () => assert.fail('Unexpected notification channel creation'))
+      .on(NewRelicAPI.CREATE_POLICY, () => assert.fail('Unexpected alert policy creation'))
+      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
+        updated = req.startsWith(`channel_ids=${awsChannel.id}`);
+      })
+      .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
+      .start();
+
+    await run(cliConfig({
+      url: [url, url],
+      email: [email, email],
+      name: [name, awsMonitor.name],
+    }));
+    assert(await getTimedPromise(() => !!updated, 'AWS policy not updated'));
+    api.stop();
+  }).timeout(10000);
 
   it('ignores same name group alert policy', async () => {
     let count = 0;
@@ -478,7 +545,7 @@ describe('Testing newrelic', () => {
       getTimedPromise(() => test.ok4, 'Condition not created in incubator alert policy'),
     ]));
     api.stop();
-  }).timeout(5000);
+  }).timeout(10000);
 
   it('turns incubator monitoring setup into production one', async () => {
     const test = {};
@@ -566,7 +633,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig({ success: false })).start();
 
     await run(cliConfig());
-    assert.ok(await getTimedPromise(() => exitCount === 2, 'Did not exit with code 1 on two occasions'));
+    assert.ok(await getTimedPromise(() => exitCount === 2, `Did not exit with code 1 on two occasions, but ${exitCount}`));
     api.stop();
     process.exit = originalExit;
   }).timeout(5000);

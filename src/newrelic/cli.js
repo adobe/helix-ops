@@ -33,30 +33,30 @@ class CLI {
 
     function baseargs(y) {
       return y
-        .positional('url', {
-          type: 'string',
-          describe: 'The URL to check',
-          required: true,
-        })
-        .positional('email', {
-          type: 'string',
-          describe: 'The email address to send alerts to',
-          required: false,
-        })
         .option('auth', {
           type: 'string',
           describe: 'Admin API Key (or env var $NEWRELIC_AUTH)',
           required: true,
         })
+        .option('url', {
+          type: 'array',
+          describe: 'The URL(s) to check',
+          required: true,
+        })
+        .option('email', {
+          type: 'array',
+          describe: 'The email address(es) to send alerts to',
+          required: false,
+        })
         .option('name', {
-          type: 'string',
-          describe: 'The name of the monitor, channel and policy',
+          type: 'array',
+          describe: 'The name(s) of the monitor, channel and policy',
           required: config.packageName === undefined,
-          default: config.packageName,
+          default: [config.packageName],
         })
         .option('group_policy', {
           type: 'string',
-          describe: 'The name of a common policy to add the monitor to',
+          describe: 'The name of a common policy to add the monitor(s) to',
           required: false,
         })
         .option('incubator', {
@@ -90,9 +90,19 @@ class CLI {
     return yargs
       .scriptName('newrelic')
       .usage('$0 <cmd>')
-      .command('setup url [email]', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
+      .command('setup', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
         auth, name, url, email, group_policy, incubator, script, type, locations, frequency,
       }) => {
+        // number of names, urls and emails must match
+        if (name.length !== url.length) {
+          console.error('The number of provides names and urls must match.');
+          process.exit(1);
+        }
+        // if optional emails provided, number must match
+        if (email && name.length !== email.length) {
+          console.error('The number of provides names and email addresses must match.');
+          process.exit(1);
+        }
         await updateOrCreatePolicies(auth, name, group_policy,
           await updateOrCreateMonitor(auth, name, url, script, type, locations, frequency),
           email ? await reuseOrCreateChannel(auth, name, email, incubator) : null,

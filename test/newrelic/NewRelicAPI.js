@@ -56,10 +56,15 @@ class NewRelicAPI extends AbstractAPI {
     const ctx = this;
     return (uri, req) => {
       ctx.emit(NewRelicAPI.GET_MONITORS, uri, req);
-      const resp = JSON.stringify(ctx.cfg.new && !ctx.monitorCreated
-        ? { count: 0, monitors: [] }
-        : { count: 1, monitors: [ctx.cfg.monitor] });
-      return ctx.reply(resp);
+      const resp = { count: 0, monitors: [] };
+      if (!ctx.cfg.new || ctx.monitorCreated) {
+        resp.monitors.push(ctx.cfg.monitor);
+        if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
+          resp.monitors.push(ctx.cfg.awsMonitor);
+        }
+        resp.count = resp.monitors.length;
+      }
+      return ctx.reply(JSON.stringify(resp));
     };
   }
 
@@ -121,9 +126,16 @@ class NewRelicAPI extends AbstractAPI {
       if (!ctx.cfg.new || ctx.channelCreated) {
         // there is an existing notification channel
         channels.push(ctx.cfg.channel);
+        if (ctx.cfg.aws && ctx.cfg.awsChannel) {
+          channels.push(ctx.cfg.awsChannel);
+        }
+        if (ctx.cfg.incubator && ctx.cfg.incubatorChannel) {
+          // there is an existing incubator notification channel
+          channels.push(ctx.cfg.incubatorChannel);
+        }
       }
       if (!ctx.cfg.incubator && ctx.cfg.incubatorChannel) {
-        // there is an existing incubator notification channel
+        // new setup, but there is an existing incubator notification channel
         channels.push(ctx.cfg.incubatorChannel);
       }
       return ctx.reply(JSON.stringify({ channels }));
@@ -177,9 +189,16 @@ class NewRelicAPI extends AbstractAPI {
       if (!ctx.cfg.new || ctx.policyCreated) {
         // there is an existing alert policy
         policies.push(ctx.cfg.policy);
+        if (ctx.cfg.aws && ctx.cfg.awsPolicy) {
+          policies.push(ctx.cfg.awsPolicy);
+        }
+        if (ctx.cfg.incubator && ctx.cfg.incubatorPolicy) {
+          // there is an existing incubator alert policy
+          policies.push(ctx.cfg.incubatorPolicy);
+        }
       }
       if (!ctx.cfg.incubator && ctx.cfg.incubatorPolicy) {
-        // there is an existing incubator alert policy
+        // new setup, but there is an existing incubator alert policy
         policies.push(ctx.cfg.incubatorPolicy);
       }
       return ctx.reply(JSON.stringify({ policies }));
@@ -254,6 +273,9 @@ class NewRelicAPI extends AbstractAPI {
       } else {
         // existing alert policies have conditions linked to monitor
         ctx.cfg.condition.entities = [ctx.cfg.monitor.id];
+        if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
+          ctx.cfg.condition.entities.push(ctx.cfg.awsMonitor.id);
+        }
         conditions.push(ctx.cfg.condition);
       }
       const resp = JSON.stringify({ location_failure_conditions: conditions });
@@ -300,60 +322,78 @@ class NewRelicAPI extends AbstractAPI {
     nock('https://synthetics.newrelic.com')
       // Getting monitors
       .get(/\/synthetics\/api\/v3\/monitors.*/)
+      .twice()
       .reply(this.status(200), this.getMonitors())
       // Creating monitor
       .post('/synthetics/api/v3/monitors')
+      .twice()
       .reply(this.status(201), this.createMonitor())
       // Getting monitors again
       .get(/\/synthetics\/api\/v3\/monitors.*/)
+      .twice()
       .reply(this.status(200), this.getMonitors())
-      // // Updating monitor locations
-      .patch(`/synthetics/api/v3/monitors/${this.cfg.monitor.id}`)
+      // Updating monitor locations
+      .patch(/\/synthetics\/api\/v3\/monitors\/.*/)
+      .twice()
       .reply(this.status(204), this.updateLocations())
       // // Updating monitor script
-      .put(`/synthetics/api/v3/monitors/${this.cfg.monitor.id}/script`)
+      .put(/\/synthetics\/api\/v3\/monitors\/.*\/script/)
+      .twice()
       .reply(this.status(204), this.updateScript());
 
     // Alerts v2 API
     nock('https://api.newrelic.com')
       // Getting channels
       .get('/v2/alerts_channels.json')
+      .twice()
       .reply(this.status(200), this.getChannels())
       // Creating notification channel
       .post('/v2/alerts_channels.json')
+      .twice()
       .reply(this.status(201), this.createChannel())
       // Deleting notification channel
       .delete(/\/v2\/alerts_channels\/.*/)
+      .twice()
       .reply(this.status(200), this.deleteChannel())
       // Getting alert policies
       .get('/v2/alerts_policies.json')
+      .twice()
       .reply(this.status(200), this.getPolicies())
       // Creating alert policy
       .post('/v2/alerts_policies.json')
+      .twice()
       .reply(this.status(201), this.createPolicy())
       // Linking notification channel to alert policy
       .put('/v2/alerts_policy_channels.json')
+      .twice()
       .reply(this.status(204), this.updatePolicy())
       // Getting conditions in alert policy
       .get(/\/v2\/alerts_location_failure_conditions\/policies\/.*/)
+      .twice()
       .reply(this.status(200), this.getConditions())
       // Creating condition in alert policy
       .post(/\/v2\/alerts_location_failure_conditions\/policies\/.*/)
+      .twice()
       .reply(this.status(201), this.createCondition())
       // Updating condition in alert policy
       .put(`/v2/alerts_location_failure_conditions/${this.cfg.condition.id}.json`)
+      .twice()
       .reply(this.status(200), this.updateCondition())
       // Getting conditions in group alert policy
       .get(`/v2/alerts_location_failure_conditions/policies/${this.cfg.groupPolicy.id}.json`)
+      .twice()
       .reply(this.status(200), this.getConditions())
       // Creating condition in group alert policy
       .post(`/v2/alerts_location_failure_conditions/policies/${this.cfg.groupPolicy.id}.json`)
+      .twice()
       .reply(this.status(201), this.createCondition())
       // Updating condition in group alert policy
       .put(`/v2/alerts_location_failure_conditions/${this.cfg.condition.id}.json`)
+      .twice()
       .reply(this.status(200), this.updateCondition())
       // Deleting alert policy
       .delete(/\/v2\/alerts_policies\/.*/)
+      .twice()
       .reply(this.status(200), this.deletePolicy());
     return this;
   }

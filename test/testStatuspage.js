@@ -23,7 +23,7 @@ const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,
+  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, aws, silent,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -34,6 +34,7 @@ function buildArgs({
   if (group) args.push('--group', group);
   if (incubator) args.push('--incubator', incubator);
   if (incubatorPageId) args.push('--incubator_page_id', incubatorPageId);
+  if (aws) args.push('--aws', aws);
   if (silent) args.push('--silent');
   return args;
 }
@@ -47,7 +48,7 @@ async function runShell(opts = {}) {
 }
 
 describe('Testing statuspage', function testStatuspage() {
-  this.timeout(5000);
+  this.timeout(10000);
   let name;
   const logger = console;
 
@@ -162,8 +163,22 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
   });
 
+  it('creates new AWS component', async () => {
+    const compsCreated = [];
+    const emails = `${email} ${email}`;
+    const api = new StatuspageAPI(apiConfig())
+      .on(StatuspageAPI.CREATE_COMPONENT, (uri, req) => {
+        compsCreated.push(req.component.name);
+      })
+      .start();
+
+    await run(cliConfig({ aws: true }));
+    assert.ok(await getTimedPromise(() => compsCreated.length === 2, 'AWS component not created'));
+    assert.ok(logger.log.calledWith('Automation email:', emails), `console.log not called with ${emails}`);
+    api.stop();
+  });
+
   it('detects and updates existing component', async () => {
-    // const apiURL = `/v1/pages/${pageId}/components`;
     let listRetrieved = false;
     let compUpdated = false;
     const desc = 'Update me';
@@ -180,6 +195,23 @@ describe('Testing statuspage', function testStatuspage() {
     assert.ok(await getTimedPromise(() => listRetrieved, 'Component list not retrieved'));
     assert.ok(await getTimedPromise(() => compUpdated, 'Component not updated'));
     assert.ok(logger.log.calledWith('Updating component', name), `console.log not called with ${name}`);
+    api.stop();
+  });
+
+  it('detects and updates existing AWS component', async () => {
+    const awsName = `${name} (AWS)`;
+    const api = new StatuspageAPI(apiConfig({
+      new: false,
+      aws: true,
+      awsComponent: {
+        ...component,
+        name: `${component.name} (AWS)`,
+      },
+    })).start();
+
+    await run(cliConfig({ aws: true }));
+    assert.ok(await getTimedPromise(() => logger.log.calledWith('Updating component', awsName),
+      `console.log not called with ${awsName}`));
     api.stop();
   });
 
@@ -327,7 +359,7 @@ describe('Testing statuspage', function testStatuspage() {
       })
       .start();
 
-    await run({ cmd });
+    await run({ cmd, name });
 
     assert.ok(await getTimedPromise(() => compCreated, 'Component not created'));
     assert.ok(logger.log.calledWith('Automation email:', email), `console.log not called with ${email}`);
