@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/adobe/helix-ops/compare/v1.12.3...v2.0.0) (2021-01-26)
+
+
+### Features
+
+* **monitoring:** aws support ([#152](https://github.com/adobe/helix-ops/issues/152)) ([c49457c](https://github.com/adobe/helix-ops/commit/c49457c8d87b166587bda678a9b2f1e7181bc01f))
+
+
+### BREAKING CHANGES
+
+* **monitoring:** API change in newrelic CLI, see https://github.com/adobe/helix-ops/blob/main/README.md
+
 ## [1.12.3](https://github.com/adobe/helix-ops/compare/v1.12.2...v1.12.3) (2020-12-09)
 
 
