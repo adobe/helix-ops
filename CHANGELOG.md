@@ -1,3 +1,10 @@
+## [2.0.5](https://github.com/adobe/helix-ops/compare/v2.0.4...v2.0.5) (2021-01-27)
+
+
+### Bug Fixes
+
+* **monitoring:** broken if custom newrelic_url is used ([0f43d64](https://github.com/adobe/helix-ops/commit/0f43d6478926b51a29606e4be837f3c8d8ed19e3))
+
 ## [2.0.4](https://github.com/adobe/helix-ops/compare/v2.0.3...v2.0.4) (2021-01-27)
 
 
