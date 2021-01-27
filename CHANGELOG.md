@@ -1,3 +1,12 @@
+## [2.0.1](https://github.com/adobe/helix-ops/compare/v2.0.0...v2.0.1) (2021-01-27)
+
+
+### Bug Fixes
+
+* use body option for json payload ([a04a127](https://github.com/adobe/helix-ops/commit/a04a12745f3e24b7663655605c5c5c639277ea20))
+* **newrelic:** use new fetch context ([70f78b4](https://github.com/adobe/helix-ops/commit/70f78b41d6eea8aeb61a1e6c37baee56e9e27b21))
+* **statuspage:** use new fetchcontext ([3d5cb91](https://github.com/adobe/helix-ops/commit/3d5cb913a32b7a615429e50f651b597508e8eb47))
+
 # [2.0.0](https://github.com/adobe/helix-ops/compare/v1.12.3...v2.0.0) (2021-01-26)
 
 
