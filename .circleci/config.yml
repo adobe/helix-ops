@@ -1,8 +1,8 @@
 version: 2.1
 executors:
-  node10:
+  node12:
     docker:
-    - image: circleci/node:10-stretch
+    - image: circleci/node:12
     environment:
       NPM_CONFIG_PREFIX: ~/.npm-global
       LC_ALL: en_US.UTF-8
@@ -14,9 +14,6 @@ commands:
     # - restore_cache:
     #     keys:
     #     - v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
-    - run:
-        name: install npm 6.9.0
-        command: sudo npm -g install npm@6.9.0
     - run:
         name: Installing Dependencies
         command: npm ci
@@ -37,7 +34,7 @@ commands:
 
 jobs:
   build:
-    executor: node10
+    executor: node12
 
     steps:
     - setup
@@ -57,7 +54,7 @@ jobs:
         path: junit
 
   release:
-    executor: node10
+    executor: node12
 
     steps:
       - setup

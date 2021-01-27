@@ -15,9 +15,14 @@ const fs = require('fs');
 const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
 
-const { fetch } = process.env.HELIX_FETCH_FORCE_HTTP1
-  ? fetchAPI.context({ httpsProtocols: ['http1'] })
-  : fetchAPI;
+function fetchContext() {
+  return process.env.HELIX_FETCH_FORCE_HTTP1
+    ? fetchAPI.context({
+      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+    })
+    : fetchAPI;
+}
+const { fetch } = fetchContext();
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
@@ -109,7 +114,7 @@ class CLI {
           headers: {
             Authorization: auth,
           },
-          json: {
+          body: {
             component,
           },
         });
@@ -140,7 +145,7 @@ class CLI {
             headers: {
               Authorization: auth,
             },
-            json: {
+            body: {
               component,
             },
           });
@@ -169,7 +174,7 @@ class CLI {
         logger.log('Deleting incubator component', component.name);
         try {
           const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
-            json: true,
+            body: true,
             method: 'DELETE',
             headers: {
               Authorization: auth,
