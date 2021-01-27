@@ -58,7 +58,8 @@
     "nock": "13.0.6",
     "nyc": "15.1.0",
     "semantic-release": "17.3.7",
-    "sinon": "9.2.4"
+    "sinon": "9.2.4",
+    "yaml": "^1.10.0"
   },
   "lint-staged": {
     "*.js": "eslint"

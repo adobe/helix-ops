@@ -1,0 +1,15 @@
+{
+  "parameters": {
+    "statuspage_name": "foo"
+  },
+  "output": [
+    "setup",
+    "--url",
+    "https://adobeioruntime.net/api/v1/web///ops@v2/_status_check/healthcheck.json",
+    "--email",
+    "setup",
+    "--silent",
+    "--name",
+    "foo"
+  ]
+}
