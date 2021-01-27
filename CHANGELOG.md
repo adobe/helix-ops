@@ -1,3 +1,10 @@
+## [2.0.7](https://github.com/adobe/helix-ops/compare/v2.0.6...v2.0.7) (2021-01-27)
+
+
+### Bug Fixes
+
+* **monitoring:** wrong aws nrName ([#155](https://github.com/adobe/helix-ops/issues/155)) ([ebe1215](https://github.com/adobe/helix-ops/commit/ebe1215399671af3abaa44cb451982e1a5dec892))
+
 ## [2.0.6](https://github.com/adobe/helix-ops/compare/v2.0.5...v2.0.6) (2021-01-27)
 
 
