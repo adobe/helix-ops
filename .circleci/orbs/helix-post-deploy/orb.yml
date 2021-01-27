@@ -144,7 +144,7 @@ commands:
                 spEmail=`node ${toolPath}/statuspage setup --silent \
                   ${spName:+--name "${spName}"} \
                   ${spGroup:+--group "${spGroup}"} \
-                  ${incubator:+--incubator "${incubator}"}`
+                  ${incubator:+--incubator "${incubator}"}` \
                   ${aws:+--aws ${aws}}
               fi
 
@@ -168,4 +168,4 @@ commands:
                 ${nrFrequency:+--frequency ${nrFrequency}} \
                 ${nrScript:+--script "${nrScript}"} \
                 ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} \
-                ${incubator:+--incubator ${incubator}} \
+                ${incubator:+--incubator ${incubator}}
