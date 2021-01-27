@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/adobe/helix-ops/compare/v2.0.1...v2.0.2) (2021-01-27)
+
+
+### Bug Fixes
+
+* **monitoring:** script error ([#155](https://github.com/adobe/helix-ops/issues/155)) ([2e2b7b0](https://github.com/adobe/helix-ops/commit/2e2b7b0ae1c31259053d75655d5279714c37cdc4))
+
 ## [2.0.1](https://github.com/adobe/helix-ops/compare/v2.0.0...v2.0.1) (2021-01-27)
 
 
