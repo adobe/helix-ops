@@ -39,7 +39,6 @@ describe('Testing monitoring setup', () => {
     it(`Testing ${name}`, async () => {
       const command = Object.keys(parameters).reduce(
         (cmd, k) => cmd.replace(new RegExp(`<< parameters.${k} >>`), parameters[k]),
-        // (cmd, k) => replaceThis(parameters, cmd, k),
         setup.run.command,
       )
         .replace(/<< parameters.tool_path >>/, MONITORING)
