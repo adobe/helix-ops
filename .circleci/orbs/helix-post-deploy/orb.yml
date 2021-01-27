@@ -166,7 +166,7 @@ commands:
               if [ $aws = true ]; then
                 # add AWS url and name
                 nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/helix-services/word2md/v2/_status_check/healthcheck.json"
-                nrName="${nrName} --name ${nrName}.aws"
+                nrName="${nrName} --name ${nrName:-${actionName}}.aws"
               fi
               node ${toolPath}/newrelic setup --url ${nrURL} \
                 ${nrName:+--name ${nrName}} \

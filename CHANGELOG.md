@@ -1,3 +1,10 @@
+## [2.0.6](https://github.com/adobe/helix-ops/compare/v2.0.5...v2.0.6) (2021-01-27)
+
+
+### Bug Fixes
+
+* **monitoring:** use actionName if aws and no nrName ([#155](https://github.com/adobe/helix-ops/issues/155)) ([bc438d0](https://github.com/adobe/helix-ops/commit/bc438d0cd8eb467c024a6d58dbf0baa491f0fbe0))
+
 ## [2.0.5](https://github.com/adobe/helix-ops/compare/v2.0.4...v2.0.5) (2021-01-27)
 
 
