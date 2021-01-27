@@ -144,8 +144,8 @@ commands:
                 spEmail=`node ${toolPath}/statuspage setup --silent \
                   ${spName:+--name "${spName}"} \
                   ${spGroup:+--group "${spGroup}"} \
-                  ${incubator:+--incubator "${incubator}"}` \
-                  ${aws:+--aws ${aws}}
+                  ${incubator:+--incubator ${incubator}} \
+                  ${aws:+--aws ${aws}}`
               fi
 
               # new relic automation
