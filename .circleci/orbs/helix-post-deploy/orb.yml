@@ -150,7 +150,7 @@ commands:
 
               # new relic automation
               if [ "${nrURL}" != "" ]; then
-                nrUrl="--url ${nrURL}"
+                nrURL="--url ${nrURL}"
               else
                 if [ "${actionName}" == "" ]; then
                   actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
