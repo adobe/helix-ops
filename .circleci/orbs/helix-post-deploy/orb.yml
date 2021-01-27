@@ -149,7 +149,9 @@ commands:
               fi
 
               # new relic automation
-              if [ "${nrURL}" == "" ]; then
+              if [ "${nrURL}" != "" ]; then
+                nrUrl="--url ${nrURL}"
+              else
                 if [ "${actionName}" == "" ]; then
                   actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
                 fi
@@ -160,7 +162,7 @@ commands:
                 nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/helix-services/word2md/v2/_status_check/healthcheck.json"
                 nrName="${nrName} --name ${nrName}.aws"
               fi
-              node ${toolPath}/newrelic setup ${nrURL}} \
+              node ${toolPath}/newrelic setup ${nrURL} \
                 ${nrName:+--name ${nrName}} \
                 ${spEmail:+--email ${spEmail}} \
                 ${nrType:+--type ${nrType}} \
