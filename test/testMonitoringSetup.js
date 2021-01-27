@@ -20,11 +20,6 @@ const YAML = require('yaml');
 
 const MONITORING = path.resolve(__dirname, 'monitoring');
 
-function replaceThis(parameters, cmd, k) {
-  const s = cmd.replace(new RegExp(`<< parameters.${k} >>`), parameters[k]);
-  return s;
-}
-
 describe('Testing monitoring setup', () => {
   let setup;
   before(() => {
