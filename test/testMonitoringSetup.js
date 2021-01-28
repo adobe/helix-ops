@@ -43,7 +43,10 @@ describe('Testing monitoring setup', () => {
       )
         .replace(/<< parameters.tool_path >>/, MONITORING)
         .replace(/<< .+ >>/g, '');
-      const { stdout } = shell.exec(command, { silent: true });
+      const { code, stdout, stderr } = shell.exec(command, { silent: true });
+      if (code !== 0) {
+        assert.fail(`shell exited with non-zero code: ${code}:\n${stderr}`);
+      }
       assert.deepStrictEqual(JSON.parse(stdout), output);
     });
   });
