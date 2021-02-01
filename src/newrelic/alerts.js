@@ -49,7 +49,7 @@ async function getChannelInfo(auth, channelName, email) {
       allChannels,
     };
   } catch (e) {
-    console.error('Unable to retrieve channels:', e.message);
+    console.error('Unable to retrieve channels:', e);
     return {};
   }
 }
@@ -70,7 +70,7 @@ async function purgeIncubatorChannel(auth, name, allPolicies) {
         throw new Error(body);
       }
     } catch (e) {
-      console.error('Unable to remove incubator notification channel', e.message);
+      console.error('Unable to remove incubator notification channel', e);
     }
   }
 }
@@ -117,7 +117,7 @@ async function reuseOrCreateChannel(auth, names, emails, incubator) {
           purgeIncubatorChannel(auth, getIncubatorName(name), allChannels);
         }
       } catch (e) {
-        console.error('Notification channel creation failed:', e.message);
+        console.error('Notification channel creation failed:', e);
         process.exit(1);
         return null; // this is here for testing
       }
@@ -149,7 +149,7 @@ async function getConditions(auth, policy) {
     const conds = body.location_failure_conditions || [];
     return conds.filter((condition) => condition.name === CONDITION_NAME);
   } catch (e) {
-    console.error('Unable to retrieve conditions:', e.message);
+    console.error('Unable to retrieve conditions:', e);
     return [];
   }
 }
@@ -182,7 +182,7 @@ async function createCondition(auth, policy, monitorId) {
       throw new Error(body);
     }
   } catch (e) {
-    console.error('Unable to add alert policy condition:', e.message);
+    console.error('Unable to add alert policy condition:', e);
   }
 }
 
@@ -208,7 +208,7 @@ async function updateCondition(auth, condition, monitorId) {
       }
     }
   } catch (e) {
-    console.error('Unable to update alert policy condition', e.message);
+    console.error('Unable to update alert policy condition', e);
   }
 }
 
@@ -231,7 +231,7 @@ async function getPolicyInfo(auth, policyName) {
       allPolicies,
     };
   } catch (e) {
-    console.error('Unable to retrieve alert policies:', e.message);
+    console.error('Unable to retrieve alert policies:', e);
     return {};
   }
 }
@@ -257,7 +257,7 @@ async function createPolicy(auth, name) {
     const body = await resp.json();
     return body.policy;
   } catch (e) {
-    console.error('Alert policy creation failed:', e.message);
+    console.error('Alert policy creation failed:', e);
     process.exit(1);
     return null; // this is here for testing
   }
@@ -287,7 +287,7 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
         throw new Error(body);
       }
     } catch (e) {
-      console.error('Unable to add notification channel to alert policy', e.message);
+      console.error('Unable to add notification channel to alert policy', e);
     }
   }
 
@@ -335,7 +335,7 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
         throw new Error(body);
       }
     } catch (e) {
-      console.error('Unable to remove incubator alert policy', e.message);
+      console.error('Unable to remove incubator alert policy', e);
     }
   }
 }

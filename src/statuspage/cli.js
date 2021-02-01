@@ -88,7 +88,7 @@ class CLI {
         }
         return result;
       } catch (e) {
-        logger.error('Unable to retrieve components:', e.message);
+        logger.error('Unable to retrieve components:', e);
         return {};
       }
     }
@@ -123,7 +123,7 @@ class CLI {
         }
         return await resp.json();
       } catch (e) {
-        logger.error('Component creation failed:', e.message);
+        logger.error('Component creation failed:', e);
         process.exit(1);
         return null; // this is here for testing
       }
@@ -154,7 +154,7 @@ class CLI {
           }
           return await resp.json();
         } catch (e) {
-          logger.error('Component update failed:', e.message);
+          logger.error('Component update failed:', e);
         }
       }
       return comp;
@@ -185,7 +185,7 @@ class CLI {
             throw new Error(body);
           }
         } catch (e) {
-          logger.error('Unable to delete incubator component:', e.message);
+          logger.error('Unable to delete incubator component:', e);
         }
       }
     }
