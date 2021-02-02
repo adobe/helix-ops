@@ -1,5 +1,6 @@
 {
   "parameters": {
+    "statuspage_name": "foo",
     "aws": true,
     "aws_api": "abcde12345",
     "aws_region": "us-east-1"
@@ -14,6 +15,13 @@
     "@adobe/helix-monitoring-test",
     "--name",
     "@adobe/helix-monitoring-test.aws",
+    "--email",
+    "setup",
+    "--silent",
+    "--name",
+    "foo",
+    "--aws",
+    "true",
     "--frequency",
     "15"
   ]
