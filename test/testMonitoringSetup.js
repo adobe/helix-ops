@@ -74,7 +74,10 @@ describe('Testing monitoring setup', () => {
       )
         .replace(/<< parameters.tool_path >>/, MONITORING)
         .replace(/<< .+ >>/g, '');
-      const { code, stdout, stderr } = shell.exec(command, { silent: true });
+      const { code, stdout, stderr } = shell.exec(command, {
+        silent: true,
+        shell: '/bin/bash',
+      });
       if (code !== 0) {
         assert.fail(`shell exited with non-zero code: ${code}:\n${stderr}`);
       }
