@@ -1,0 +1,16 @@
+{
+  "parameters": {
+    "incubator": true
+  },
+  "output": [
+    "setup",
+    "--url",
+    "https://adobeioruntime.net/api/v1/web/helix/helix-services/monitoring-test@v1/_status_check/healthcheck.json",
+    "--name",
+    "@adobe/helix-monitoring-test",
+    "--frequency",
+    "15",
+    "--incubator",
+    "true"
+  ]
+}
