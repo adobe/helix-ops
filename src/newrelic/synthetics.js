@@ -86,7 +86,7 @@ async function getMonitors(auth, monitorname) {
       return [];
     }
   } catch (e) {
-    console.error('Unable to retrieve monitors:', e.message);
+    console.error('Unable to retrieve monitors:', e);
     return [];
   }
 }
@@ -109,7 +109,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
       throw new Error(body);
     }
   } catch (e) {
-    console.error('Unable to update locations and frequency for monitor:', e.message);
+    console.error('Unable to update locations and frequency for monitor:', e);
   }
 
   console.log('Updating script for monitor', monitor.name);
@@ -135,7 +135,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
       throw new Error(body);
     }
   } catch (e) {
-    console.error('Unable to update script for monitor:', e.message);
+    console.error('Unable to update script for monitor:', e);
   }
 }
 
@@ -177,7 +177,7 @@ async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc,
         }
         console.log('Monitor created', name);
       } catch (e) {
-        console.error('Monitor creation failed:', e.message);
+        console.error('Monitor creation failed:', e);
       }
     }));
     if (success) {
