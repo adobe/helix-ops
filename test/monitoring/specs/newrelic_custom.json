@@ -1,0 +1,25 @@
+{
+  "parameters": {
+    "newrelic_name": "foo",
+    "newrelic_url": "https://www.hlx.page",
+    "newrelic_frequency": "5",
+    "newrelic_type": "browser",
+    "newrelic_script": "../../foo/script.js",
+    "newrelic_locations": "A,B,C"
+  },
+  "output": [
+    "setup",
+    "--url",
+    "https://www.hlx.page",
+    "--name",
+    "foo",
+    "--type",
+    "browser",
+    "--locations",
+    "A,B,C",
+    "--frequency",
+    "5",
+    "--script",
+    "../../foo/script.js"
+  ]
+}

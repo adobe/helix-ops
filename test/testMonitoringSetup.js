@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Adobe. All rights reserved.
+ * Copyright 2021 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,8 +20,31 @@ const YAML = require('yaml');
 
 const MONITORING = path.resolve(__dirname, 'monitoring');
 
+function extractDefaults(params) {
+  const defaultParams = {};
+  for (const name of Object.keys(params)) {
+    if (params[name].default) {
+      defaultParams[name] = params[name].default;
+    }
+  }
+  defaultParams.tool_path = '.';
+  return defaultParams;
+}
+
+function applyDefaults(parameters, defaults) {
+  const params = { ...parameters };
+  for (const name of Object.keys(defaults)) {
+    if (!params[name]) {
+      params[name] = defaults[name];
+    }
+  }
+  return params;
+}
+
 describe('Testing monitoring setup', () => {
   let setup;
+  let defaults;
+
   before(() => {
     const orbConfigSource = fse.readFileSync(
       path.resolve(__dirname, '../.circleci/orbs/helix-post-deploy/orb.yml'),
@@ -31,14 +54,18 @@ describe('Testing monitoring setup', () => {
     setup = orbConfig.commands.monitoring.steps.find(
       (step) => step.run.name === 'Monitoring Setup',
     );
+    defaults = extractDefaults(orbConfig.commands.monitoring.parameters);
+    shell.cd(MONITORING);
   });
+
   const specs = path.resolve(MONITORING, 'specs');
   fse.readdirSync(specs).forEach((filename) => {
     const name = filename.substring(0, filename.length - 5);
     const { parameters, output } = fse.readJSONSync(path.resolve(specs, filename), 'utf8');
     it(`Testing ${name}`, async () => {
-      const command = Object.keys(parameters).reduce(
-        (cmd, k) => cmd.replace(new RegExp(`<< parameters.${k} >>`), parameters[k]),
+      const params = applyDefaults(parameters, defaults);
+      const command = Object.keys(params).reduce(
+        (cmd, k) => cmd.replace(new RegExp(`<< parameters.${k} >>`), params[k]),
         setup.run.command,
       )
         .replace(/<< parameters.tool_path >>/, MONITORING)

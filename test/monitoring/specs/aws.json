@@ -1,15 +1,20 @@
 {
   "parameters": {
-    "aws": "true"
+    "aws": true,
+    "aws_api": "abcde12345",
+    "aws_region": "us-east-1"
   },
   "output": [
     "setup",
     "--url",
-    "https://adobeioruntime.net/api/v1/web///ops@v2/_status_check/healthcheck.json",
+    "https://adobeioruntime.net/api/v1/web/helix/helix-services/monitoring-test@v1/_status_check/healthcheck.json",
     "--url",
-    "https://.execute-api..amazonaws.com/helix-services/word2md/v2/_status_check/healthcheck.json",
+    "https://abcde12345.execute-api.us-east-1.amazonaws.com/helix-services/monitoring-test/v1/_status_check/healthcheck.json",
     "--name",
+    "@adobe/helix-monitoring-test",
     "--name",
-    "ops.aws"
+    "@adobe/helix-monitoring-test.aws",
+    "--frequency",
+    "15"
   ]
 }

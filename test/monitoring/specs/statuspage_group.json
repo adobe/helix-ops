@@ -1,6 +1,6 @@
 {
   "parameters": {
-    "statuspage_name": "foo"
+    "statuspage_group": "foo"
   },
   "output": [
     "setup",
@@ -11,7 +11,7 @@
     "--email",
     "setup",
     "--silent",
-    "--name",
+    "--group",
     "foo",
     "--frequency",
     "15"

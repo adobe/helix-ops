@@ -70,23 +70,23 @@ commands:
             type: string
             default: ""
             description: The URL to monitor in New Relic
-        newrelic_type:
+        newrelic_type: 
             type: string
             default: ""
             description: The type of monitor (api or browser)
-        newrelic_locations:
+        newrelic_locations: 
             type: string
             default: ""
             description: The comma-separated list of locations to use
-        newrelic_frequency:
+        newrelic_frequency: 
             type: integer
             default: 15
             description: The frequency to trigger the monitor in minutes
-        newrelic_script:
+        newrelic_script: 
             type: string
             default: ""
             description: The path to the custom monitor script to use
-        newrelic_group_policy:
+        newrelic_group_policy: 
             type: string
             default: ""
             description: A collective alert policy in New Relic to add the monitor to
@@ -123,7 +123,7 @@ commands:
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
               aws=<< parameters.aws >>
-              awApi="<< parameters.aws_api >>"
+              awsApi="<< parameters.aws_api >>"
               awsRegion="<< parameters.aws_region >>"
               incubator=<< parameters.incubator >>
               nrAuth="<< parameters.newrelic_auth >>"
@@ -133,7 +133,7 @@ commands:
               nrLocations="<< parameters.newrelic_locations >>"
               nrFrequency="<< parameters.newrelic_frequency >>"
               nrScript="<< parameters.newrelic_script >>"
-              nrGroupPolicy="<< parameters.newrelic_group_policy >>"
+              nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
               spAuth="<< parameters.statuspage_auth >>"
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
@@ -149,13 +149,13 @@ commands:
               fi
 
               # new relic automation
+              if [ "${actionName}" == "" ]; then
+                # extract action name from package name
+                actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
+              fi
+              # use package version as action version
+              actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
               if [ "${nrURL}" == "" ]; then
-                if [ "${actionName}" == "" ]; then
-                  # extract action name from package name
-                  actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
-                fi
-                # use package version as action version
-                actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
                 # assemble runtime url
                 nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
               fi
@@ -163,9 +163,9 @@ commands:
                 # use package name
                 nrName=`node -e "console.log(require('./package.json').name)"`
               fi
-              if [ "$aws" = true ]; then
+              if [ $aws = true ]; then
                 # add AWS url and name
-                nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/helix-services/word2md/v2/_status_check/healthcheck.json"
+                nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}/_status_check/healthcheck.json"
                 nrName="${nrName} --name ${nrName}.aws"
               fi
               node ${toolPath}/newrelic setup --url ${nrURL} \

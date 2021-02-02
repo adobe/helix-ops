@@ -1,6 +1,6 @@
 {
   "parameters": {
-    "statuspage_name": "foo"
+    "incubator": true
   },
   "output": [
     "setup",
@@ -8,12 +8,9 @@
     "https://adobeioruntime.net/api/v1/web/helix/helix-services/monitoring-test@v1/_status_check/healthcheck.json",
     "--name",
     "@adobe/helix-monitoring-test",
-    "--email",
-    "setup",
-    "--silent",
-    "--name",
-    "foo",
     "--frequency",
-    "15"
+    "15",
+    "--incubator",
+    "true"
   ]
 }
