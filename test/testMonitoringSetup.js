@@ -58,6 +58,10 @@ describe('Testing monitoring setup', () => {
     shell.cd(MONITORING);
   });
 
+  after(() => {
+    shell.cd('-');
+  });
+
   const specs = path.resolve(MONITORING, 'specs');
   fse.readdirSync(specs).forEach((filename) => {
     const name = filename.substring(0, filename.length - 5);
