@@ -1,3 +1,17 @@
+## [2.0.9](https://github.com/adobe/helix-ops/compare/v2.0.8...v2.0.9) (2021-02-02)
+
+
+### Bug Fixes
+
+* **monitoring:** typo in var name ([1769991](https://github.com/adobe/helix-ops/commit/176999167deb9aa0858d5458ae0f6a2d1c61cfbf))
+
+## [2.0.8](https://github.com/adobe/helix-ops/compare/v2.0.7...v2.0.8) (2021-02-02)
+
+
+### Bug Fixes
+
+* **monitoring:** aws monitoring always pointing to word2md/v2 ([#166](https://github.com/adobe/helix-ops/issues/166)) ([1122c98](https://github.com/adobe/helix-ops/commit/1122c985867b2634eca867b29a8f046df3012818))
+
 ## [2.0.7](https://github.com/adobe/helix-ops/compare/v2.0.6...v2.0.7) (2021-01-27)
 
 
