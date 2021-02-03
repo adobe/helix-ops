@@ -1,3 +1,10 @@
+## [2.0.10](https://github.com/adobe/helix-ops/compare/v2.0.9...v2.0.10) (2021-02-03)
+
+
+### Bug Fixes
+
+* **monitoring:** monitor names with dashes ([#167](https://github.com/adobe/helix-ops/issues/167)) ([b55a159](https://github.com/adobe/helix-ops/commit/b55a159729286e43afde6549ea383426c29f90ac))
+
 ## [2.0.9](https://github.com/adobe/helix-ops/compare/v2.0.8...v2.0.9) (2021-02-02)
 
 
