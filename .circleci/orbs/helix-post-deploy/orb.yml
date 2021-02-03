@@ -138,6 +138,8 @@ commands:
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
               spEmail=""
+              nrAWSURL=""
+              nrAWSName=""
 
               # statuspage automation
               if [ "${spName}${spGroup}" != "" ]; then
@@ -165,11 +167,13 @@ commands:
               fi
               if [ $aws = true ]; then
                 # add AWS url and name
-                nrURL="${nrURL} --url https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}/_status_check/healthcheck.json"
-                nrName="${nrName} --name ${nrName}.aws"
+                nrAWSURL="https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}/_status_check/healthcheck.json"
+                nrAWSName="${nrName}.aws"
               fi
               node ${toolPath}/newrelic setup --url ${nrURL} \
-                ${nrName:+--name ${nrName}} \
+                ${nrAWSURL:+--url "${nrAWSURL}"} \
+                ${nrName:+--name "${nrName}"} \
+                ${nrAWSName:+--name "${nrAWSName}"} \
                 ${spEmail:+--email ${spEmail}} \
                 ${nrType:+--type ${nrType}} \
                 ${nrLocations:+--locations ${nrLocations}} \
