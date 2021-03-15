@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/adobe/helix-ops/compare/v2.0.14...v2.1.0) (2021-03-15)
+
+
+### Features
+
+* **google:** add orb for setting up google cloud platform credentials ([787df46](https://github.com/adobe/helix-ops/commit/787df466baa82939969575f10f51c7dccdeaa982))
+
 ## [2.0.14](https://github.com/adobe/helix-ops/compare/v2.0.13...v2.0.14) (2021-03-04)
 
 
