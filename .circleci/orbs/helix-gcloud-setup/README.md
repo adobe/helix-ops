@@ -8,7 +8,7 @@ To integrate this orb into a CircleCI config, include the following line in `.ci
 
 ```yml
 orbs:
-  helix-gcloud-setup: adobe/helix-post-deploy@1.0.0
+  helix-gcloud-setup: adobe/helix-gcloud-setup@1.0.0
 ```
 
 ## Commands
