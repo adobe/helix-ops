@@ -1,0 +1,22 @@
+version: 2.1
+
+description: |
+  Sets up Google Cloud Platform credentials from environment variables
+
+executors:
+  node12:
+    docker:
+      - image: circleci/node:12
+
+commands:
+  load-config:
+    description: Loads the Google credentials from an environment variable into a file
+    parameters:
+      file:
+        type: string
+        default: "./helix-google.json"
+        description: The configuration file to create
+    steps:
+      - run:
+          name: Load Google credentials
+          command: echo $GOOGLE_CREDS | base64 --decode | tee ~/<< parameters.file >> | jq -e .client_email
