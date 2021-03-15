@@ -24,7 +24,7 @@ jobs:
     executor: node10
     steps:
       - ...
-      - helix-gcloud-setup/file
+      - helix-gcloud-setup/load-config
 ```
 For a list of all parameters supported by the `monitoring` command, see here:
 https://circleci.com/orbs/registry/orb/adobe/helix-gcloud-setup
