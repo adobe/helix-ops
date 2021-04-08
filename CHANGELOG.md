@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/adobe/helix-ops/compare/v2.1.3...v2.2.0) (2021-04-08)
+
+
+### Features
+
+* **fastly:** create orb for fastly CLI setup ([c714456](https://github.com/adobe/helix-ops/commit/c714456e46d1a570daf6a6e96a6ea276f8608b93))
+
 ## [2.1.3](https://github.com/adobe/helix-ops/compare/v2.1.2...v2.1.3) (2021-03-26)
 
 
