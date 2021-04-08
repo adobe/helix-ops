@@ -1,0 +1,21 @@
+version: 2.1
+
+description: Installs the Fastly CLI
+
+executors:
+  base:
+    docker:
+      - image: cimg/base:stable
+
+commands:
+  install:
+    description: Installs the Fastly CLI
+    parameters:
+      version:
+        type: string
+        default: "0.26.3"
+        description: The Fastly CLI version to install.
+    steps:
+      - run:
+          name: Install Fastly CLI
+          command: mkdir ~/.bin && curl -L https://github.com/fastly/cli/releases/download/v<< parameters.version >>/fastly_v<< parameters.version >>_linux-386.tar.gz | tar zxv && mv fastly ~/.bin/ && echo 'export PATH=$PATH:~/.bin' >> $BASH_ENV
