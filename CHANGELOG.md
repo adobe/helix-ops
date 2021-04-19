@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/adobe/helix-ops/compare/v2.2.0...v2.2.1) (2021-04-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependency get-stream to v6.0.1 ([#200](https://github.com/adobe/helix-ops/issues/200)) ([74fd7d1](https://github.com/adobe/helix-ops/commit/74fd7d12538925210e0a553d9170aa80881b8107))
+
 # [2.2.0](https://github.com/adobe/helix-ops/compare/v2.1.3...v2.2.0) (2021-04-08)
 
 
