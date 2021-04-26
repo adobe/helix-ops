@@ -80,7 +80,7 @@ describe('Testing newrelic', () => {
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
   const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
-  const locations = MONITOR_LOCATIONS.slice(3, 6).join(', ');
+  const locations = MONITOR_LOCATIONS.slice(3, 6).join(' ');
   const frequency = 5;
   const monitor = {
     id: '0000',
@@ -550,7 +550,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig())
       .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
         ok = typeof req.locations === 'object'
-          && req.locations.join(', ') === locations
+          && req.locations.join(' ') === locations
           && req.frequency === frequency;
       })
       .start();
@@ -565,7 +565,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig({ new: false }))
       .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
         ok = typeof req.locations === 'object'
-          && req.locations.join(', ') === locations
+          && req.locations.join(' ') === locations
           && req.frequency === frequency;
       })
       .start();

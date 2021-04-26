@@ -5,7 +5,7 @@
     "newrelic_frequency": "5",
     "newrelic_type": "browser",
     "newrelic_script": "../../foo/script.js",
-    "newrelic_locations": "A,B,C"
+    "newrelic_locations": "A B C"
   },
   "output": [
     "setup",
@@ -16,7 +16,9 @@
     "--type",
     "browser",
     "--locations",
-    "A,B,C",
+    "A",
+    "B",
+    "C",
     "--frequency",
     "5",
     "--script",
