@@ -23,7 +23,7 @@ const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, aws, silent,
+  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, runtime, aws, silent,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -34,6 +34,7 @@ function buildArgs({
   if (group) args.push('--group', group);
   if (incubator) args.push('--incubator', incubator);
   if (incubatorPageId) args.push('--incubator_page_id', incubatorPageId);
+  if (runtime) args.push('--runtime', runtime);
   if (aws) args.push('--aws', aws);
   if (silent) args.push('--silent');
   return args;
@@ -163,6 +164,22 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
   });
 
+  it('creates new Adobe I/O Runtime component', async () => {
+    const compsCreated = [];
+    const emails = `${email} ${email}`;
+    const api = new StatuspageAPI(apiConfig())
+      .on(StatuspageAPI.CREATE_COMPONENT, (uri, req) => {
+        compsCreated.push(req.component.name);
+      })
+      .start();
+
+    await run(cliConfig({ runtime: true }));
+    assert.ok(await getTimedPromise(() => compsCreated.length === 2, 'Runtime component not created'));
+    assert.ok(compsCreated.find((cname) => cname.includes('Adobe I/O Runtime')));
+    assert.ok(logger.log.calledWith('Automation email:', emails), `console.log not called with ${emails}`);
+    api.stop();
+  });
+
   it('creates new AWS component', async () => {
     const compsCreated = [];
     const emails = `${email} ${email}`;
@@ -174,6 +191,7 @@ describe('Testing statuspage', function testStatuspage() {
 
     await run(cliConfig({ aws: true }));
     assert.ok(await getTimedPromise(() => compsCreated.length === 2, 'AWS component not created'));
+    assert.ok(compsCreated.find((cname) => cname.includes('AWS')));
     assert.ok(logger.log.calledWith('Automation email:', emails), `console.log not called with ${emails}`);
     api.stop();
   });

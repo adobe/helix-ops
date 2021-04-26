@@ -1,18 +1,25 @@
 {
   "parameters": {
-    "statuspage_name": "foo"
+    "statuspage_name": "foo",
+    "runtime": true
   },
   "output": [
     "setup",
     "--url",
     "https://helix-pages.anywhere.run/helix-services/monitoring-test@v1/_status_check/healthcheck.json",
+    "--url",
+    "https://adobeioruntime.net/api/v1/web/helix/helix-services/monitoring-test@v1/_status_check/healthcheck.json",
     "--name",
     "@adobe/helix-monitoring-test",
+    "--name",
+    "@adobe/helix-monitoring-test.runtime",
     "--email",
     "setup",
     "--silent",
     "--name",
     "foo",
+    "--runtime",
+    "true",
     "--frequency",
     "15"
   ]

@@ -192,11 +192,14 @@ class CLI {
 
     async function updateOrCreateComponent({
       // eslint-disable-next-line camelcase
-      auth, pageId, group, name, description, aws, silent, incubator, incubatorPageId,
+      auth, pageId, group, name, description, aws, runtime, silent, incubator, incubatorPageId,
     }) {
       setLogger(silent);
 
       const names = [name];
+      if (runtime) {
+        names.push(`${[name]} (Adobe I/O Runtime)`);
+      }
       if (aws) {
         names.push(`${[name]} (AWS)`);
       }
@@ -283,7 +286,13 @@ class CLI {
         })
         .option('aws', {
           type: 'boolean',
-          describe: 'The action is also deployed in AWS',
+          describe: 'Also monitor the action in AWS',
+          required: false,
+          default: false,
+        })
+        .option('runtime', {
+          type: 'boolean',
+          describe: 'Also monitor the action in Adobe I/O Runtime',
           required: false,
           default: false,
         })

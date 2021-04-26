@@ -90,9 +90,13 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
-  const awsMonitor = {
+  const runtimeMonitor = {
     ...monitor,
     id: '0001',
+  };
+  const awsMonitor = {
+    ...monitor,
+    id: '0002',
   };
   const channel = {
     id: '1111',
@@ -102,21 +106,39 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
-  const awsChannel = {
+  const runtimeChannel = {
     ...channel,
     id: '1112',
+  };
+  const awsChannel = {
+    ...channel,
+    id: '1113',
   };
   const policy = {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const awsPolicy = {
+  const runtimePolicy = {
     ...policy,
     id: '2223',
+  };
+  const awsPolicy = {
+    ...policy,
+    id: '2224',
   };
   const groupPolicy = {
     id: '3333',
     name: 'Test Group Policy',
+    incident_preference: INCIDENT_PREFERENCE,
+  };
+  const runtimeGroupPolicy = {
+    id: '3334',
+    name: 'Test Group Policy (Adobe I/O Runtime)',
+    incident_preference: INCIDENT_PREFERENCE,
+  };
+  const awsGroupPolicy = {
+    id: '3335',
+    name: 'Test Group Policy (AWS)',
     incident_preference: INCIDENT_PREFERENCE,
   };
   const condition = {
@@ -276,14 +298,40 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
+  it('creates a new runtime monitoring setup', async () => {
+    runtimeMonitor.name = `${name}.runtime`;
+    const runtimeUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
+    const runtimeEmail = 'component+123456@notifications.statuspage.io';
+    const monitorsCreated = [];
+    const api = new NewRelicAPI(apiConfig({
+      runtimeGroupPolicy,
+      runtimeMonitor,
+      runtime: true,
+    }))
+      .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
+        monitorsCreated.push(req.name);
+      })
+      .start();
+
+    await run(cliConfig({
+      url: [url, runtimeUrl],
+      email: [email, runtimeEmail],
+      name: [name, runtimeMonitor.name],
+    }));
+    assert.ok(await getTimedPromise(() => monitorsCreated.length === 2, 'Runtime monitor not created'));
+    assert.ok(monitorsCreated.includes(runtimeMonitor.name), 'Runtime monitor not named as expected');
+    api.stop();
+  }).timeout(10000);
+
   it('creates a new AWS monitoring setup', async () => {
     awsMonitor.name = `${name}.aws`;
     const awsUrl = `https://test-aws-api.execute-api.test-region.amazonaws.com/foo/bar/sample/v${v}/_status_check/healthcheck.json`;
     const awsEmail = 'component+123456@notifications.statuspage.io';
     const monitorsCreated = [];
     const api = new NewRelicAPI(apiConfig({
-      aws: true,
+      awsGroupPolicy,
       awsMonitor,
+      aws: true,
     }))
       .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
         monitorsCreated.push(req.name);
@@ -357,6 +405,37 @@ describe('Testing newrelic', () => {
       name: [name, awsMonitor.name],
     }));
     assert(await getTimedPromise(() => !!updated, 'AWS policy not updated'));
+    api.stop();
+  }).timeout(10000);
+
+  it('updates existing runtime monitoring setup', async () => {
+    const runtimeName = `${name}.runtime`;
+    runtimeMonitor.name = runtimeName;
+    runtimeChannel.name = runtimeName;
+    runtimePolicy.name = runtimeName;
+    let updated = false;
+    const api = new NewRelicAPI(apiConfig({
+      new: false,
+      runtime: true,
+      runtimeMonitor,
+      runtimeChannel,
+      runtimePolicy,
+    }))
+      .on(NewRelicAPI.CREATE_MONITOR, () => assert.fail('Unexpected monitor creation'))
+      .on(NewRelicAPI.CREATE_CHANNEL, () => assert.fail('Unexpected notification channel creation'))
+      .on(NewRelicAPI.CREATE_POLICY, () => assert.fail('Unexpected alert policy creation'))
+      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
+        updated = req.startsWith(`channel_ids=${runtimeChannel.id}`);
+      })
+      .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
+      .start();
+
+    await run(cliConfig({
+      url: [url, url],
+      email: [email, email],
+      name: [name, runtimeMonitor.name],
+    }));
+    assert(await getTimedPromise(() => !!updated, 'Runtime policy not updated'));
     api.stop();
   }).timeout(10000);
 

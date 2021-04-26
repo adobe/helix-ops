@@ -42,18 +42,22 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
+        runtime:
+            type: boolean
+            default: false
+            description: Also monitor the action in Adobe I/O Runtime
         aws:
             type: boolean
             default: false
-            description: The action is also deployed in AWS
+            description: Also monitor the action in AWS
         aws_api:
-            type: string
-            default: ""
-            description: The AWS API to use if AWS is set (defaults to $HLX_AWS_API)
+            type: env_var_name
+            default: HLX_AWS_API
+            description: The AWS API to use if AWS is set
         aws_region:
-            type: string
-            default: ""
-            description: The AWS region to use if AWS is set (defaults to $HLX_AWS_REGION)
+            type: env_var_name
+            default: HLX_AWS_REGION
+            description: The AWS region to use if AWS is set
         incubator:
             type: boolean
             default: false
@@ -122,11 +126,11 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
+              runtime=<< parameters.runtime >>
               aws=<< parameters.aws >>
               awsApi="<< parameters.aws_api >>"
               awsRegion="<< parameters.aws_region >>"
               incubator=<< parameters.incubator >>
-              nrAuth="<< parameters.newrelic_auth >>"
               nrName="<< parameters.newrelic_name >>"
               nrURL="<< parameters.newrelic_url >>"
               nrType="<< parameters.newrelic_type >>"
@@ -134,10 +138,11 @@ commands:
               nrFrequency="<< parameters.newrelic_frequency >>"
               nrScript="<< parameters.newrelic_script >>"
               nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
-              spAuth="<< parameters.statuspage_auth >>"
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
               spEmail=""
+              nrRuntimeURL=""
+              nrRuntimeName=""
               nrAWSURL=""
               nrAWSName=""
 
@@ -147,6 +152,7 @@ commands:
                   ${spName:+--name "${spName}"} \
                   ${spGroup:+--group "${spGroup}"} \
                   ${incubator:+--incubator ${incubator}} \
+                  ${runtime:+--runtime ${runtime}} \
                   ${aws:+--aws ${aws}}`
               fi
 
@@ -157,22 +163,30 @@ commands:
               fi
               # use package version as action version
               actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
+              actionStatus="/_status_check/healthcheck.json"
               if [ "${nrURL}" == "" ]; then
-                # assemble runtime url
-                nrURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}/_status_check/healthcheck.json"
+                # assemble universal runtime url
+                nrURL="https://helix-pages.anywhere.run/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
               fi
               if [ "${nrName}" == "" ]; then
                 # use package name
                 nrName=`node -e "console.log(require('./package.json').name)"`
               fi
+              if [ $runtime = true ]; then
+                # add i/o runtime url and name
+                nrRuntimeURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
+                nrRuntimeName="${nrName}.runtime"
+              fi
               if [ $aws = true ]; then
                 # add AWS url and name
-                nrAWSURL="https://${awsApi:-${HLX_AWS_API}}.execute-api.${awsRegion:-${HLX_AWS_REGION}}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}/_status_check/healthcheck.json"
+                nrAWSURL="https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}"
                 nrAWSName="${nrName}.aws"
               fi
               node ${toolPath}/newrelic setup --url ${nrURL} \
+                ${nrRuntimeURL:+--url "${nrRuntimeURL}"} \
                 ${nrAWSURL:+--url "${nrAWSURL}"} \
                 ${nrName:+--name "${nrName}"} \
+                ${nrRuntimeName:+--name "${nrRuntimeName}"} \
                 ${nrAWSName:+--name "${nrAWSName}"} \
                 ${spEmail:+--email ${spEmail}} \
                 ${nrType:+--type ${nrType}} \

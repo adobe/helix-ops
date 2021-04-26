@@ -59,6 +59,9 @@ class NewRelicAPI extends AbstractAPI {
       const resp = { count: 0, monitors: [] };
       if (!ctx.cfg.new || ctx.monitorCreated) {
         resp.monitors.push(ctx.cfg.monitor);
+        if (ctx.cfg.runtime && ctx.cfg.runtimeMonitor) {
+          resp.monitors.push(ctx.cfg.runtimeMonitor);
+        }
         if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
           resp.monitors.push(ctx.cfg.awsMonitor);
         }
@@ -126,6 +129,9 @@ class NewRelicAPI extends AbstractAPI {
       if (!ctx.cfg.new || ctx.channelCreated) {
         // there is an existing notification channel
         channels.push(ctx.cfg.channel);
+        if (ctx.cfg.runtime && ctx.cfg.runtimeChannel) {
+          channels.push(ctx.cfg.runtimeChannel);
+        }
         if (ctx.cfg.aws && ctx.cfg.awsChannel) {
           channels.push(ctx.cfg.awsChannel);
         }
@@ -186,9 +192,20 @@ class NewRelicAPI extends AbstractAPI {
     return (uri, req) => {
       ctx.emit(NewRelicAPI.GET_POLICIES, uri, req);
       const policies = [ctx.cfg.groupPolicy];
+      if (ctx.cfg.runtimeGroupPolicy) {
+        // add runtime specific group policy
+        policies.push(ctx.cfg.runtimeGroupPolicy);
+      }
+      if (ctx.cfg.awsGroupPolicy) {
+        // add aws specific group policy
+        policies.push(ctx.cfg.awsGroupPolicy);
+      }
       if (!ctx.cfg.new || ctx.policyCreated) {
         // there is an existing alert policy
         policies.push(ctx.cfg.policy);
+        if (ctx.cfg.runtime && ctx.cfg.runtimePolicy) {
+          policies.push(ctx.cfg.runtimePolicy);
+        }
         if (ctx.cfg.aws && ctx.cfg.awsPolicy) {
           policies.push(ctx.cfg.awsPolicy);
         }
@@ -265,7 +282,9 @@ class NewRelicAPI extends AbstractAPI {
       const conditions = [];
       if (ctx.cfg.new) {
         // new alert policy has no condition yet
-        if (uri.includes(ctx.cfg.groupPolicy.id)) {
+        if (uri.includes(ctx.cfg.groupPolicy.id)
+        || (ctx.cfg.runtimeGroupPolicy && uri.includes(ctx.cfg.runtimeGroupPolicy.id))
+        || (ctx.cfg.awsGroupPolicy && uri.includes(ctx.cfg.awsGroupPolicy.id))) {
           // group alert policy has condition, but not linked to monitor yet
           ctx.cfg.condition.entities = [];
           conditions.push(ctx.cfg.condition);
@@ -273,6 +292,9 @@ class NewRelicAPI extends AbstractAPI {
       } else {
         // existing alert policies have conditions linked to monitor
         ctx.cfg.condition.entities = [ctx.cfg.monitor.id];
+        if (ctx.cfg.runtime && ctx.cfg.runtimeMonitor) {
+          ctx.cfg.condition.entities.push(ctx.cfg.runtimeMonitor.id);
+        }
         if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
           ctx.cfg.condition.entities.push(ctx.cfg.awsMonitor.id);
         }

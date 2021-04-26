@@ -263,7 +263,9 @@ async function createPolicy(auth, name) {
   }
 }
 
-async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
+async function updatePolicy(
+  auth, name, policy, groupPolicy, monitorId, channelId, policies, incubator,
+) {
   if (!monitorId) {
     return;
   }
@@ -301,7 +303,16 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
   }
 
   if (!incubator && groupPolicy) {
-    const group = policies ? policies.find((pol) => pol.name === groupPolicy) : null;
+    let groupPolicyName = groupPolicy;
+    if (name.endsWith('.runtime')) {
+      // use runtime specific group policy
+      groupPolicyName = `${groupPolicy} (Adobe I/O Runtime)`;
+    }
+    if (name.endsWith('.aws')) {
+      // use aws specific group policy
+      groupPolicyName = `${groupPolicy} (AWS)`;
+    }
+    const group = policies ? policies.find((pol) => pol.name === groupPolicyName) : null;
     if (group) {
       // make sure policy and group policy are not the same
       if (policy && policy.id && policy.id === group.id) {
@@ -309,9 +320,9 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
         return;
       }
       console.log('Verifying group alert policy', group.name);
-      await updatePolicy(auth, group, null, monitorId);
+      await updatePolicy(auth, name, group, null, monitorId);
     } else {
-      console.error(`Group alert policy ${groupPolicy} not found`);
+      console.error(`Group alert policy ${groupPolicyName} not found`);
     }
   }
 }
@@ -354,7 +365,9 @@ async function updateOrCreatePolicies(auth, names, groupPolicy, monitorIds, chan
       policy = await createPolicy(auth, policyName);
     }
     // update policy
-    await updatePolicy(auth, policy, groupPolicy, monitorId, channelId, allPolicies, incubator);
+    await updatePolicy(
+      auth, name, policy, groupPolicy, monitorId, channelId, allPolicies, incubator,
+    );
 
     if (!incubator) {
       // TODO: delete same name incubator policy
