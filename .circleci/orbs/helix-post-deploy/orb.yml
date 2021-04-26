@@ -42,6 +42,10 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
+        universal_host:
+            type: string
+            default: "helix-pages.anywhere.run"
+            description: The host name of the universal runtime server
         runtime:
             type: boolean
             default: false
@@ -126,6 +130,7 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
+              universalHost="<< parameters.universal_host >>"
               runtime=<< parameters.runtime >>
               aws=<< parameters.aws >>
               awsApi="<< parameters.aws_api >>"
@@ -166,7 +171,7 @@ commands:
               actionStatus="/_status_check/healthcheck.json"
               if [ "${nrURL}" == "" ]; then
                 # assemble universal runtime url
-                nrURL="https://helix-pages.anywhere.run/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
+                nrURL="https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
               fi
               if [ "${nrName}" == "" ]; then
                 # use package name
