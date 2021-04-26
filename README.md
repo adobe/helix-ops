@@ -50,7 +50,9 @@ Options:
                                                       [boolean] [default: false]
   --incubator_page_id, --incubatorPageId  Statuspage Page ID for incubator
                                           components   [string] [default: false]
-  --aws                                   The action is also deployed in AWS
+  --runtime                               Also monitor the action in Adobe I/O
+                                          Runtime     [boolean] [default: false]
+  --aws                                   Also monitor the action in AWS
                                                       [boolean] [default: false]
   --silent                                Reduce output to automation email only
                                                       [boolean] [default: false]
@@ -96,7 +98,7 @@ Options:
   --name          The name(s) of the monitor, channel and policy         [array]
   --group_policy  The name of a common policy to add the monitor(s) to  [string]
   --incubator     Flag as incubator setup                              [boolean]
-  --locations     The comma-separated list of locations to use          [string]
+  --locations     The location(s) to use                                 [array]
   --frequency     The frequency to trigger the monitor in minutes       [number]
   --type          The type of monitor (api or browser)                  [string]
   --script        The path to a custom monitor script                   [string]
