@@ -302,17 +302,9 @@ async function updatePolicy(
     await updateCondition(auth, condition, monitorId);
   }
 
-  if (!incubator && groupPolicy) {
-    let groupPolicyName = groupPolicy;
-    if (name.endsWith('.runtime')) {
-      // use runtime specific group policy
-      groupPolicyName = `${groupPolicy} (Adobe I/O Runtime)`;
-    }
-    if (name.endsWith('.aws')) {
-      // use aws specific group policy
-      groupPolicyName = `${groupPolicy} (AWS)`;
-    }
-    const group = policies ? policies.find((pol) => pol.name === groupPolicyName) : null;
+  if (!incubator && !name.includes('.') && groupPolicy) {
+    // add to group policy if not incubator or secondary monitor
+    const group = policies ? policies.find((pol) => pol.name === groupPolicy) : null;
     if (group) {
       // make sure policy and group policy are not the same
       if (policy && policy.id && policy.id === group.id) {
@@ -322,7 +314,7 @@ async function updatePolicy(
       console.log('Verifying group alert policy', group.name);
       await updatePolicy(auth, name, group, null, monitorId);
     } else {
-      console.error(`Group alert policy ${groupPolicyName} not found`);
+      console.error(`Group alert policy ${groupPolicy} not found`);
     }
   }
 }

@@ -131,16 +131,6 @@ describe('Testing newrelic', () => {
     name: 'Test Group Policy',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const runtimeGroupPolicy = {
-    id: '3334',
-    name: 'Test Group Policy (Adobe I/O Runtime)',
-    incident_preference: INCIDENT_PREFERENCE,
-  };
-  const awsGroupPolicy = {
-    id: '3335',
-    name: 'Test Group Policy (AWS)',
-    incident_preference: INCIDENT_PREFERENCE,
-  };
   const condition = {
     id: '4444',
     name: CONDITION_NAME,
@@ -304,7 +294,6 @@ describe('Testing newrelic', () => {
     const runtimeEmail = 'component+123456@notifications.statuspage.io';
     const monitorsCreated = [];
     const api = new NewRelicAPI(apiConfig({
-      runtimeGroupPolicy,
       runtimeMonitor,
       runtime: true,
     }))
@@ -329,7 +318,6 @@ describe('Testing newrelic', () => {
     const awsEmail = 'component+123456@notifications.statuspage.io';
     const monitorsCreated = [];
     const api = new NewRelicAPI(apiConfig({
-      awsGroupPolicy,
       awsMonitor,
       aws: true,
     }))
