@@ -65,8 +65,8 @@ class CLI {
           required: false,
         })
         .option('locations', {
-          type: 'string',
-          describe: 'The comma-separated list of locations to use',
+          type: 'array',
+          describe: 'The location(s) to use',
           required: false,
         })
         .option('frequency', {

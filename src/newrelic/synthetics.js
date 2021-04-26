@@ -142,7 +142,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
 async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq) {
   const monitors = await getMonitors(auth, names);
   const type = monType ? MONITOR_TYPE[monType] : MONITOR_TYPE.api;
-  const locations = monLoc ? monLoc.split(',').map((loc) => loc.trim()) : MONITOR_LOCATIONS;
+  const locations = monLoc ? monLoc.map((loc) => loc.trim()) : MONITOR_LOCATIONS;
   const frequency = monFreq || MONITOR_FREQUENCY;
   if (monitors.length === names.length) {
     // update
