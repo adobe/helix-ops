@@ -217,6 +217,29 @@ describe('Testing newrelic', () => {
     assert.ok(/Missing dependent arguments:\n type/.test(output.stderr), 'expected missing dependent arguments');
   });
 
+  it('refuses to run with different number of urls and names', async () => {
+    const output = await runShell({
+      cmd,
+      auth,
+      url: [url, url],
+      name: [name],
+    });
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.ok(/The number of provides names and urls must match/.test(output.stderr), 'expected number mismatch error');
+  });
+
+  it('refuses to run with different number of names and emails', async () => {
+    const output = await runShell({
+      cmd,
+      auth,
+      url: [url, url],
+      name: [name, name],
+      email: [email],
+    });
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.ok(/The number of provides names and email addresses must match/.test(output.stderr), 'expected number mismatch error');
+  });
+
   it('creates a new monitoring setup', async () => {
     const test = {};
     const api = new NewRelicAPI(apiConfig())
