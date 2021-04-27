@@ -62,7 +62,10 @@ class NewRelicAPI extends AbstractAPI {
         if (ctx.cfg.runtime && ctx.cfg.runtimeMonitor) {
           resp.monitors.push(ctx.cfg.runtimeMonitor);
         }
-        if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
+        if (ctx.cfg.adobeioMonitor) {
+          resp.monitors.push(ctx.cfg.adobeioMonitor);
+        }
+        if (ctx.cfg.awsMonitor) {
           resp.monitors.push(ctx.cfg.awsMonitor);
         }
         resp.count = resp.monitors.length;
@@ -129,10 +132,10 @@ class NewRelicAPI extends AbstractAPI {
       if (!ctx.cfg.new || ctx.channelCreated) {
         // there is an existing notification channel
         channels.push(ctx.cfg.channel);
-        if (ctx.cfg.runtime && ctx.cfg.runtimeChannel) {
-          channels.push(ctx.cfg.runtimeChannel);
+        if (ctx.cfg.adobeioChannel) {
+          channels.push(ctx.cfg.adobeioChannel);
         }
-        if (ctx.cfg.aws && ctx.cfg.awsChannel) {
+        if (ctx.cfg.awsChannel) {
           channels.push(ctx.cfg.awsChannel);
         }
         if (ctx.cfg.incubator && ctx.cfg.incubatorChannel) {
@@ -195,10 +198,10 @@ class NewRelicAPI extends AbstractAPI {
       if (!ctx.cfg.new || ctx.policyCreated) {
         // there is an existing alert policy
         policies.push(ctx.cfg.policy);
-        if (ctx.cfg.runtime && ctx.cfg.runtimePolicy) {
-          policies.push(ctx.cfg.runtimePolicy);
+        if (ctx.cfg.adobeioPolicy) {
+          policies.push(ctx.cfg.adobeioPolicy);
         }
-        if (ctx.cfg.aws && ctx.cfg.awsPolicy) {
+        if (ctx.cfg.awsPolicy) {
           policies.push(ctx.cfg.awsPolicy);
         }
         if (ctx.cfg.incubator && ctx.cfg.incubatorPolicy) {
@@ -282,10 +285,10 @@ class NewRelicAPI extends AbstractAPI {
       } else {
         // existing alert policies have conditions linked to monitor
         ctx.cfg.condition.entities = [ctx.cfg.monitor.id];
-        if (ctx.cfg.runtime && ctx.cfg.runtimeMonitor) {
-          ctx.cfg.condition.entities.push(ctx.cfg.runtimeMonitor.id);
+        if (ctx.cfg.adobeioMonitor) {
+          ctx.cfg.condition.entities.push(ctx.cfg.adobeioMonitor.id);
         }
-        if (ctx.cfg.aws && ctx.cfg.awsMonitor) {
+        if (ctx.cfg.awsMonitor) {
           ctx.cfg.condition.entities.push(ctx.cfg.awsMonitor.id);
         }
         conditions.push(ctx.cfg.condition);
@@ -334,78 +337,78 @@ class NewRelicAPI extends AbstractAPI {
     nock('https://synthetics.newrelic.com')
       // Getting monitors
       .get(/\/synthetics\/api\/v3\/monitors.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getMonitors())
       // Creating monitor
       .post('/synthetics/api/v3/monitors')
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createMonitor())
       // Getting monitors again
       .get(/\/synthetics\/api\/v3\/monitors.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getMonitors())
       // Updating monitor locations
       .patch(/\/synthetics\/api\/v3\/monitors\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(204), this.updateLocations())
       // // Updating monitor script
       .put(/\/synthetics\/api\/v3\/monitors\/.*\/script/)
-      .twice()
+      .thrice()
       .reply(this.status(204), this.updateScript());
 
     // Alerts v2 API
     nock('https://api.newrelic.com')
       // Getting channels
       .get('/v2/alerts_channels.json')
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getChannels())
       // Creating notification channel
       .post('/v2/alerts_channels.json')
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createChannel())
       // Deleting notification channel
       .delete(/\/v2\/alerts_channels\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.deleteChannel())
       // Getting alert policies
       .get('/v2/alerts_policies.json')
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getPolicies())
       // Creating alert policy
       .post('/v2/alerts_policies.json')
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createPolicy())
       // Linking notification channel to alert policy
       .put('/v2/alerts_policy_channels.json')
-      .twice()
+      .thrice()
       .reply(this.status(204), this.updatePolicy())
       // Getting conditions in alert policy
       .get(/\/v2\/alerts_location_failure_conditions\/policies\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getConditions())
       // Creating condition in alert policy
       .post(/\/v2\/alerts_location_failure_conditions\/policies\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createCondition())
       // Updating condition in alert policy
       .put(`/v2/alerts_location_failure_conditions/${this.cfg.condition.id}.json`)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.updateCondition())
       // Getting conditions in group alert policy
       .get(`/v2/alerts_location_failure_conditions/policies/${this.cfg.groupPolicy.id}.json`)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getConditions())
       // Creating condition in group alert policy
       .post(`/v2/alerts_location_failure_conditions/policies/${this.cfg.groupPolicy.id}.json`)
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createCondition())
       // Updating condition in group alert policy
       .put(`/v2/alerts_location_failure_conditions/${this.cfg.condition.id}.json`)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.updateCondition())
       // Deleting alert policy
       .delete(/\/v2\/alerts_policies\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.deletePolicy());
     return this;
   }

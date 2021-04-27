@@ -52,8 +52,8 @@ Options:
                                           components   [string] [default: false]
   --runtime                               Also monitor the action in Adobe I/O
                                           Runtime     [boolean] [default: false]
-  --aws                                   Also monitor the action in AWS
-                                                      [boolean] [default: false]
+  --universal                             The action is deployed in universal
+                                          runtime     [boolean] [default: false]
   --silent                                Reduce output to automation email only
                                                       [boolean] [default: false]
 

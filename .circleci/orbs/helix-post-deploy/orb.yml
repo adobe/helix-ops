@@ -42,18 +42,22 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
+        universal:
+            type: boolean
+            default: false
+            description: The action is deployed in universal runtime
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
-            description: The host name of the universal runtime server
-        runtime:
-            type: boolean
-            default: false
-            description: Also monitor the action in Adobe I/O Runtime
+            description: The host name of the universal runtime
         aws:
             type: boolean
             default: false
-            description: Also monitor the action in AWS
+            description: Also monitor the action in AWS (deprecated, use "universal" instead)
+        adobeio_host:
+            type: string
+            default: "adobeioruntime.net"
+            description: The host name of the Adobe I/O server
         aws_api:
             type: env_var_name
             default: HLX_AWS_API
@@ -88,7 +92,7 @@ commands:
             description: The comma-separated list of locations to use
         newrelic_frequency: 
             type: integer
-            default: 15
+            default: 0
             description: The frequency to trigger the monitor in minutes
         newrelic_script: 
             type: string
@@ -130,9 +134,10 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
+              universal=<< parameters.universal >>
               universalHost="<< parameters.universal_host >>"
-              runtime=<< parameters.runtime >>
-              aws=<< parameters.aws >>
+              aws=<< parameters.aws >> #deprecated
+              adobeioHost="<< parameters.adobeio_host >>"
               awsApi="<< parameters.aws_api >>"
               awsRegion="<< parameters.aws_region >>"
               incubator=<< parameters.incubator >>
@@ -146,10 +151,11 @@ commands:
               spName="<< parameters.statuspage_name >>"
               spGroup="<< parameters.statuspage_group >>"
               spEmail=""
-              nrRuntimeURL=""
-              nrRuntimeName=""
+              nrAdobeioURL=""
+              nrAdobeioName=""
               nrAWSURL=""
               nrAWSName=""
+              universal=${universal:-${aws}} # backward compatibility
 
               # statuspage automation
               if [ "${spName}${spGroup}" != "" ]; then
@@ -157,8 +163,7 @@ commands:
                   ${spName:+--name "${spName}"} \
                   ${spGroup:+--group "${spGroup}"} \
                   ${incubator:+--incubator ${incubator}} \
-                  ${runtime:+--runtime ${runtime}} \
-                  ${aws:+--aws ${aws}}`
+                  ${universal:+--universal ${universal}}`
               fi
 
               # new relic automation
@@ -169,29 +174,30 @@ commands:
               # use package version as action version
               actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
               actionStatus="/_status_check/healthcheck.json"
-              if [ "${nrURL}" == "" ]; then
-                # assemble universal runtime url
-                nrURL="https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-              fi
               if [ "${nrName}" == "" ]; then
                 # use package name
                 nrName=`node -e "console.log(require('./package.json').name)"`
               fi
-              if [ $runtime = true ]; then
-                # add i/o runtime url and name
-                nrRuntimeURL="https://adobeioruntime.net/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-                nrRuntimeName="${nrName}.runtime"
-              fi
-              if [ $aws = true ]; then
-                # add AWS url and name
-                nrAWSURL="https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}"
-                nrAWSName="${nrName}.aws"
+              if [ "${nrURL}" == "" ]; then
+                if [ ${universal} == true ]; then
+                  # assemble universal runtime url
+                  nrURL="https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
+                  # add adobe i/o url and name as secondary monitor
+                  nrAdobeioURL="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
+                  nrAdobeioName="${nrName}.adobeio"
+                  # add AWS url and name as secondary monitor
+                  nrAWSURL="https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}"
+                  nrAWSName="${nrName}.aws"
+                else 
+                  # fall back to adobe i/o only
+                  nrURL="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
+                fi
               fi
               node ${toolPath}/newrelic setup --url ${nrURL} \
-                ${nrRuntimeURL:+--url "${nrRuntimeURL}"} \
+                ${nrAdobeioURL:+--url "${nrAdobeioURL}"} \
                 ${nrAWSURL:+--url "${nrAWSURL}"} \
                 ${nrName:+--name "${nrName}"} \
-                ${nrRuntimeName:+--name "${nrRuntimeName}"} \
+                ${nrAdobeioName:+--name "${nrAdobeioName}"} \
                 ${nrAWSName:+--name "${nrAWSName}"} \
                 ${spEmail:+--email ${spEmail}} \
                 ${nrType:+--type ${nrType}} \

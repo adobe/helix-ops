@@ -90,7 +90,7 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
-  const runtimeMonitor = {
+  const adobeioMonitor = {
     ...monitor,
     id: '0001',
   };
@@ -106,7 +106,7 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
-  const runtimeChannel = {
+  const adobeioChannel = {
     ...channel,
     id: '1112',
   };
@@ -118,7 +118,7 @@ describe('Testing newrelic', () => {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const runtimePolicy = {
+  const adobeioPolicy = {
     ...policy,
     id: '2223',
   };
@@ -288,38 +288,15 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
-  it('creates a new runtime monitoring setup', async () => {
-    runtimeMonitor.name = `${name}.runtime`;
-    const runtimeUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
-    const runtimeEmail = 'component+123456@notifications.statuspage.io';
-    const monitorsCreated = [];
-    const api = new NewRelicAPI(apiConfig({
-      runtimeMonitor,
-      runtime: true,
-    }))
-      .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
-        monitorsCreated.push(req.name);
-      })
-      .start();
-
-    await run(cliConfig({
-      url: [url, runtimeUrl],
-      email: [email, runtimeEmail],
-      name: [name, runtimeMonitor.name],
-    }));
-    assert.ok(await getTimedPromise(() => monitorsCreated.length === 2, 'Runtime monitor not created'));
-    assert.ok(monitorsCreated.includes(runtimeMonitor.name), 'Runtime monitor not named as expected');
-    api.stop();
-  }).timeout(10000);
-
-  it('creates a new AWS monitoring setup', async () => {
+  it('creates a new universal monitoring setup', async () => {
+    adobeioMonitor.name = `${name}.adobeio`;
     awsMonitor.name = `${name}.aws`;
-    const awsUrl = `https://test-aws-api.execute-api.test-region.amazonaws.com/foo/bar/sample/v${v}/_status_check/healthcheck.json`;
-    const awsEmail = 'component+123456@notifications.statuspage.io';
+    const adobeioUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
+    const awsUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
     const monitorsCreated = [];
     const api = new NewRelicAPI(apiConfig({
+      adobeioMonitor,
       awsMonitor,
-      aws: true,
     }))
       .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
         monitorsCreated.push(req.name);
@@ -327,11 +304,12 @@ describe('Testing newrelic', () => {
       .start();
 
     await run(cliConfig({
-      url: [url, awsUrl],
-      email: [email, awsEmail],
-      name: [name, awsMonitor.name],
+      url: [url, adobeioUrl, awsUrl],
+      email: [email, email, email],
+      name: [name, adobeioMonitor.name, awsMonitor.name],
     }));
-    assert.ok(await getTimedPromise(() => monitorsCreated.length === 2, 'AWS monitor not created'));
+    assert.ok(await getTimedPromise(() => monitorsCreated.length === 3, 'Universal monitors not created'));
+    assert.ok(monitorsCreated.includes(adobeioMonitor.name), 'Runtime monitor not named as expected');
     assert.ok(monitorsCreated.includes(awsMonitor.name), 'AWS monitor not named as expected');
     api.stop();
   }).timeout(10000);
@@ -365,15 +343,24 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
-  it('updates existing AWS monitoring setup', async () => {
+  it('updates existing universal monitoring setup', async () => {
+    const adobeioName = `${name}.adobeio`;
+    adobeioMonitor.name = adobeioName;
+    adobeioChannel.name = adobeioName;
+    adobeioPolicy.name = adobeioName;
+
     const awsName = `${name}.aws`;
     awsMonitor.name = awsName;
     awsChannel.name = awsName;
     awsPolicy.name = awsName;
+
     let updated = false;
     const api = new NewRelicAPI(apiConfig({
       new: false,
       aws: true,
+      adobeioMonitor,
+      adobeioChannel,
+      adobeioPolicy,
       awsMonitor,
       awsChannel,
       awsPolicy,
@@ -388,42 +375,11 @@ describe('Testing newrelic', () => {
       .start();
 
     await run(cliConfig({
-      url: [url, url],
-      email: [email, email],
-      name: [name, awsMonitor.name],
+      url: [url, url, url],
+      email: [email, email, email],
+      name: [name, adobeioMonitor.name, awsMonitor.name],
     }));
     assert(await getTimedPromise(() => !!updated, 'AWS policy not updated'));
-    api.stop();
-  }).timeout(10000);
-
-  it('updates existing runtime monitoring setup', async () => {
-    const runtimeName = `${name}.runtime`;
-    runtimeMonitor.name = runtimeName;
-    runtimeChannel.name = runtimeName;
-    runtimePolicy.name = runtimeName;
-    let updated = false;
-    const api = new NewRelicAPI(apiConfig({
-      new: false,
-      runtime: true,
-      runtimeMonitor,
-      runtimeChannel,
-      runtimePolicy,
-    }))
-      .on(NewRelicAPI.CREATE_MONITOR, () => assert.fail('Unexpected monitor creation'))
-      .on(NewRelicAPI.CREATE_CHANNEL, () => assert.fail('Unexpected notification channel creation'))
-      .on(NewRelicAPI.CREATE_POLICY, () => assert.fail('Unexpected alert policy creation'))
-      .on(NewRelicAPI.UPDATE_POLICY, (uri, req) => {
-        updated = req.startsWith(`channel_ids=${runtimeChannel.id}`);
-      })
-      .on(NewRelicAPI.CREATE_CONDITION, () => assert.fail('Unexpected condition creation'))
-      .start();
-
-    await run(cliConfig({
-      url: [url, url],
-      email: [email, email],
-      name: [name, runtimeMonitor.name],
-    }));
-    assert(await getTimedPromise(() => !!updated, 'Runtime policy not updated'));
     api.stop();
   }).timeout(10000);
 

@@ -53,8 +53,13 @@ class StatuspageAPI extends AbstractAPI {
       if (!ctx.cfg.new) {
         // there is an existing component
         comps.push(ctx.cfg.component);
-        if (ctx.cfg.aws && ctx.cfg.awsComponent) {
-          comps.push(ctx.cfg.awsComponent);
+        if (ctx.cfg.universal) {
+          if (ctx.cfg.awsComponent) {
+            comps.push(ctx.cfg.awsComponent);
+          }
+          if (ctx.cfg.adobeioComponent) {
+            comps.push(ctx.cfg.adobeioComponent);
+          }
         }
       }
       if (ctx.cfg.componentGroup) {
@@ -124,23 +129,23 @@ class StatuspageAPI extends AbstractAPI {
     nock('https://api.statuspage.io')
       // Getting list of all components
       .get(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getComponents())
       // Creating new component
       .post(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createComponent())
       // Updating component
       .patch(/\/v1\/pages\/.*\/components\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.updateComponent())
       // Getting list of all components from incubator page
       .get(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getComponents())
       // Deleting component
       .delete(/\/v1\/pages\/.*\/components\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(204), this.deleteComponent());
     return this;
   }

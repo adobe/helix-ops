@@ -1,10 +1,9 @@
 {
   "parameters": {
+    "statuspage_name": "foo",
     "aws": true,
     "aws_api": "abcde12345",
-    "aws_region": "us-east-1",
-    "statuspage_name": "foo",
-    "runtime": true
+    "aws_region": "us-east-1"
   },
   "output": [
     "setup",
@@ -17,7 +16,7 @@
     "--name",
     "@adobe/helix-monitoring-test",
     "--name",
-    "@adobe/helix-monitoring-test.runtime",
+    "@adobe/helix-monitoring-test.adobeio",
     "--name",
     "@adobe/helix-monitoring-test.aws",
     "--email",
@@ -25,11 +24,7 @@
     "--silent",
     "--name",
     "foo",
-    "--runtime",
-    "true",
-    "--aws",
-    "true",
-    "--frequency",
-    "15"
+    "--universal",
+    "true"
   ]
 }
