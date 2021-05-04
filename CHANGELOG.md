@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/adobe/helix-ops/compare/v2.2.1...v2.2.2) (2021-05-04)
+
+
+### Bug Fixes
+
+* **deps:** update external major ([#206](https://github.com/adobe/helix-ops/issues/206)) ([36af2fe](https://github.com/adobe/helix-ops/commit/36af2fe1d3f236a01cc08f65f2b00e13502f9a1c))
+
 ## [2.2.1](https://github.com/adobe/helix-ops/compare/v2.2.0...v2.2.1) (2021-04-19)
 
 
