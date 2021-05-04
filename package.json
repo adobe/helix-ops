@@ -27,11 +27,11 @@
   "dependencies": {
     "@adobe/helix-fetch": "2.2.0",
     "diff": "5.0.0",
-    "fs-extra": "9.1.0",
+    "fs-extra": "10.0.0",
     "get-stream": "6.0.1",
     "git-log-parser": "1.2.0",
     "shelljs": "0.8.4",
-    "yargs": "16.2.0"
+    "yargs": "17.0.1"
   },
   "devDependencies": {
     "@adobe/eslint-config-helix": "1.1.4",
