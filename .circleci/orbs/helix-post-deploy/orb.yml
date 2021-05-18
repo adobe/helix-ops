@@ -43,9 +43,9 @@ commands:
             default: ""
             description: The name of the deployed action
         universal:
-            type: boolean
-            default: false
-            description: The action is deployed in universal runtime
+            type: string
+            default: ""
+            description: "Universal action. Comma-separated list of clouds to monitor: aws, gcloud, azure, adobeio"
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
@@ -134,7 +134,7 @@ commands:
               actionNS="<< parameters.action_namespace >>"
               actionPackage="<< parameters.action_package >>"
               actionName="<< parameters.action_name >>"
-              universal=<< parameters.universal >>
+              universal="<< parameters.universal >>"
               universalHost="<< parameters.universal_host >>"
               aws=<< parameters.aws >> #deprecated
               adobeioHost="<< parameters.adobeio_host >>"
@@ -155,18 +155,55 @@ commands:
               nrAdobeioName=""
               nrAWSURL=""
               nrAWSName=""
-              universal=${universal:-${aws}} # backward compatibility
 
-              # statuspage automation
-              if [ "${spName}${spGroup}" != "" ]; then
-                spEmail=`node ${toolPath}/statuspage setup --silent \
-                  ${spName:+--name "${spName}"} \
-                  ${spGroup:+--group "${spGroup}"} \
-                  ${incubator:+--incubator ${incubator}} \
-                  ${universal:+--universal ${universal}}`
+              declare -a clouds
+              if [ "${universal}" == "" ] && [ "${aws}" != "" ]; then
+                # backward compatibility
+                universal="aws, adobeio"
+              fi
+              if [ "${universal}" != "" ]; then
+                # extract clouds
+                IFS=',' read -ra values <<< "${universal}"
+                for v in "${values[@]}"; do
+                  clouds+=(`echo ${v} | xargs`)
+                done
               fi
 
-              # new relic automation
+              # --- statuspage automation -------------------------------------------------
+              spCloudSuffix=("aws:AWS"
+                            "adobeio:Adobe I/O Runtime")
+              declare -a spNames
+
+              if [ "${spName}${spGroup}" != "" ]; then
+                # add component name(s)
+                if [ "${spName}" != "" ]; then
+                  spNames+=("${spName}")
+                fi
+                for cloud in ${clouds[@]}; do
+                  spCloud=""
+                  for ((s=0;s<${#spCloudSuffix[@]};s+=1)); do
+                    suffix=${spCloudSuffix[$s]}
+                    if [[ ${suffix} =~ ${cloud} ]]; then
+                      spCloud=${suffix#*:}
+                      break
+                    fi
+                  done
+                  if [ "${spCloud}" != "" ]; then
+                    spNames+=("${spNames[0]} (${spCloud})")
+                  fi
+                done
+
+                # generate component email(s)
+                spArgs="--silent"
+                spArgs+=`for ((i=0;i<${#spNames[@]};i+=1)); do echo " --name \"${spNames[$i]}\""; done`
+                spArgs+=" ${spGroup:+--group \"${spGroup}\"} ${incubator:+--incubator ${incubator}}"
+                spEmail=`node ${toolPath}/statuspage setup ${spArgs}`
+              fi
+
+              # --- new relic automation --------------------------------------------------
+              declare -a nrNames=()
+              declare -a nrURLs=()
+
               if [ "${actionName}" == "" ]; then
                 # extract action name from package name
                 actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
@@ -174,31 +211,46 @@ commands:
               # use package version as action version
               actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
               actionStatus="/_status_check/healthcheck.json"
-              if [ "${nrName}" == "" ]; then
+
+              if [ "${nrName}" != "" ]; then
+                # use custom name
+                nrNames+=("${nrName}")
+              else
                 # use package name
-                nrName=`node -e "console.log(require('./package.json').name)"`
+                nrNames+=(`node -e "console.log(require('./package.json').name)"`)
               fi
-              if [ "${nrURL}" == "" ]; then
-                if [ ${universal} == true ]; then
-                  # assemble universal runtime url
-                  nrURL="https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-                  # add adobe i/o url and name as secondary monitor
-                  nrAdobeioURL="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-                  nrAdobeioName="${nrName}.adobeio"
-                  # add AWS url and name as secondary monitor
-                  nrAWSURL="https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}"
-                  nrAWSName="${nrName}.aws"
-                else 
-                  # fall back to adobe i/o only
-                  nrURL="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-                fi
+
+              if [ "${nrURL}" != "" ]; then
+                # use custom url
+                nrURLs+=("${nrURL}")
+              elif [ "${universal}" != "" ] && [ ${#clouds[@]} > 0 ]; then
+                # use universal monitoring
+                nrURLs+=("https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}")
+                # add secondary monitors
+                for cloud in ${clouds[@]}; do
+                  error=""
+                  if [ "${cloud}" == "aws" ]; then
+                    # add aws url
+                    nrURLs+=("https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}")
+                  elif [ "${cloud}" == "adobeio" ]; then
+                    # add adobe i/o url
+                    nrURLs+=("https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}")
+                  else
+                    error="Unsupported cloud: ${cloud}"
+                  fi
+                  if [ "${error}" == "" ]; then
+                    ## add cloud-specific name
+                    nrNames+=("${nrNames[0]}.${cloud}")
+                  fi
+                done
+              else
+                # fall back to adobe i/o only
+                nrURLs+="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
               fi
-              node ${toolPath}/newrelic setup --url ${nrURL} \
-                ${nrAdobeioURL:+--url "${nrAdobeioURL}"} \
-                ${nrAWSURL:+--url "${nrAWSURL}"} \
-                ${nrName:+--name "${nrName}"} \
-                ${nrAdobeioName:+--name "${nrAdobeioName}"} \
-                ${nrAWSName:+--name "${nrAWSName}"} \
+
+              node ${toolPath}/newrelic setup \
+                `for ((i=0;i<${#nrURLs[@]};i+=1)); do echo " --url ${nrURLs[$i]}"; done` \
+                `for ((i=0;i<${#nrNames[@]};i+=1)); do echo " --name ${nrNames[$i]}"; done` \
                 ${spEmail:+--email ${spEmail}} \
                 ${nrType:+--type ${nrType}} \
                 ${nrLocations:+--locations ${nrLocations}} \

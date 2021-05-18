@@ -192,15 +192,11 @@ class CLI {
 
     async function updateOrCreateComponent({
       // eslint-disable-next-line camelcase
-      auth, pageId, group, name, description, universal, silent, incubator, incubatorPageId,
+      auth, pageId, group, name, description, silent, incubator, incubatorPageId,
     }) {
       setLogger(silent);
 
-      const names = [name];
-      if (universal) {
-        names.push(`${[name]} (Adobe I/O Runtime)`);
-        names.push(`${[name]} (AWS)`);
-      }
+      const names = Array.isArray(name) ? name : [name];
 
       const emails = [
         ...await Promise.all(names.map(async (cname) => {
@@ -253,10 +249,10 @@ class CLI {
           required: true,
         })
         .option('name', {
-          type: 'string',
+          type: 'array',
           describe: 'The name of the component',
           required: config.name === undefined,
-          default: config.name,
+          default: [config.name],
         })
         .option('description', {
           type: 'string',
@@ -279,12 +275,6 @@ class CLI {
           type: 'string',
           alias: 'incubatorPageId',
           describe: 'Statuspage Page ID for incubator components',
-          required: false,
-          default: false,
-        })
-        .option('universal', {
-          type: 'boolean',
-          describe: 'The action is deployed in universal runtime',
           required: false,
           default: false,
         })

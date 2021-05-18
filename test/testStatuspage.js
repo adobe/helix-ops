@@ -23,19 +23,21 @@ const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, runtime, universal, silent,
+  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, runtime, silent,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
   if (auth) args.push('--auth', auth);
   if (pageId) args.push('--page_id', pageId);
-  if (name) args.push('--name', `"${name}"`);
+  if (name) {
+    const names = (Array.isArray(name)) ? name : [name];
+    names.forEach((cname) => args.push('--name', `"${cname}"`));
+  }
   if (desc) args.push('--description', `"${desc}"`);
   if (group) args.push('--group', group);
   if (incubator) args.push('--incubator', incubator);
   if (incubatorPageId) args.push('--incubator_page_id', incubatorPageId);
   if (runtime) args.push('--runtime', runtime);
-  if (universal) args.push('--universal', universal);
   if (silent) args.push('--silent');
   return args;
 }
@@ -164,8 +166,10 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
   });
 
-  it('creates new universal components', async () => {
+  it('creates multiple components', async () => {
     const compsCreated = [];
+    const awsName = `${name} (AWS)`;
+    const adobeioName = `${name} (Adobe I/O Runtime)`;
     const emails = `${email} ${email} ${email}`;
     const api = new StatuspageAPI(apiConfig())
       .on(StatuspageAPI.CREATE_COMPONENT, (uri, req) => {
@@ -173,8 +177,8 @@ describe('Testing statuspage', function testStatuspage() {
       })
       .start();
 
-    await run(cliConfig({ universal: true }));
-    assert.ok(await getTimedPromise(() => compsCreated.length === 3, 'Universal components not created'));
+    await run(cliConfig({ name: [name, adobeioName, awsName] }));
+    assert.ok(await getTimedPromise(() => compsCreated.length === 3, 'Did not create multiple components'));
     assert.ok(compsCreated.find((cname) => cname.includes('Adobe I/O Runtime')));
     assert.ok(compsCreated.find((cname) => cname.includes('AWS')));
     assert.ok(logger.log.calledWith('Automation email:', emails), `console.log not called with ${emails}`);
@@ -201,23 +205,25 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
   });
 
-  it('detects and updates existing universal component', async () => {
+  it('detects and updates multiple existing component', async () => {
     const awsName = `${name} (AWS)`;
     const adobeioName = `${name} (Adobe I/O Runtime)`;
     const api = new StatuspageAPI(apiConfig({
       new: false,
-      universal: true,
-      awsComponent: {
-        ...component,
-        name: `${component.name} (AWS)`,
-      },
-      adobeioComponent: {
-        ...component,
-        name: `${component.name} (Adobe I/O Runtime)`,
-      },
+      component: [
+        component,
+        {
+          ...component,
+          name: `${component.name} (AWS)`,
+        },
+        {
+          ...component,
+          name: `${component.name} (Adobe I/O Runtime)`,
+        },
+      ],
     })).start();
 
-    await run(cliConfig({ universal: true }));
+    await run(cliConfig({ name: [name, adobeioName, awsName] }));
     await getTimedPromise(() => true);
     assert.ok(logger.log.calledWith('Updating component', awsName),
       `console.log not called with ${awsName}`);

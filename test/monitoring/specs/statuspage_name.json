@@ -12,6 +12,6 @@
     "setup",
     "--silent",
     "--name",
-    "foo"
+    "\"foo\""
   ]
 }

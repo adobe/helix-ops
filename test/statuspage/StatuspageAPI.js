@@ -50,17 +50,11 @@ class StatuspageAPI extends AbstractAPI {
     return (uri, req) => {
       ctx.emit(StatuspageAPI.GET_COMPONENTS, uri, req);
       const comps = [];
-      if (!ctx.cfg.new) {
+      if (!ctx.cfg.new && ctx.cfg.component) {
         // there is an existing component
-        comps.push(ctx.cfg.component);
-        if (ctx.cfg.universal) {
-          if (ctx.cfg.awsComponent) {
-            comps.push(ctx.cfg.awsComponent);
-          }
-          if (ctx.cfg.adobeioComponent) {
-            comps.push(ctx.cfg.adobeioComponent);
-          }
-        }
+        const existingComps = Array.isArray(ctx.cfg.component)
+          ? ctx.cfg.component : [ctx.cfg.component];
+        existingComps.forEach((comp) => comps.push(comp));
       }
       if (ctx.cfg.componentGroup) {
         // component group is also a component

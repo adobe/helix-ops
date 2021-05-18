@@ -41,7 +41,8 @@ Options:
   --page_id, --pageId                     Statuspage Page ID (or env
                                           $STATUSPAGE_PAGE_ID)
                                                              [string] [required]
-  --name                                  The name of the component     [string]
+  --name                                  The name(s) of the component(s)
+                                                                         [array]
   --description                           The description of the component
                                                                         [string]
   --group                                 The name of an existing component
@@ -52,8 +53,6 @@ Options:
                                           components   [string] [default: false]
   --runtime                               Also monitor the action in Adobe I/O
                                           Runtime     [boolean] [default: false]
-  --universal                             The action is deployed in universal
-                                          runtime     [boolean] [default: false]
   --silent                                Reduce output to automation email only
                                                       [boolean] [default: false]
 
