@@ -59,6 +59,12 @@ class CLI {
           describe: 'The name of a common policy to add the monitor(s) to',
           required: false,
         })
+        .option('group_targets', {
+          type: 'array',
+          describe: 'The 0-based indices of monitors to add to the group policy',
+          default: [0],
+          required: false,
+        })
         .option('incubator', {
           type: 'boolean',
           describe: 'Flag as incubator setup',
@@ -91,7 +97,8 @@ class CLI {
       .scriptName('newrelic')
       .usage('$0 <cmd>')
       .command('setup', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
-        auth, name, url, email, group_policy, incubator, script, type, locations, frequency,
+        auth, name, url, email, group_policy, group_targets,
+        incubator, script, type, locations, frequency,
       }) => {
         // number of names, urls and emails must match
         if (name.length !== url.length) {
@@ -103,7 +110,7 @@ class CLI {
           console.error('The number of provides names and email addresses must match.');
           process.exit(1);
         }
-        await updateOrCreatePolicies(auth, name, group_policy,
+        await updateOrCreatePolicies(auth, name, group_policy, group_targets,
           await updateOrCreateMonitor(auth, name, url, script, type, locations, frequency),
           email ? await reuseOrCreateChannel(auth, name, email, incubator) : null,
           incubator);

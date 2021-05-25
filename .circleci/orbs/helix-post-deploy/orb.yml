@@ -33,7 +33,7 @@ commands:
         action_namespace:
             type: string
             default: "helix"
-            description: The name of the namespace where the action is deployed
+            description: The name of the namespace where the action is deployed (deprecated, use "adobeioNamespace" instead)
         action_package:
             type: string
             default: "helix-services"
@@ -45,7 +45,7 @@ commands:
         targets:
             type: string
             default: "adobeio"
-            description: "Comma-separated list of clouds the action is deployed to: universal, aws, gcloud, adobeio"
+            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
@@ -57,15 +57,27 @@ commands:
         adobeio_host:
             type: string
             default: "adobeioruntime.net"
-            description: The host name of the Adobe I/O server
+            description: The host name of the Adobe I/O Runtime server
+        adobeio_namespace:
+            type: string
+            default: "helix"
+            description: The name of the Adobe I/O Runtime namespace where the action is deployed
         aws_api:
             type: env_var_name
             default: HLX_AWS_API
-            description: The AWS API to use if AWS is set
+            description: The AWS API to use
         aws_region:
             type: env_var_name
             default: HLX_AWS_REGION
-            description: The AWS region to use if AWS is set
+            description: The AWS region to use
+        google_project_id:
+            type: env_var_name
+            default: HLX_GOOGLE_PROJECT_ID
+            description: The Google Cloud project ID to use
+        google_region:
+            type: env_var_name
+            default: HLX_GOOGLE_REGION
+            description: The Google Cloud region to use
         incubator:
             type: boolean
             default: false
@@ -101,7 +113,7 @@ commands:
         newrelic_group_targets: 
             type: string
             default: ""
-            description: Subset of clouds to add to the group policy. Defaults to the first target.
+            description: The clouds to add to the group policy. Defaults to the first target.
         newrelic_group_policy: 
             type: string
             default: ""
@@ -139,13 +151,16 @@ commands:
                 "actionNS":"<< parameters.action_namespace >>",
                 "actionPackage":"<< parameters.action_package >>",
                 "actionName":"<< parameters.action_name >>",
-                "universalHost":"<< parameters.universal_host >>",
-                "aws":"<< parameters.aws >>",
-                "adobeioHost":"<< parameters.adobeio_host >>",
-                "awsApi":"<< parameters.aws_api >>",
-                "awsRegion":"<< parameters.aws_region >>",
-                "incubator":"<< parameters.incubator >>",
                 "targets":"<< parameters.targets >>",
+                "universalHost":"<< parameters.universal_host >>",
+                "adobeioHost":"<< parameters.adobeio_host >>",
+                "adobeioNS":"<< parameters.adobeio_namespace >>",
+                "aws":"<< parameters.aws >>",
+                "awsAPI":"<< parameters.aws_api >>",
+                "awsRegion":"<< parameters.aws_region >>",
+                "googleProjectID":"<< parameters.google_project_id >>",
+                "googleRegion":"<< parameters.google_region >>",
+                "incubator":"<< parameters.incubator >>",
                 "nrName":"<< parameters.newrelic_name >>",
                 "nrURL":"<< parameters.newrelic_url >>",
                 "nrType":"<< parameters.newrelic_type >>",

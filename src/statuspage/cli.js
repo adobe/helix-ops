@@ -174,13 +174,12 @@ class CLI {
         logger.log('Deleting incubator component', component.name);
         try {
           const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
-            body: true,
             method: 'DELETE',
             headers: {
               Authorization: auth,
             },
           });
-          const body = await resp.json();
+          const body = await resp.text();
           if (!resp.ok) {
             throw new Error(body);
           }
