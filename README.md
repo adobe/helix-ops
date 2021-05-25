@@ -81,9 +81,10 @@ Usage:
 
 ```
 $ npx newrelic
-newrelic setup
+newrelic <cmd>
 
-Create or update a New Relic setup
+Commands:
+  newrelic setup  Create or update a New Relic setup
 
 Options:
   --version        Show version number                                 [boolean]
