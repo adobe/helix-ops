@@ -62,11 +62,13 @@ function setupNewRelic(params, email) {
   let defaultNRName;
   let defaultActionName;
   let actionVersion;
+  let actionVersionDigits = [];
   try {
     const json = JSON.parse(fs.readFileSync('package.json'));
     defaultNRName = json.name;
     [, defaultActionName] = json.name.split('helix-');
-    [actionVersion] = json.version.split('.');
+    actionVersionDigits = json.version.split('.');
+    [actionVersion] = actionVersionDigits;
   } catch (e) {
     // ignore
   }
@@ -95,7 +97,7 @@ function setupNewRelic(params, email) {
           nrURLs.push(`https://${params.awsAPI}.execute-api.${params.awsRegion}.amazonaws.com/${params.actionPackage}/${actionName}/v${actionVersion}${actionStatus}`);
         }
         if (cloud === 'google') {
-          nrURLs.push(`https://${params.googleRegion}-${params.googleProjectID}.cloudfunctions.net/${params.actionPackage}--${actionName}_v${actionVersion}${actionStatus}`);
+          nrURLs.push(`https://${params.googleRegion}-${params.googleProjectID}.cloudfunctions.net/${params.actionPackage}--${actionName}_${actionVersionDigits.join('_')}${actionStatus}`);
         }
         // add cloud-specific name
         nrNames.push(`${nrName}.${cloud}`);
