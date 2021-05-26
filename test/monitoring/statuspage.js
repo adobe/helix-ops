@@ -13,4 +13,4 @@
 /* eslint-env mocha */
 /* eslint-disable no-console */
 
-console.log(process.argv.slice(2).join(' '));
+console.log(process.argv.slice(2).map((a) => `${a.includes(' ') ? `"${a}"` : a}`).join(' '));
