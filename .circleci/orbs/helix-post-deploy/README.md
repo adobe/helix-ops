@@ -31,8 +31,7 @@ https://circleci.com/orbs/registry/orb/adobe/helix-post-deploy
 
 #### Dependencies
 
-* Add `@adobe/helix-ops@1.0.0` (or higher) to `devDependencies` in your project's package.json. It contains the tooling for the `monitoring` command.
-* If your action is deployed in I/O Runtime, you can also add `@adobe/helix-status@5.3.0` (or higher) to `dependencies` so you won't need to specify a `monitor_url` parameter and use the built in status check URL instead.
+* You can add the latest `@adobe/helix-status` to `dependencies` so you won't need to specify a `monitor_url` parameter and use the built in status check URL instead.
 
 #### 3rd Party Configurations
 
@@ -40,6 +39,7 @@ In CircleCI, add the following environment variables to the project consuming th
 - `NEWRELIC_AUTH`: The admin's API key for your New Relic account (not the user API key!)
 - `STATUSPAGE_AUTH`: The API user key for your Statuspage account (this is the user API key)
 - `STATUS_PAGE_PAGE_ID`: The ID of the page to add components to in Statuspage
+- `STATUSPAGE_INCUBATOR_PAGE_ID`: The ID of the page to add incubator components to in Statuspage (optional)
 
 In New Relic Synthetics, add the following secure credentials:
 - `WSK_AUTH_HELIX`: The OpenWhisk auth key for the `helix` namespace

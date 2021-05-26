@@ -23,7 +23,7 @@ const StatuspageAPI = require('./statuspage/StatuspageAPI');
 const { getTimedPromise } = require('./utils');
 
 function buildArgs({
-  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, runtime, silent,
+  cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,
 } = {}) {
   const args = [];
   if (cmd) args.push(cmd);
@@ -37,7 +37,6 @@ function buildArgs({
   if (group) args.push('--group', group);
   if (incubator) args.push('--incubator', incubator);
   if (incubatorPageId) args.push('--incubator_page_id', incubatorPageId);
-  if (runtime) args.push('--runtime', runtime);
   if (silent) args.push('--silent');
   return args;
 }

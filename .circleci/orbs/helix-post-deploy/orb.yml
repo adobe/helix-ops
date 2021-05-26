@@ -33,7 +33,7 @@ commands:
         action_namespace:
             type: string
             default: "helix"
-            description: The name of the namespace where the action is deployed
+            description: The name of the namespace where the action is deployed (deprecated, use "adobeioNamespace" instead)
         action_package:
             type: string
             default: "helix-services"
@@ -42,10 +42,9 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
-        universal:
+        targets:
             type: string
-            default: ""
-            description: "Universal action. Comma-separated list of clouds to monitor: aws, gcloud, azure, adobeio"
+            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
@@ -53,19 +52,31 @@ commands:
         aws:
             type: boolean
             default: false
-            description: Also monitor the action in AWS (deprecated, use "universal" instead)
+            description: Also monitor the action in AWS (deprecated, use "targets" instead)
         adobeio_host:
             type: string
             default: "adobeioruntime.net"
-            description: The host name of the Adobe I/O server
+            description: The host name of the Adobe I/O Runtime server
+        adobeio_namespace:
+            type: string
+            default: "helix"
+            description: The name of the Adobe I/O Runtime namespace where the action is deployed
         aws_api:
             type: env_var_name
             default: HLX_AWS_API
-            description: The AWS API to use if AWS is set
+            description: The AWS API to use
         aws_region:
             type: env_var_name
             default: HLX_AWS_REGION
-            description: The AWS region to use if AWS is set
+            description: The AWS region to use
+        google_project_id:
+            type: env_var_name
+            default: HLX_GOOGLE_PROJECT_ID
+            description: The Google Cloud project ID to use
+        google_region:
+            type: env_var_name
+            default: HLX_GOOGLE_REGION
+            description: The Google Cloud region to use
         incubator:
             type: boolean
             default: false
@@ -98,6 +109,10 @@ commands:
             type: string
             default: ""
             description: The path to the custom monitor script to use
+        newrelic_group_targets: 
+            type: string
+            default: ""
+            description: The clouds to add to the group policy. Defaults to the first target.
         newrelic_group_policy: 
             type: string
             default: ""
@@ -129,132 +144,30 @@ commands:
       - run:
           name: Monitoring Setup
           command: |
-              # config params
-              toolPath="<< parameters.tool_path >>"
-              actionNS="<< parameters.action_namespace >>"
-              actionPackage="<< parameters.action_package >>"
-              actionName="<< parameters.action_name >>"
-              universal="<< parameters.universal >>"
-              universalHost="<< parameters.universal_host >>"
-              aws=<< parameters.aws >> #deprecated
-              adobeioHost="<< parameters.adobeio_host >>"
-              awsApi="<< parameters.aws_api >>"
-              awsRegion="<< parameters.aws_region >>"
-              incubator=<< parameters.incubator >>
-              nrName="<< parameters.newrelic_name >>"
-              nrURL="<< parameters.newrelic_url >>"
-              nrType="<< parameters.newrelic_type >>"
-              nrLocations="<< parameters.newrelic_locations >>"
-              nrFrequency="<< parameters.newrelic_frequency >>"
-              nrScript="<< parameters.newrelic_script >>"
-              nrGroupPolicy="<< parameters.newrelic_group_policy >>" 
-              spName="<< parameters.statuspage_name >>"
-              spGroup="<< parameters.statuspage_group >>"
-              spEmail=""
-              nrAdobeioURL=""
-              nrAdobeioName=""
-              nrAWSURL=""
-              nrAWSName=""
-
-              declare -a clouds
-              if [ "${universal}" == "" ] && [ "${aws}" != "" ]; then
-                # backward compatibility
-                universal="aws, adobeio"
-              fi
-              if [ "${universal}" != "" ]; then
-                # extract clouds
-                IFS=',' read -ra values <<< "${universal}"
-                for v in "${values[@]}"; do
-                  clouds+=(`echo ${v} | xargs`)
-                done
-              fi
-
-              # --- statuspage automation -------------------------------------------------
-              spCloudSuffix=("aws:AWS"
-                            "adobeio:Adobe I/O Runtime")
-              declare -a spNames
-
-              if [ "${spName}${spGroup}" != "" ]; then
-                # add component name(s)
-                if [ "${spName}" != "" ]; then
-                  spNames+=("${spName}")
-                fi
-                for cloud in ${clouds[@]}; do
-                  spCloud=""
-                  for ((s=0;s<${#spCloudSuffix[@]};s+=1)); do
-                    suffix=${spCloudSuffix[$s]}
-                    if [[ ${suffix} =~ ${cloud} ]]; then
-                      spCloud=${suffix#*:}
-                      break
-                    fi
-                  done
-                  if [ "${spCloud}" != "" ]; then
-                    spNames+=("${spNames[0]} (${spCloud})")
-                  fi
-                done
-
-                # generate component email(s)
-                spArgs="--silent"
-                spArgs+=`for ((i=0;i<${#spNames[@]};i+=1)); do echo " --name \"${spNames[$i]}\""; done`
-                spArgs+=" ${spGroup:+--group \"${spGroup}\"} ${incubator:+--incubator ${incubator}}"
-                spEmail=`node ${toolPath}/statuspage setup ${spArgs}`
-              fi
-
-              # --- new relic automation --------------------------------------------------
-              declare -a nrNames=()
-              declare -a nrURLs=()
-
-              if [ "${actionName}" == "" ]; then
-                # extract action name from package name
-                actionName=`node -e "console.log(require('./package.json').name.replace('@adobe/helix-', ''))"`
-              fi
-              # use package version as action version
-              actionVersion=`node -e "console.log(require('./package.json').version.match(/^[0-9]+/)[0])"`
-              actionStatus="/_status_check/healthcheck.json"
-
-              if [ "${nrName}" != "" ]; then
-                # use custom name
-                nrNames+=("${nrName}")
-              else
-                # use package name
-                nrNames+=(`node -e "console.log(require('./package.json').name)"`)
-              fi
-
-              if [ "${nrURL}" != "" ]; then
-                # use custom url
-                nrURLs+=("${nrURL}")
-              elif [ "${universal}" != "" ] && [ ${#clouds[@]} > 0 ]; then
-                # use universal monitoring
-                nrURLs+=("https://${universalHost}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}")
-                # add secondary monitors
-                for cloud in ${clouds[@]}; do
-                  error=""
-                  if [ "${cloud}" == "aws" ]; then
-                    # add aws url
-                    nrURLs+=("https://${awsApi}.execute-api.${awsRegion}.amazonaws.com/${actionPackage}/${actionName}/v${actionVersion}${actionStatus}")
-                  elif [ "${cloud}" == "adobeio" ]; then
-                    # add adobe i/o url
-                    nrURLs+=("https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}")
-                  else
-                    error="Unsupported cloud: ${cloud}"
-                  fi
-                  if [ "${error}" == "" ]; then
-                    ## add cloud-specific name
-                    nrNames+=("${nrNames[0]}.${cloud}")
-                  fi
-                done
-              else
-                # fall back to adobe i/o only
-                nrURLs+="https://${adobeioHost}/api/v1/web/${actionNS}/${actionPackage}/${actionName}@v${actionVersion}${actionStatus}"
-              fi
-
-              node ${toolPath}/newrelic setup \
-                `for ((i=0;i<${#nrURLs[@]};i+=1)); do echo " --url ${nrURLs[$i]}"; done` \
-                `for ((i=0;i<${#nrNames[@]};i+=1)); do echo " --name ${nrNames[$i]}"; done` \
-                ${spEmail:+--email ${spEmail}} \
-                ${nrType:+--type ${nrType}} \
-                ${nrLocations:+--locations ${nrLocations}} \
-                ${nrFrequency:+--frequency ${nrFrequency}} \
-                ${nrScript:+--script "${nrScript}"} \
-                ${nrGroupPolicy:+--group_policy "${nrGroupPolicy}"} \
-                ${incubator:+--incubator ${incubator}}
+              # run monitoringSetup with params
+              node << parameters.tool_path >>/monitoringSetup '{
+                "toolPath":"<< parameters.tool_path >>",
+                "actionNS":"<< parameters.action_namespace >>",
+                "actionPackage":"<< parameters.action_package >>",
+                "actionName":"<< parameters.action_name >>",
+                "targets":"<< parameters.targets >>",
+                "universalHost":"<< parameters.universal_host >>",
+                "adobeioHost":"<< parameters.adobeio_host >>",
+                "adobeioNS":"<< parameters.adobeio_namespace >>",
+                "aws":"<< parameters.aws >>",
+                "awsAPI":"<< parameters.aws_api >>",
+                "awsRegion":"<< parameters.aws_region >>",
+                "googleProjectID":"<< parameters.google_project_id >>",
+                "googleRegion":"<< parameters.google_region >>",
+                "incubator":"<< parameters.incubator >>",
+                "nrName":"<< parameters.newrelic_name >>",
+                "nrURL":"<< parameters.newrelic_url >>",
+                "nrType":"<< parameters.newrelic_type >>",
+                "nrLocations":"<< parameters.newrelic_locations >>",
+                "nrFrequency":"<< parameters.newrelic_frequency >>",
+                "nrScript":"<< parameters.newrelic_script >>",
+                "nrGroupTargets":"<< parameters.newrelic_group_targets >>",
+                "nrGroupPolicy":"<< parameters.newrelic_group_policy >>",
+                "spName":"<< parameters.statuspage_name >>",
+                "spGroup":"<< parameters.statuspage_group >>"
+              }'

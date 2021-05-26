@@ -14,14 +14,9 @@ const fetchAPI = require('@adobe/helix-fetch');
 const fs = require('fs');
 const path = require('path');
 
-function fetchContext() {
-  return process.env.HELIX_FETCH_FORCE_HTTP1
-    ? fetchAPI.context({
-      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-    })
-    : fetchAPI;
-}
-const { fetch } = fetchContext();
+const { fetch } = fetchAPI.context({
+  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+});
 
 const MONITOR_FREQUENCY = 15;
 const MONITOR_STATUS = 'ENABLED';
