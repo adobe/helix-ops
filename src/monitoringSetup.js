@@ -71,7 +71,6 @@ function setupNewRelic(params, email) {
     [actionVersion] = actionVersionDigits;
   } catch (e) {
     // ignore
-    console.error(e);
   }
   const actionName = params.actionName || defaultActionName;
   const actionStatus = '/_status_check/healthcheck.json';
