@@ -61,7 +61,7 @@ function setupNewRelic(params, email) {
     params.clouds.forEach((cloud) => {
       if (cloud === 'adobeio') {
         // backward compatibility: adobeio monitor without suffix
-        nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
+        nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS || params.actionNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
         nrNames.push(nrName);
       } else {
         // add other cloud-specific url
@@ -80,7 +80,7 @@ function setupNewRelic(params, email) {
     });
   } else {
     // backward compatibility: fall back to adobeio monitor without suffix
-    nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
+    nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS || params.actionNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
     nrNames.push(nrName);
   }
   let nrGroupTargets = [];
