@@ -13,14 +13,9 @@
 const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
 
-function fetchContext() {
-  return process.env.HELIX_FETCH_FORCE_HTTP1
-    ? fetchAPI.context({
-      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-    })
-    : fetchAPI;
-}
-const { fetch } = fetchContext();
+const { fetch } = fetchAPI.context({
+  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+});
 
 const CHANNEL_TYPE = 'email';
 const INCIDENT_PREFERENCE = 'PER_POLICY';
