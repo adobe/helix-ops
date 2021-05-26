@@ -53,7 +53,7 @@ commands:
         aws:
             type: boolean
             default: false
-            description: Also monitor the action in AWS (deprecated, use "universal" instead)
+            description: Also monitor the action in AWS (deprecated, use "targets" instead)
         adobeio_host:
             type: string
             default: "adobeioruntime.net"
