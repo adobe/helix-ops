@@ -44,7 +44,6 @@ commands:
             description: The name of the deployed action
         targets:
             type: string
-            default: "adobeio"
             description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
         universal_host:
             type: string
