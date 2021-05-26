@@ -3,7 +3,8 @@
     "statuspage_name": "foo",
     "aws": "true",
     "aws_api": "abcde12345",
-    "aws_region": "us-east-1"
+    "aws_region": "us-east-1",
+    "random_param": "false"
   },
   "output": [
     "setup",
