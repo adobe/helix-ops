@@ -15,40 +15,28 @@
 const fs = require('fs');
 const shell = require('shelljs');
 
-const p = process.argv[2] ? JSON.parse(process.argv[2]) : null;
-if (!p) {
-  console.error('Error: 1st argument must be a JSON string with config parameters');
-  process.exit(1);
-}
-
-// supported clouds
-const validClouds = ['universal', 'aws', 'google', 'adobeio'];
-
-// use real booleans
-Object.keys(p).forEach((k) => {
-  if (p[k] === 'true') {
-    p[k] = true;
-  } else if (p[k] === 'false') {
-    p[k] = false;
+function getServiceInfo() {
+  // load info from package json
+  let name = 'dummy';
+  let shortName = 'dummy';
+  let version = '1';
+  let versionDigits = [1, 0, 0];
+  try {
+    const json = JSON.parse(fs.readFileSync('package.json'));
+    name = json.name;
+    [, shortName] = name.split('helix-');
+    versionDigits = json.version.split('.');
+    [version] = versionDigits;
+  } catch (e) {
+    // ignore
   }
-});
-
-p.toolPath = p.toolPath || '.';
-
-p.clouds = [];
-if (!p.targets && p.aws) {
-  // backward compatibility for universal actions with aws flag
-  p.targets = 'universal, aws, adobeio';
+  return {
+    name,
+    shortName,
+    version,
+    versionDigits,
+  };
 }
-if (p.targets) {
-  // split comma-separated clouds
-  p.targets.split(',')
-    .map((cloud) => cloud.trim())
-    // only keep valid clouds
-    .filter((cloud) => validClouds.includes(cloud))
-    .forEach((cloud) => p.clouds.push(cloud));
-}
-
 /**
  * Set up New Relic
  * @param {Object} params The monitoring parameters
@@ -58,24 +46,11 @@ function setupNewRelic(params, email) {
   const nrNames = [];
   const nrURLs = [];
 
-  // load info from package json
-  let defaultNRName;
-  let defaultActionName;
-  let actionVersion;
-  let actionVersionDigits = [];
-  try {
-    const json = JSON.parse(fs.readFileSync('package.json'));
-    defaultNRName = json.name;
-    [, defaultActionName] = json.name.split('helix-');
-    actionVersionDigits = json.version.split('.');
-    [actionVersion] = actionVersionDigits;
-  } catch (e) {
-    // ignore
-  }
-  const actionName = params.actionName || defaultActionName;
+  const { shortName, version, versionDigits } = params.service;
+  const actionName = params.actionName || shortName;
   const actionStatus = '/_status_check/healthcheck.json';
 
-  const nrName = params.nrName || defaultNRName;
+  const nrName = params.nrName || params.service.name;
 
   if (params.nrURL) {
     // use monitor with custom url
@@ -86,18 +61,18 @@ function setupNewRelic(params, email) {
     params.clouds.forEach((cloud) => {
       if (cloud === 'adobeio') {
         // backward compatibility: adobeio monitor without suffix
-        nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${actionVersion}${actionStatus}`);
+        nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
         nrNames.push(nrName);
       } else {
         // add other cloud-specific url
         if (cloud === 'universal') {
-          nrURLs.push(`https://${params.universalHost}/${params.actionPackage}/${actionName}@v${actionVersion}${actionStatus}`);
+          nrURLs.push(`https://${params.universalHost}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
         }
         if (cloud === 'aws') {
-          nrURLs.push(`https://${params.awsAPI}.execute-api.${params.awsRegion}.amazonaws.com/${params.actionPackage}/${actionName}/v${actionVersion}${actionStatus}`);
+          nrURLs.push(`https://${params.awsAPI}.execute-api.${params.awsRegion}.amazonaws.com/${params.actionPackage}/${actionName}/v${version}${actionStatus}`);
         }
         if (cloud === 'google') {
-          nrURLs.push(`https://${params.googleRegion}-${params.googleProjectID}.cloudfunctions.net/${params.actionPackage}--${actionName}_${actionVersionDigits.join('_')}${actionStatus}`);
+          nrURLs.push(`https://${params.googleRegion}-${params.googleProjectID}.cloudfunctions.net/${params.actionPackage}--${actionName}_${versionDigits.join('_')}${actionStatus}`);
         }
         // add cloud-specific name
         nrNames.push(`${nrName}.${cloud}`);
@@ -105,7 +80,7 @@ function setupNewRelic(params, email) {
     });
   } else {
     // backward compatibility: fall back to adobeio monitor without suffix
-    nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${actionVersion}${actionStatus}`);
+    nrURLs.push(`https://${params.adobeioHost}/api/v1/web/${params.adobeioNS}/${params.actionPackage}/${actionName}@v${version}${actionStatus}`);
     nrNames.push(nrName);
   }
   let nrGroupTargets = [];
@@ -115,7 +90,7 @@ function setupNewRelic(params, email) {
       .split(',')
       .map((cloud) => cloud.trim())
       // only keep valid clouds
-      .filter((cloud) => validClouds.includes(cloud))
+      .filter((cloud) => params.validClouds.includes(cloud))
       // find names containing cloud
       .map((cloud) => nrNames.findIndex((name) => name.endsWith(cloud)))
       // return indices
@@ -153,18 +128,19 @@ function setupStatuspage(params) {
   };
 
   const spNames = [];
-  if (p.clouds.length === 0) {
-    // backward compatibility: fall back to adobeio component
-    p.clouds.push('adobeio');
+  if (params.clouds.length > 0) {
+    const spName = params.spName || params.service.name;
+    params.clouds.forEach((cloud) => {
+      const spCloudName = spCloudNames[cloud];
+      if (spCloudName) {
+        // backward compatibility: adobeio component without suffix
+        spNames.push(cloud === 'adobeio' ? spName : `${spName} (${spCloudName})`);
+      }
+    });
+  } else if (params.spName) {
+    // backward compatibility: fall back to adobeio component without suffix
+    spNames.push(params.spName);
   }
-
-  params.clouds.forEach((cloud) => {
-    const spCloudName = spCloudNames[cloud];
-    if (spCloudName) {
-      // backward compatibility: adobeio component without suffix
-      spNames.push(cloud === 'adobeio' ? params.spName : `${params.spName} (${spCloudName})`);
-    }
-  });
 
   // generate component email(s)
   let spCmd = `node ${params.toolPath}/statuspage setup --silent`;
@@ -180,6 +156,46 @@ function setupStatuspage(params) {
   });
 }
 
+// get params from JSON string
+const p = process.argv[2] ? JSON.parse(process.argv[2]) : null;
+if (!p) {
+  console.error('Error: 1st argument must be a JSON string with config parameters');
+  process.exit(1);
+}
+
+// use cwd as tool path if undefined
+p.toolPath = p.toolPath || '.';
+
+// add info from package.json
+p.service = getServiceInfo();
+
+// define supported clouds
+p.validClouds = ['universal', 'aws', 'google', 'adobeio'];
+
+// use real booleans
+Object.keys(p).forEach((k) => {
+  if (p[k] === 'true') {
+    p[k] = true;
+  } else if (p[k] === 'false') {
+    p[k] = false;
+  }
+});
+
+p.clouds = [];
+if (!p.targets && p.aws) {
+  // backward compatibility for universal actions with aws flag
+  p.targets = 'universal, aws, adobeio';
+}
+if (p.targets) {
+  // split comma-separated clouds
+  p.targets.split(',')
+    .map((cloud) => cloud.trim())
+    // only keep valid clouds
+    .filter((cloud) => p.validClouds.includes(cloud))
+    .forEach((cloud) => p.clouds.push(cloud));
+}
+
+// run monitoring setup
 if (p.spName || p.spGroup) {
   setupStatuspage(p);
 } else {
