@@ -11,7 +11,8 @@
     "--email",
     "setup",
     "--silent",
+    "--name",
     "--group",
-    "\"foo\""
+    "foo"
   ]
 }

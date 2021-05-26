@@ -71,6 +71,7 @@ function setupNewRelic(params, email) {
     [actionVersion] = actionVersionDigits;
   } catch (e) {
     // ignore
+    console.error(e);
   }
   const actionName = params.actionName || defaultActionName;
   const actionStatus = '/_status_check/healthcheck.json';
@@ -133,7 +134,6 @@ function setupNewRelic(params, email) {
   if (params.nrGroupPolicy) nrCmd += ` --group_policy "${params.nrGroupPolicy}"`;
   if (nrGroupTargets.length) nrCmd += ` --group_targets ${nrGroupTargets.join(' ')}`;
   if (params.incubator) nrCmd += ' --incubator true';
-  console.info(`Executing: ${nrCmd}`);
   shell.exec(nrCmd, (code) => {
     if (code > 0) {
       console.error('Error: New Relic setup failed');
@@ -161,7 +161,6 @@ function setupStatuspage(params) {
 
   params.clouds.forEach((cloud) => {
     const spCloudName = spCloudNames[cloud];
-    console.log(cloud, spCloudName);
     if (spCloudName) {
       // backward compatibility: adobeio component without suffix
       spNames.push(cloud === 'adobeio' ? params.spName : `${params.spName} (${spCloudName})`);
@@ -173,8 +172,7 @@ function setupStatuspage(params) {
   spCmd += spNames.map((name) => ` --name "${name}"`).join('');
   if (params.spGroup) spCmd += ` --group "${params.spGroup}"`;
   if (params.incubator) spCmd += ' --incubator true';
-  console.info(`Executing: ${spCmd}`);
-  shell.exec(spCmd, (code, stdout) => {
+  shell.exec(spCmd, { silent: true }, (code, stdout) => {
     if (code > 0) {
       console.error('Error: Statuspage setup failed, skipping New Relic setup');
       process.exit(code);
