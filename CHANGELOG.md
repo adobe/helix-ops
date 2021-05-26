@@ -1,3 +1,17 @@
+## [2.2.3](https://github.com/adobe/helix-ops/compare/v2.2.2...v2.2.3) (2021-05-17)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/helix-fetch to v2.2.1 ([5aa8bb0](https://github.com/adobe/helix-ops/commit/5aa8bb0e3418684b4b2b9c39060e6a5de1a7bbc1))
+
+## [2.2.2](https://github.com/adobe/helix-ops/compare/v2.2.1...v2.2.2) (2021-05-04)
+
+
+### Bug Fixes
+
+* **deps:** update external major ([#206](https://github.com/adobe/helix-ops/issues/206)) ([36af2fe](https://github.com/adobe/helix-ops/commit/36af2fe1d3f236a01cc08f65f2b00e13502f9a1c))
+
 ## [2.2.1](https://github.com/adobe/helix-ops/compare/v2.2.0...v2.2.1) (2021-04-19)
 
 
