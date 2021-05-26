@@ -26,14 +26,9 @@ commands:
   monitoring:
     description: Sets up the monitoring
     parameters:
-        tool_path:
+        targets:
             type: string
-            default: "./node_modules/.bin"
-            description: The path to the monitoring automation tooling
-        action_namespace:
-            type: string
-            default: "helix"
-            description: The name of the namespace where the action is deployed (deprecated, use "adobeioNamespace" instead)
+            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
         action_package:
             type: string
             default: "helix-services"
@@ -42,17 +37,10 @@ commands:
             type: string
             default: ""
             description: The name of the deployed action
-        targets:
-            type: string
-            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
             description: The host name of the universal runtime
-        aws:
-            type: boolean
-            default: false
-            description: Also monitor the action in AWS (deprecated, use "targets" instead)
         adobeio_host:
             type: string
             default: "adobeioruntime.net"
@@ -77,10 +65,6 @@ commands:
             type: env_var_name
             default: HLX_GOOGLE_REGION
             description: The Google Cloud region to use
-        incubator:
-            type: boolean
-            default: false
-            description: Flag as incubator project
         newrelic_auth:
             type: env_var_name
             default: NEWRELIC_AUTH
@@ -137,6 +121,20 @@ commands:
             type: string
             default: ""
             description: The name of the component group in Statuspage to add the new component to
+        incubator:
+            type: boolean
+            default: false
+            description: Flag as incubator project
+        tool_path:
+            type: string
+            default: "./node_modules/.bin"
+            description: The path to the monitoring automation tooling
+        action_namespace:
+            type: string
+            description: The name of the namespace where the action is deployed (deprecated, use "adobeioNamespace" instead)
+        aws:
+            type: boolean
+            description: Also monitor the action in AWS (deprecated, use "targets" instead)
     steps:
       - run:
           name: Ensure Installation of CLI
