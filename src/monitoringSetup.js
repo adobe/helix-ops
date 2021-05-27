@@ -102,7 +102,7 @@ function setupNewRelic(params, email) {
   nrCmd += nrNames.map((name) => ` --name "${name}"`).join('');
   if (email) nrCmd += ` --email ${email}`;
   if (params.nrType) nrCmd += ` --type ${params.nrType}`;
-  if (params.nrLocations) nrCmd += ` --locations ${params.nrLocations}`;
+  if (params.nrLocations) nrCmd += ` --locations ${params.nrLocations.split(',').join(' ')}`;
   if (params.nrFrequency) nrCmd += ` --frequency ${params.nrFrequency}`;
   if (params.nrScript) nrCmd += ` --script "${params.nrScript}"`;
   if (params.nrGroupPolicy) nrCmd += ` --group_policy "${params.nrGroupPolicy}"`;
