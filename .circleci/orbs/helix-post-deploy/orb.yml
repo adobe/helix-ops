@@ -28,117 +28,116 @@ commands:
     parameters:
         targets:
             type: string
-            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google, adobeio"
+            description: "Comma-separated list of clouds the action is deployed to: universal, aws, google or adobeio."
         action_package:
             type: string
             default: "helix-services"
-            description: The package name of the deployed action
+            description: The package name of the deployed action.
         action_name:
             type: string
             default: ""
-            description: The name of the deployed action
+            description: The name of the deployed action. Defaults to the package name.
         universal_host:
             type: string
             default: "helix-pages.anywhere.run"
-            description: The host name of the universal runtime
+            description: The host name of the universal runtime server.
         adobeio_host:
             type: string
             default: "adobeioruntime.net"
-            description: The host name of the Adobe I/O Runtime server
+            description: The host name of the Adobe I/O Runtime server.
         adobeio_namespace:
             type: string
             default: "helix"
-            description: The name of the Adobe I/O Runtime namespace where the action is deployed
+            description: The name of the Adobe I/O Runtime namespace the action is deployed to.
         aws_api:
             type: env_var_name
             default: HLX_AWS_API
-            description: The AWS API to use
+            description: The AWS API to use.
         aws_region:
             type: env_var_name
             default: HLX_AWS_REGION
-            description: The AWS region to use
+            description: The AWS region to use.
         google_project_id:
             type: env_var_name
             default: HLX_GOOGLE_PROJECT_ID
-            description: The Google Cloud project ID to use
+            description: The Google Cloud project ID to use.
         google_region:
             type: env_var_name
             default: HLX_GOOGLE_REGION
-            description: The Google Cloud region to use
+            description: The Google Cloud region to use.
         newrelic_auth:
             type: env_var_name
             default: NEWRELIC_AUTH
-            description: The admin's API key for your New Relic account (not the user API key!)
+            description: The admin API key for your New Relic account. This is not the user API key!
         newrelic_name:
             type: string
             default: ""
-            description: The name to be used for the New Relic monitor, alert policy and notification channel
+            description: The name to be used for the New Relic monitor, alert policy and notification channel.
         newrelic_url:
             type: string
             default: ""
-            description: The URL to monitor in New Relic
+            description: The URL to monitor in New Relic.
         newrelic_type: 
             type: string
             default: ""
-            description: The type of monitor (api or browser)
+            description: The type of New Relic monitor (api or browser).
         newrelic_locations: 
             type: string
             default: ""
-            description: The comma-separated list of locations to use
+            description: The comma-separated list of locations to use.
         newrelic_frequency: 
             type: integer
-            default: 0
-            description: The frequency to trigger the monitor in minutes
+            description: The frequency to trigger the monitor in minutes. Defaults to 15.
         newrelic_script: 
             type: string
             default: ""
-            description: The path to the custom monitor script to use
+            description: The path to the custom monitor script to use.
         newrelic_group_targets: 
             type: string
             default: ""
-            description: The clouds to add to the group policy. Defaults to the first target.
+            description: The clouds to add to the group policy. Defaults to the first one.
         newrelic_group_policy: 
             type: string
             default: ""
-            description: A collective alert policy in New Relic to add the monitor to
+            description: A collective alert policy in New Relic to add the monitor to.
         statuspage_auth:
             type: env_var_name
             default: STATUSPAGE_AUTH
-            description: The API user key for your Statuspage account (this is the user API key)
+            description: The user API key for your Statuspage account.
         statuspage_page_id:
             type: env_var_name
             default: STATUSPAGE_PAGE_ID
-            description: The ID of the page to add components to in Statuspage
+            description: The ID of the page to add components to in Statuspage.
         statuspage_incubator_page_id:
             type: env_var_name
             default: STATUSPAGE_INCUBATOR_PAGE_ID
-            description: The ID of the page to add incubator components to in Statuspage
+            description: The ID of the page to add incubator components to in Statuspage.
         statuspage_name:
             type: string
             default: ""
-            description: The name to be used for the Statuspage component
+            description: The name to be used for the Statuspage component.
         statuspage_group:
             type: string
             default: ""
-            description: The name of the component group in Statuspage to add the new component to
+            description: The name of the component group in Statuspage to add the component to.
         incubator:
             type: boolean
             default: false
-            description: Flag as incubator project
+            description: Flag as incubator project. Use this until ready for production.
         tool_path:
             type: string
             default: "./node_modules/.bin"
-            description: The path to the monitoring automation tooling
+            description: The path to the monitoring automation tooling.
         action_namespace:
             type: string
-            description: The name of the namespace where the action is deployed (deprecated, use "adobeioNamespace" instead)
+            description: The name of the namespace where the action is deployed. Deprecated, use "adobeioNamespace" instead.
         aws:
             type: boolean
-            description: Also monitor the action in AWS (deprecated, use "targets" instead)
+            description: Also monitor the action in AWS. Deprecated, use "targets" instead.
     steps:
       - run:
           name: Ensure Installation of CLI
-          command: if [ ! -f ./node_modules/.bin/newrelic ]; then npm i --no-save @adobe/helix-ops; fi
+          command: if [ ! -f ./node_modules/.bin/monitoringSetup ]; then npm i --no-save @adobe/helix-ops; fi
       - run:
           name: Monitoring Setup
           command: |
