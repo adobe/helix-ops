@@ -41,6 +41,20 @@ function applyDefaults(parameters, defaults) {
   return params;
 }
 
+function setEnv(env) {
+  if (typeof env !== 'object') return;
+  for (const name of Object.keys(env)) {
+    process.env[name] = env[name];
+  }
+}
+
+function unsetEnv(env) {
+  if (typeof env !== 'object') return;
+  for (const name of Object.keys(env)) {
+    delete process.env[name];
+  }
+}
+
 describe('Testing monitoring setup', () => {
   let setup;
   let defaults;
@@ -65,8 +79,9 @@ describe('Testing monitoring setup', () => {
   const specs = path.resolve(MONITORING, 'specs');
   fse.readdirSync(specs).forEach((filename) => {
     const name = filename.substring(0, filename.length - 5);
-    const { parameters, output } = fse.readJSONSync(path.resolve(specs, filename), 'utf8');
+    const { env, parameters, output } = fse.readJSONSync(path.resolve(specs, filename), 'utf8');
     it(`Testing ${name}`, async () => {
+      setEnv(env);
       const params = applyDefaults(parameters, defaults);
       const command = Object.keys(params).reduce(
         (cmd, k) => cmd.replace(new RegExp(`<< parameters.${k} >>`), params[k]),
@@ -78,6 +93,7 @@ describe('Testing monitoring setup', () => {
         silent: true,
         shell: '/bin/bash',
       });
+      unsetEnv(env);
       if (code !== 0) {
         assert.fail(`shell exited with non-zero code: ${code}:\n${stderr}`);
       }
