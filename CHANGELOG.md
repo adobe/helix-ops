@@ -1,3 +1,10 @@
+## [4.0.2](https://github.com/adobe/helix-ops/compare/v4.0.1...v4.0.2) (2021-05-30)
+
+
+### Bug Fixes
+
+* **monitoring:** env vars not replaced in monitoringSetup.js ([2e9dc2e](https://github.com/adobe/helix-ops/commit/2e9dc2e51cf92c55e29b86c13dd4fe4dbaf3b85d))
+
 ## [4.0.1](https://github.com/adobe/helix-ops/compare/v4.0.0...v4.0.1) (2021-05-30)
 
 
