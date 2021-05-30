@@ -3,6 +3,7 @@
   "version": "2.2.3",
   "description": "Operational tooling for Project Helix services",
   "bin": {
+    "monitoringSetup": "src/monitoringSetup.js",
     "newrelic": "src/newrelic.js",
     "statuspage": "src/statuspage.js"
   },
