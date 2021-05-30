@@ -1,3 +1,18 @@
+# [4.0.0](https://github.com/adobe/helix-ops/compare/v3.0.0...v4.0.0) (2021-05-30)
+
+
+### Bug Fixes
+
+* **monitoring:** missing default values make parameters mandatory ([150031c](https://github.com/adobe/helix-ops/commit/150031c52d11483e91ef8a834ae36ef7552cee1a))
+* **monitoring:** missing default values make parameters mandatory ([ff64808](https://github.com/adobe/helix-ops/commit/ff6480820d9a4fa6108bcdb7af3185f6e082701a))
+* **monitoring:** set newrelic_frequency default back to 0 ([5019072](https://github.com/adobe/helix-ops/commit/5019072a8d27698b9334694a98e16bb4b23779cc))
+* **monitoring:** set newrelic_frequency default back to 15 ([2193234](https://github.com/adobe/helix-ops/commit/2193234ea236ef3dea81d923137060394ec668d9))
+
+
+### BREAKING CHANGES
+
+* **monitoring:** new API (see https://github.com/adobe/helix-ops/issues/203)
+
 # [3.0.0](https://github.com/adobe/helix-ops/compare/v2.2.3...v3.0.0) (2021-05-30)
 
 
