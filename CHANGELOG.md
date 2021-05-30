@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/adobe/helix-ops/compare/v4.0.0...v4.0.1) (2021-05-30)
+
+
+### Bug Fixes
+
+* **monitoring:** force patch release ([5a18336](https://github.com/adobe/helix-ops/commit/5a18336e53e05868bb7c289983d314288b354ffd))
+
 # [4.0.0](https://github.com/adobe/helix-ops/compare/v3.0.0...v4.0.0) (2021-05-30)
 
 
