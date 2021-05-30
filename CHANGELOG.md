@@ -1,3 +1,48 @@
+# [4.0.0](https://github.com/adobe/helix-ops/compare/v3.0.0...v4.0.0) (2021-05-30)
+
+
+### Bug Fixes
+
+* **monitoring:** missing default values make parameters mandatory ([150031c](https://github.com/adobe/helix-ops/commit/150031c52d11483e91ef8a834ae36ef7552cee1a))
+* **monitoring:** missing default values make parameters mandatory ([ff64808](https://github.com/adobe/helix-ops/commit/ff6480820d9a4fa6108bcdb7af3185f6e082701a))
+* **monitoring:** set newrelic_frequency default back to 0 ([5019072](https://github.com/adobe/helix-ops/commit/5019072a8d27698b9334694a98e16bb4b23779cc))
+* **monitoring:** set newrelic_frequency default back to 15 ([2193234](https://github.com/adobe/helix-ops/commit/2193234ea236ef3dea81d923137060394ec668d9))
+
+
+### BREAKING CHANGES
+
+* **monitoring:** new API (see https://github.com/adobe/helix-ops/issues/203)
+
+# [3.0.0](https://github.com/adobe/helix-ops/compare/v2.2.3...v3.0.0) (2021-05-30)
+
+
+### Bug Fixes
+
+* **monitoring:** keep action_namespace param backward compatible ([9582c2d](https://github.com/adobe/helix-ops/commit/9582c2d3c7cffeb6477c35624a4069e154e12431))
+* **monitoring:** multivalue locations not working ([70862cb](https://github.com/adobe/helix-ops/commit/70862cb459c73b27990a79ac3a58f8ba6d0e71de))
+* **test:** add separate file for monitoringSetup ([80edc00](https://github.com/adobe/helix-ops/commit/80edc00cf42a2b56b7b8b3bb6ab012cdf22173e1))
+
+
+### Documentation
+
+* **monitoring:** multivalue locations not working ([4c1bb77](https://github.com/adobe/helix-ops/commit/4c1bb777820f2f60a2f42ad18732d5e684fce301))
+
+
+### Features
+
+* **monitoring:** ability to specify clouds ([a5a4862](https://github.com/adobe/helix-ops/commit/a5a4862e8bcdcae2651387cf35de8d62a9758a3d))
+* **monitoring:** add google cloud support ([b5719aa](https://github.com/adobe/helix-ops/commit/b5719aab1159d6a827ba65a57759f35f0b523403))
+* **monitoring:** keep universal runtime optional ([736b74f](https://github.com/adobe/helix-ops/commit/736b74f7dabf9701ec460183461b60bd3c52f708))
+* **monitoring:** make universal host configurable ([381259d](https://github.com/adobe/helix-ops/commit/381259df767069b5a1992a700fd2f5e8e3dde7cf))
+* **monitoring:** switch default to universal ([b11efe5](https://github.com/adobe/helix-ops/commit/b11efe5dd01a1301e2c4aa2df31d8d2c4daf9ab5))
+* **monitoring:** switch default to universal ([1eefd1b](https://github.com/adobe/helix-ops/commit/1eefd1b03b14f7e2fc940317b73c9a99887143a7))
+
+
+### BREAKING CHANGES
+
+* **monitoring:** runtime monitoring now optional
+* **monitoring:** locations parameter value now space- instead of comma-separated
+
 ## [2.2.3](https://github.com/adobe/helix-ops/compare/v2.2.2...v2.2.3) (2021-05-17)
 
 
