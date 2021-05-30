@@ -1,9 +1,13 @@
 {
+  "env": {
+    "HLX_AWS_API": "abcde12345",
+    "HLX_AWS_REGION": "us-east-1"
+  },
   "parameters": {
     "statuspage_name": "foo",
     "aws": "true",
-    "aws_api": "abcde12345",
-    "aws_region": "us-east-1",
+    "aws_api": "HLX_AWS_API",
+    "aws_region": "HLX_AWS_REGION",
     "random_param": "false"
   },
   "output": [

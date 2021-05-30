@@ -175,7 +175,7 @@ p.validClouds = ['universal', 'aws', 'google', 'adobeio'];
 // use real env variables
 Object.keys(p).forEach((k) => {
   if (typeof p[k] === 'string' && p[k].startsWith('HLX_')) {
-    p[k] = process.env[k];
+    p[k] = process.env[p[k]];
   }
 });
 
