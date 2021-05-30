@@ -41,7 +41,8 @@ Options:
   --page_id, --pageId                     Statuspage Page ID (or env
                                           $STATUSPAGE_PAGE_ID)
                                                              [string] [required]
-  --name                                  The name of the component     [string]
+  --name                                  The name(s) of the component(s)
+                                                                         [array]
   --description                           The description of the component
                                                                         [string]
   --group                                 The name of an existing component
@@ -50,8 +51,6 @@ Options:
                                                       [boolean] [default: false]
   --incubator_page_id, --incubatorPageId  Statuspage Page ID for incubator
                                           components   [string] [default: false]
-  --aws                                   The action is also deployed in AWS
-                                                      [boolean] [default: false]
   --silent                                Reduce output to automation email only
                                                       [boolean] [default: false]
 
@@ -88,18 +87,20 @@ Commands:
   newrelic setup  Create or update a New Relic setup
 
 Options:
-  --version       Show version number                                  [boolean]
-  --help          Show help                                            [boolean]
-  --auth          Admin API Key (or env var $NEWRELIC_AUTH)  [string] [required]
-  --url           The URL(s) to check                         [array] [required]
-  --email         The email address(es) to send alerts to                [array]
-  --name          The name(s) of the monitor, channel and policy         [array]
-  --group_policy  The name of a common policy to add the monitor(s) to  [string]
-  --incubator     Flag as incubator setup                              [boolean]
-  --locations     The comma-separated list of locations to use          [string]
-  --frequency     The frequency to trigger the monitor in minutes       [number]
-  --type          The type of monitor (api or browser)                  [string]
-  --script        The path to a custom monitor script                   [string]
+  --version        Show version number                                 [boolean]
+  --help           Show help                                           [boolean]
+  --auth           Admin API Key (or env var $NEWRELIC_AUTH) [string] [required]
+  --url            The URL(s) to check                        [array] [required]
+  --email          The email address(es) to send alerts to               [array]
+  --name           The name(s) of the monitor, channel and policy        [array]
+  --group_policy   The name of a common policy to add the monitor(s) to [string]
+  --group_targets  The 0-based indices of monitors to add to the group policy
+                                                          [array] [default: [0]]
+  --incubator      Flag as incubator setup                             [boolean]
+  --locations      The location(s) to use                                [array]
+  --frequency      The frequency to trigger the monitor in minutes      [number]
+  --type           The type of monitor (api or browser)                 [string]
+  --script         The path to a custom monitor script                  [string]
 
 $ npx newrelic setup \
   --url https://adobeioruntime.net/api/v1/web/namespace/package/action@v1/_status_check/healthcheck.json \

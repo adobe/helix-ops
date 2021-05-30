@@ -13,14 +13,9 @@
 const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
 
-function fetchContext() {
-  return process.env.HELIX_FETCH_FORCE_HTTP1
-    ? fetchAPI.context({
-      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-    })
-    : fetchAPI;
-}
-const { fetch } = fetchContext();
+const { fetch } = fetchAPI.context({
+  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+});
 
 const CHANNEL_TYPE = 'email';
 const INCIDENT_PREFERENCE = 'PER_POLICY';
@@ -55,7 +50,7 @@ async function getChannelInfo(auth, channelName, email) {
 }
 
 async function purgeIncubatorChannel(auth, name, allPolicies) {
-  const incubatorPolicy = allPolicies ? allPolicies.find((policy) => policy.name === name) : null;
+  const incubatorPolicy = allPolicies && allPolicies.find((policy) => policy.name === name);
   if (incubatorPolicy) {
     console.log('Removing incubator notification channel', incubatorPolicy.name);
     try {
@@ -227,7 +222,7 @@ async function getPolicyInfo(auth, policyName) {
       ? body.policies.map(({ id, name }) => ({ id, name }))
       : [];
     return {
-      policy: policyName ? allPolicies.find((pol) => pol.name === policyName) : null,
+      policy: policyName && allPolicies.find((pol) => pol.name === policyName),
       allPolicies,
     };
   } catch (e) {
@@ -263,7 +258,9 @@ async function createPolicy(auth, name) {
   }
 }
 
-async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, policies, incubator) {
+async function updatePolicy(
+  auth, name, policy, groupPolicy, groupTarget, monitorId, channelId, policies, incubator,
+) {
   if (!monitorId) {
     return;
   }
@@ -300,8 +297,9 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
     await updateCondition(auth, condition, monitorId);
   }
 
-  if (!incubator && groupPolicy) {
-    const group = policies ? policies.find((pol) => pol.name === groupPolicy) : null;
+  if (groupTarget && groupPolicy && !incubator) {
+    // add to group policy if group target and not incubator
+    const group = policies && policies.find((pol) => pol.name === groupPolicy);
     if (group) {
       // make sure policy and group policy are not the same
       if (policy && policy.id && policy.id === group.id) {
@@ -309,7 +307,7 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
         return;
       }
       console.log('Verifying group alert policy', group.name);
-      await updatePolicy(auth, group, null, monitorId);
+      await updatePolicy(auth, name, group, null, null, monitorId);
     } else {
       console.error(`Group alert policy ${groupPolicy} not found`);
     }
@@ -319,8 +317,7 @@ async function updatePolicy(auth, policy, groupPolicy, monitorId, channelId, pol
 async function purgeIncubatorPolicy(auth, name, allPolicies) {
   const incubatorPolicyName = getIncubatorName(name);
   const incubatorPolicy = allPolicies
-    ? allPolicies.find((policy) => policy.name === incubatorPolicyName)
-    : null;
+    && allPolicies.find((policy) => policy.name === incubatorPolicyName);
   if (incubatorPolicy) {
     console.log('Removing incubator alert policy', incubatorPolicy.name);
     try {
@@ -340,13 +337,16 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
   }
 }
 
-async function updateOrCreatePolicies(auth, names, groupPolicy, monitorIds, channelIds, incubator) {
+async function updateOrCreatePolicies(
+  auth, names, groupPolicy, groupTargets, monitorIds, channelIds, incubator,
+) {
   await Promise.all(names.map(async (name, i) => {
-    const channelId = channelIds ? channelIds[i] : null;
-    const monitorId = monitorIds ? monitorIds[i] : null;
+    const channelId = channelIds && channelIds[i];
+    const monitorId = monitorIds && monitorIds[i];
     const policyName = incubator ? getIncubatorName(name) : name;
     const info = await getPolicyInfo(auth, policyName);
     const { allPolicies } = info;
+    const groupTarget = Array.isArray(groupTargets) ? groupTargets.includes(i) : (i === 0);
     let { policy } = info;
 
     if (channelId && !policy) {
@@ -354,7 +354,9 @@ async function updateOrCreatePolicies(auth, names, groupPolicy, monitorIds, chan
       policy = await createPolicy(auth, policyName);
     }
     // update policy
-    await updatePolicy(auth, policy, groupPolicy, monitorId, channelId, allPolicies, incubator);
+    await updatePolicy(
+      auth, name, policy, groupPolicy, groupTarget, monitorId, channelId, allPolicies, incubator,
+    );
 
     if (!incubator) {
       // TODO: delete same name incubator policy

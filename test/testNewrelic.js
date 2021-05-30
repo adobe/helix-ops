@@ -80,7 +80,7 @@ describe('Testing newrelic', () => {
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
   const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
-  const locations = MONITOR_LOCATIONS.slice(3, 6).join(', ');
+  const locations = MONITOR_LOCATIONS.slice(3, 6).join(' ');
   const frequency = 5;
   const monitor = {
     id: '0000',
@@ -90,9 +90,13 @@ describe('Testing newrelic', () => {
     slaThreshold: MONITOR_THRESHOLD,
     type: MONITOR_TYPE.api,
   };
-  const awsMonitor = {
+  const adobeioMonitor = {
     ...monitor,
     id: '0001',
+  };
+  const awsMonitor = {
+    ...monitor,
+    id: '0002',
   };
   const channel = {
     id: '1111',
@@ -102,17 +106,25 @@ describe('Testing newrelic', () => {
       include_json_attachment: false,
     },
   };
-  const awsChannel = {
+  const adobeioChannel = {
     ...channel,
     id: '1112',
+  };
+  const awsChannel = {
+    ...channel,
+    id: '1113',
   };
   const policy = {
     id: '2222',
     incident_preference: INCIDENT_PREFERENCE,
   };
-  const awsPolicy = {
+  const adobeioPolicy = {
     ...policy,
     id: '2223',
+  };
+  const awsPolicy = {
+    ...policy,
+    id: '2224',
   };
   const groupPolicy = {
     id: '3333',
@@ -205,6 +217,29 @@ describe('Testing newrelic', () => {
     assert.ok(/Missing dependent arguments:\n type/.test(output.stderr), 'expected missing dependent arguments');
   });
 
+  it('refuses to run with different number of urls and names', async () => {
+    const output = await runShell({
+      cmd,
+      auth,
+      url: [url, url],
+      name: [name],
+    });
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.ok(/The number of provides names and urls must match/.test(output.stderr), 'expected number mismatch error');
+  });
+
+  it('refuses to run with different number of names and emails', async () => {
+    const output = await runShell({
+      cmd,
+      auth,
+      url: [url, url],
+      name: [name, name],
+      email: [email],
+    });
+    assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
+    assert.ok(/The number of provides names and email addresses must match/.test(output.stderr), 'expected number mismatch error');
+  });
+
   it('creates a new monitoring setup', async () => {
     const test = {};
     const api = new NewRelicAPI(apiConfig())
@@ -276,13 +311,14 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
-  it('creates a new AWS monitoring setup', async () => {
+  it('creates a new universal monitoring setup', async () => {
+    adobeioMonitor.name = `${name}.adobeio`;
     awsMonitor.name = `${name}.aws`;
-    const awsUrl = `https://test-aws-api.execute-api.test-region.amazonaws.com/foo/bar/sample/v${v}/_status_check/healthcheck.json`;
-    const awsEmail = 'component+123456@notifications.statuspage.io';
+    const adobeioUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
+    const awsUrl = `https://adobeioruntime.net/api/v1/web/foo/bar/sample@v${v}/_status_check/healthcheck.json`;
     const monitorsCreated = [];
     const api = new NewRelicAPI(apiConfig({
-      aws: true,
+      adobeioMonitor,
       awsMonitor,
     }))
       .on(NewRelicAPI.CREATE_MONITOR, (uri, req) => {
@@ -291,11 +327,12 @@ describe('Testing newrelic', () => {
       .start();
 
     await run(cliConfig({
-      url: [url, awsUrl],
-      email: [email, awsEmail],
-      name: [name, awsMonitor.name],
+      url: [url, adobeioUrl, awsUrl],
+      email: [email, email, email],
+      name: [name, adobeioMonitor.name, awsMonitor.name],
     }));
-    assert.ok(await getTimedPromise(() => monitorsCreated.length === 2, 'AWS monitor not created'));
+    assert.ok(await getTimedPromise(() => monitorsCreated.length === 3, 'Universal monitors not created'));
+    assert.ok(monitorsCreated.includes(adobeioMonitor.name), 'Runtime monitor not named as expected');
     assert.ok(monitorsCreated.includes(awsMonitor.name), 'AWS monitor not named as expected');
     api.stop();
   }).timeout(10000);
@@ -329,15 +366,24 @@ describe('Testing newrelic', () => {
     api.stop();
   }).timeout(5000);
 
-  it('updates existing AWS monitoring setup', async () => {
+  it('updates existing universal monitoring setup', async () => {
+    const adobeioName = `${name}.adobeio`;
+    adobeioMonitor.name = adobeioName;
+    adobeioChannel.name = adobeioName;
+    adobeioPolicy.name = adobeioName;
+
     const awsName = `${name}.aws`;
     awsMonitor.name = awsName;
     awsChannel.name = awsName;
     awsPolicy.name = awsName;
+
     let updated = false;
     const api = new NewRelicAPI(apiConfig({
       new: false,
       aws: true,
+      adobeioMonitor,
+      adobeioChannel,
+      adobeioPolicy,
       awsMonitor,
       awsChannel,
       awsPolicy,
@@ -352,9 +398,9 @@ describe('Testing newrelic', () => {
       .start();
 
     await run(cliConfig({
-      url: [url, url],
-      email: [email, email],
-      name: [name, awsMonitor.name],
+      url: [url, url, url],
+      email: [email, email, email],
+      name: [name, adobeioMonitor.name, awsMonitor.name],
     }));
     assert(await getTimedPromise(() => !!updated, 'AWS policy not updated'));
     api.stop();
@@ -471,7 +517,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig())
       .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
         ok = typeof req.locations === 'object'
-          && req.locations.join(', ') === locations
+          && req.locations.join(' ') === locations
           && req.frequency === frequency;
       })
       .start();
@@ -486,7 +532,7 @@ describe('Testing newrelic', () => {
     const api = new NewRelicAPI(apiConfig({ new: false }))
       .on(NewRelicAPI.UPDATE_LOCATIONS, (uri, req) => {
         ok = typeof req.locations === 'object'
-          && req.locations.join(', ') === locations
+          && req.locations.join(' ') === locations
           && req.frequency === frequency;
       })
       .start();

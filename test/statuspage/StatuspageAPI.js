@@ -50,12 +50,11 @@ class StatuspageAPI extends AbstractAPI {
     return (uri, req) => {
       ctx.emit(StatuspageAPI.GET_COMPONENTS, uri, req);
       const comps = [];
-      if (!ctx.cfg.new) {
+      if (!ctx.cfg.new && ctx.cfg.component) {
         // there is an existing component
-        comps.push(ctx.cfg.component);
-        if (ctx.cfg.aws && ctx.cfg.awsComponent) {
-          comps.push(ctx.cfg.awsComponent);
-        }
+        const existingComps = Array.isArray(ctx.cfg.component)
+          ? ctx.cfg.component : [ctx.cfg.component];
+        existingComps.forEach((comp) => comps.push(comp));
       }
       if (ctx.cfg.componentGroup) {
         // component group is also a component
@@ -124,23 +123,23 @@ class StatuspageAPI extends AbstractAPI {
     nock('https://api.statuspage.io')
       // Getting list of all components
       .get(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getComponents())
       // Creating new component
       .post(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(201), this.createComponent())
       // Updating component
       .patch(/\/v1\/pages\/.*\/components\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.updateComponent())
       // Getting list of all components from incubator page
       .get(/\/v1\/pages\/.*\/components/)
-      .twice()
+      .thrice()
       .reply(this.status(200), this.getComponents())
       // Deleting component
       .delete(/\/v1\/pages\/.*\/components\/.*/)
-      .twice()
+      .thrice()
       .reply(this.status(204), this.deleteComponent());
     return this;
   }

@@ -14,14 +14,9 @@ const fetchAPI = require('@adobe/helix-fetch');
 const fs = require('fs');
 const path = require('path');
 
-function fetchContext() {
-  return process.env.HELIX_FETCH_FORCE_HTTP1
-    ? fetchAPI.context({
-      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-    })
-    : fetchAPI;
-}
-const { fetch } = fetchContext();
+const { fetch } = fetchAPI.context({
+  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+});
 
 const MONITOR_FREQUENCY = 15;
 const MONITOR_STATUS = 'ENABLED';
@@ -142,7 +137,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
 async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq) {
   const monitors = await getMonitors(auth, names);
   const type = monType ? MONITOR_TYPE[monType] : MONITOR_TYPE.api;
-  const locations = monLoc ? monLoc.split(',').map((loc) => loc.trim()) : MONITOR_LOCATIONS;
+  const locations = monLoc ? monLoc.map((loc) => loc.trim()) : MONITOR_LOCATIONS;
   const frequency = monFreq || MONITOR_FREQUENCY;
   if (monitors.length === names.length) {
     // update

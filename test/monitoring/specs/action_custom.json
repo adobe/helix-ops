@@ -1,16 +1,13 @@
 {
   "parameters": {
-    "action_namespace": "baz",
     "action_package": "foo",
     "action_name": "bar"
   },
   "output": [
     "setup",
     "--url",
-    "https://adobeioruntime.net/api/v1/web/baz/foo/bar@v1/_status_check/healthcheck.json",
+    "https://adobeioruntime.net/api/v1/web/helix/foo/bar@v1/_status_check/healthcheck.json",
     "--name",
-    "@adobe/helix-monitoring-test",
-    "--frequency",
-    "15"
+    "@adobe/helix-monitoring-test"
   ]
 }

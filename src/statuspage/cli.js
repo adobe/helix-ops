@@ -15,14 +15,9 @@ const fs = require('fs');
 const fetchAPI = require('@adobe/helix-fetch');
 const { getIncubatorName } = require('../utils');
 
-function fetchContext() {
-  return process.env.HELIX_FETCH_FORCE_HTTP1
-    ? fetchAPI.context({
-      alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-    })
-    : fetchAPI;
-}
-const { fetch } = fetchContext();
+const { fetch } = fetchAPI.context({
+  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
+});
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
@@ -174,13 +169,12 @@ class CLI {
         logger.log('Deleting incubator component', component.name);
         try {
           const resp = await fetch(`https://api.statuspage.io/v1/pages/${ipageid || pageid}/components/${component.id}`, {
-            body: true,
             method: 'DELETE',
             headers: {
               Authorization: auth,
             },
           });
-          const body = await resp.json();
+          const body = await resp.text();
           if (!resp.ok) {
             throw new Error(body);
           }
@@ -192,14 +186,11 @@ class CLI {
 
     async function updateOrCreateComponent({
       // eslint-disable-next-line camelcase
-      auth, pageId, group, name, description, aws, silent, incubator, incubatorPageId,
+      auth, pageId, group, name, description, silent, incubator, incubatorPageId,
     }) {
       setLogger(silent);
 
-      const names = [name];
-      if (aws) {
-        names.push(`${[name]} (AWS)`);
-      }
+      const names = Array.isArray(name) ? name : [name];
 
       const emails = [
         ...await Promise.all(names.map(async (cname) => {
@@ -252,10 +243,10 @@ class CLI {
           required: true,
         })
         .option('name', {
-          type: 'string',
+          type: 'array',
           describe: 'The name of the component',
           required: config.name === undefined,
-          default: config.name,
+          default: [config.name],
         })
         .option('description', {
           type: 'string',
@@ -278,12 +269,6 @@ class CLI {
           type: 'string',
           alias: 'incubatorPageId',
           describe: 'Statuspage Page ID for incubator components',
-          required: false,
-          default: false,
-        })
-        .option('aws', {
-          type: 'boolean',
-          describe: 'The action is also deployed in AWS',
           required: false,
           default: false,
         })

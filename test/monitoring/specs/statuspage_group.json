@@ -12,8 +12,6 @@
     "setup",
     "--silent",
     "--group",
-    "foo",
-    "--frequency",
-    "15"
+    "foo"
   ]
 }
