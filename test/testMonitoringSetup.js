@@ -82,6 +82,6 @@ describe('Testing monitoring setup', () => {
         assert.fail(`shell exited with non-zero code: ${code}:\n${stderr}`);
       }
       assert.deepStrictEqual(JSON.parse(stdout), output);
-    });
+    }).timeout(5000);
   });
 });
