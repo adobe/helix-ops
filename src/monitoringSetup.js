@@ -172,6 +172,13 @@ p.service = getServiceInfo();
 // define supported clouds
 p.validClouds = ['universal', 'aws', 'google', 'adobeio'];
 
+// use real env variables
+Object.keys(p).forEach((k) => {
+  if (k.startsWith('HLX_')) {
+    p[k] = process.env[k];
+  }
+});
+
 // use real booleans
 Object.keys(p).forEach((k) => {
   if (p[k] === 'true') {
