@@ -277,6 +277,12 @@ class CLI {
           describe: 'Reduce output to automation email only',
           required: false,
           default: false,
+        })
+        .option('aws', {
+          type: 'boolean',
+          describe: 'The action is also deployed in AWS (deprecated)',
+          required: false,
+          default: false,
         });
     }
     return yargs
