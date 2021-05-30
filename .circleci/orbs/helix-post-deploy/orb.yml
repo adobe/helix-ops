@@ -28,6 +28,7 @@ commands:
     parameters:
         targets:
             type: string
+            default: ""
             description: "Comma-separated list of clouds the action is deployed to: universal, aws, google or adobeio."
         action_package:
             type: string
@@ -85,8 +86,9 @@ commands:
             type: string
             default: ""
             description: The comma-separated list of locations to use.
-        newrelic_frequency: 
+        newrelic_frequency:
             type: integer
+            default: 0
             description: The frequency to trigger the monitor in minutes. Defaults to 15.
         newrelic_script: 
             type: string
@@ -130,9 +132,11 @@ commands:
             description: The path to the monitoring automation tooling.
         action_namespace:
             type: string
+            default: ""
             description: The name of the namespace where the action is deployed. Deprecated, use "adobeioNamespace" instead.
         aws:
             type: boolean
+            default: false
             description: Also monitor the action in AWS. Deprecated, use "targets" instead.
     steps:
       - run:
