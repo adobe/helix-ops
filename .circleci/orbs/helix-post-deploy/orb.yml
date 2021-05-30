@@ -88,7 +88,7 @@ commands:
             description: The comma-separated list of locations to use.
         newrelic_frequency:
             type: integer
-            default: 15
+            default: 0
             description: The frequency to trigger the monitor in minutes. Defaults to 15.
         newrelic_script: 
             type: string
