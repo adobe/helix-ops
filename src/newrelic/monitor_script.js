@@ -36,7 +36,15 @@ $http.get({
 },
 // callback
 (err, response, body) => {
-  const status = JSON.parse(body);
+  if (err) {
+    assert.fail(new Error(err));
+  }
+  let status = {};
+  try {
+    status = JSON.parse(body);
+  } catch (e) {
+    assert.fail(new Error(`Error parsing body of ${url}: ${body}`));
+  }
   Object.keys(status).forEach((v) => {
     if (['status', 'error', 'process', 'version', 'response_time'].indexOf(v) === -1) {
       $util.insights.set(v, parseInt(status[v], 10));
