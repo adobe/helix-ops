@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/adobe/helix-ops/compare/v4.0.3...v4.1.0) (2021-06-01)
+
+
+### Features
+
+* **monitoring:** cloud specific monitor script ([98d69c8](https://github.com/adobe/helix-ops/commit/98d69c8f4f7d64121caf6fc5f34af55265338e18))
+
 ## [4.0.3](https://github.com/adobe/helix-ops/compare/v4.0.2...v4.0.3) (2021-05-30)
 
 
