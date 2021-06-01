@@ -16,7 +16,6 @@
 const assert = require('assert');
 
 const url = '$$$URL$$$';
-const aws = url.includes('amazonaws.com');
 const hlx3 = url.includes('helix3');
 const adobeio = url.includes('adobeioruntime.net');
 
@@ -25,7 +24,7 @@ if (adobeio) {
   // make sure activation record gets persisted
   headers['X-OW-EXTRA-LOGGING'] = 'on';
 }
-if (aws && hlx3) {
+if (hlx3) {
   // helix 3 actions deployed in aws require api token
   headers.Authorization = `token ${$secure.HELIX3_API_TOKEN}`;
 }
