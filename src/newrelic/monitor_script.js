@@ -15,13 +15,25 @@
 
 const assert = require('assert');
 
+const url = '$$$URL$$$';
+const aws = url.includes('amazonaws.com');
+const hlx3 = url.includes('helix3');
+const adobeio = url.includes('adobeioruntime.net');
+
+const headers = {};
+if (adobeio) {
+  // make sure activation record gets persisted
+  headers['X-OW-EXTRA-LOGGING'] = 'on';
+}
+if (aws && hlx3) {
+  // helix 3 actions deployed in aws require api token
+  headers.Authorization = `token ${$secure.HELIX3_API_TOKEN}`;
+}
+
 // $http -> https://github.com/request/request
 $http.get({
-  url: '$$$URL$$$',
-  headers: {
-    // make sure activation record gets persisted
-    'X-OW-EXTRA-LOGGING': 'on',
-  },
+  url,
+  headers,
 },
 // callback
 (err, response, body) => {
@@ -32,7 +44,7 @@ $http.get({
     }
   });
   $util.insights.set('status', status.status);
-  ['x-openwhisk-activation-id', 'x-request-id', 'x-version'].forEach((h) => {
+  ['x-request-id', 'x-version'].forEach((h) => {
     $util.insights.set(h, response.headers[h]);
   });
   if (status.error) {
@@ -42,46 +54,53 @@ $http.get({
   if (status.status !== 'OK') {
     console.error(body);
   }
-  // retrieve activation details via OpenWhisk REST API:
-  // https://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations/getActivationById
-  const id = response.headers['x-openwhisk-activation-id'];
-  if (id) {
-    // $http -> https://github.com/request/request
-    $http.get({
-      url: `https://adobeioruntime.net/api/v1/namespaces/_/activations/${id}`,
-      headers: {
-        Authorization: `Basic ${Buffer.from($secure.WSK_AUTH_$$$NS$$$).toString('base64')}`,
-      },
-      json: true,
-    },
-    // callback
-    (e, resp, activationRecord) => {
-      if (e) {
-        console.log('Failed to retrieve activation record:', e);
-        return;
-      }
-      if (resp.statusCode !== 200) {
-        console.info(`Failed to retrieve activation record: statusCode: ${resp.statusCode},`, resp.body);
-        return;
-      }
 
-      // since the REST API returned statusCode 200 we can assue that resp.body
-      // (i.e. activationRecord) is a valid activation record payload:
-      // https://github.com/apache/openwhisk/blob/master/docs/actions.md#understanding-the-activation-record
-
-      // dump the full activation record in the script log
-      console.info('Activation record:', JSON.stringify(activationRecord, null, 2));
-      // store insights
-      $util.insights.set('activation_status_code', activationRecord.statusCode);
-      $util.insights.set('activation_duration', activationRecord.duration);
-      $util.insights.set('wsk_overhead', activationRecord.duration - status.response_time);
-      activationRecord.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
-        $util.insights.set(`activation_${ann.key}`, ann.value);
-      });
-      // check action response
-      const { statusCode: actionStatus } = activationRecord.response.result;
-      assert.equal(actionStatus, 200, `Expected a 200 OK web action response, got: ${actionStatus}`);
+  if (adobeio) {
+    ['x-openwhisk-activation-id'].forEach((h) => {
+      $util.insights.set(h, response.headers[h]);
     });
+
+    // retrieve activation details via OpenWhisk REST API:
+    // https://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations/getActivationById
+    const id = response.headers['x-openwhisk-activation-id'];
+    if (id) {
+      // $http -> https://github.com/request/request
+      $http.get({
+        url: `https://adobeioruntime.net/api/v1/namespaces/_/activations/${id}`,
+        headers: {
+          Authorization: `Basic ${Buffer.from($secure.WSK_AUTH_$$$NS$$$).toString('base64')}`,
+        },
+        json: true,
+      },
+      // callback
+      (e, resp, activationRecord) => {
+        if (e) {
+          console.log('Failed to retrieve activation record:', e);
+          return;
+        }
+        if (resp.statusCode !== 200) {
+          console.info(`Failed to retrieve activation record: statusCode: ${resp.statusCode},`, resp.body);
+          return;
+        }
+
+        // since the REST API returned statusCode 200 we can assume that resp.body
+        // (i.e. activationRecord) is a valid activation record payload:
+        // https://github.com/apache/openwhisk/blob/master/docs/actions.md#understanding-the-activation-record
+
+        // dump the full activation record in the script log
+        console.info('Activation record:', JSON.stringify(activationRecord, null, 2));
+        // store insights
+        $util.insights.set('activation_status_code', activationRecord.statusCode);
+        $util.insights.set('activation_duration', activationRecord.duration);
+        $util.insights.set('wsk_overhead', activationRecord.duration - status.response_time);
+        activationRecord.annotations.filter((ann) => ann.key.toLowerCase().indexOf('time') >= 0).forEach((ann) => {
+          $util.insights.set(`activation_${ann.key}`, ann.value);
+        });
+        // check action response
+        const { statusCode: actionStatus } = activationRecord.response.result;
+        assert.equal(actionStatus, 200, `Expected a 200 OK web action response, got: ${actionStatus}`);
+      });
+    }
   }
   assert.equal(status.status, 'OK', `Expected an OK health check status, got: ${status.status}`);
   assert.equal(response.statusCode, 200, `Expected a 200 OK response, got ${response.statusCode}`);
