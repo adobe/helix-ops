@@ -1,3 +1,10 @@
+# [4.2.0](https://github.com/adobe/helix-ops/compare/v4.1.1...v4.2.0) (2021-07-12)
+
+
+### Features
+
+* **monitoring:** leave existing comp in its group ([fe7ccd2](https://github.com/adobe/helix-ops/commit/fe7ccd23d6c7d8de5e291f4339595dbbd6f9258a))
+
 ## [4.1.1](https://github.com/adobe/helix-ops/compare/v4.1.0...v4.1.1) (2021-06-11)
 
 
