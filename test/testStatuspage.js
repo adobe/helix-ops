@@ -273,7 +273,7 @@ describe('Testing statuspage', function testStatuspage() {
       .start();
 
     await run(cliConfig({ group }));
-    assert.ok(await getTimedPromise(() => compUpdated, 'Component not added to group'));
+    assert.ok(await getTimedPromise(() => compUpdated, 'Component added to group'));
     api.stop();
   });
 
