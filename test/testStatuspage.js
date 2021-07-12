@@ -258,6 +258,25 @@ describe('Testing statuspage', function testStatuspage() {
     api.stop();
   });
 
+  it('leaves existing component in existing group', async () => {
+    let compUpdated = false;
+    const api = new StatuspageAPI(apiConfig({
+      new: false,
+      component: {
+        ...component,
+        group_id: '0001',
+      },
+    }))
+      .on(StatuspageAPI.UPDATE_COMPONENT, (uri, req) => {
+        compUpdated = req.component && !req.component.group_id;
+      })
+      .start();
+
+    await run(cliConfig({ group }));
+    assert.ok(await getTimedPromise(() => compUpdated, 'Component added to group'));
+    api.stop();
+  });
+
   it('outputs only email in silent mode', async () => {
     let compCreated = false;
 
