@@ -129,7 +129,7 @@ class CLI {
       if (comp.description !== description) {
         component.description = description;
       }
-      if (group && comp.group_id !== group.id) {
+      if (group && !comp.group_id) {
         component.group_id = group.id;
       }
       if (Object.keys(component).length > 0) {
