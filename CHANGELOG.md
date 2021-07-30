@@ -1,3 +1,10 @@
+## [4.2.1](https://github.com/adobe/helix-ops/compare/v4.2.0...v4.2.1) (2021-07-30)
+
+
+### Bug Fixes
+
+* **fastly:** bump cli version ([017847f](https://github.com/adobe/helix-ops/commit/017847f38566efda057642fcc43e49ef867adf04))
+
 # [4.2.0](https://github.com/adobe/helix-ops/compare/v4.1.1...v4.2.0) (2021-07-12)
 
 
