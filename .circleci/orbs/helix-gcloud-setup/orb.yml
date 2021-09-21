@@ -4,9 +4,9 @@ description: |
   Sets up Google Cloud Platform credentials from environment variables
 
 executors:
-  node12:
+  node14:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
 
 commands:
   load-config:
