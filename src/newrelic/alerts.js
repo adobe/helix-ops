@@ -259,7 +259,15 @@ async function createPolicy(auth, name) {
 }
 
 async function updatePolicy(
-  auth, name, policy, groupPolicy, groupTarget, monitorId, channelId, policies, incubator,
+  auth,
+  name,
+  policy,
+  groupPolicy,
+  groupTarget,
+  monitorId,
+  channelId,
+  policies,
+  incubator,
 ) {
   if (!monitorId) {
     return;
@@ -338,7 +346,13 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
 }
 
 async function updateOrCreatePolicies(
-  auth, names, groupPolicy, groupTargets, monitorIds, channelIds, incubator,
+  auth,
+  names,
+  groupPolicy,
+  groupTargets,
+  monitorIds,
+  channelIds,
+  incubator,
 ) {
   await Promise.all(names.map(async (name, i) => {
     const channelId = channelIds && channelIds[i];
@@ -355,7 +369,15 @@ async function updateOrCreatePolicies(
     }
     // update policy
     await updatePolicy(
-      auth, name, policy, groupPolicy, groupTarget, monitorId, channelId, allPolicies, incubator,
+      auth,
+      name,
+      policy,
+      groupPolicy,
+      groupTarget,
+      monitorId,
+      channelId,
+      allPolicies,
+      incubator,
     );
 
     if (!incubator) {
