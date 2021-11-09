@@ -110,10 +110,15 @@ class CLI {
           console.error('The number of provides names and email addresses must match.');
           process.exit(1);
         }
-        await updateOrCreatePolicies(auth, name, group_policy, group_targets,
+        await updateOrCreatePolicies(
+          auth,
+          name,
+          group_policy,
+          group_targets,
           await updateOrCreateMonitor(auth, name, url, script, type, locations, frequency),
           email ? await reuseOrCreateChannel(auth, name, email, incubator) : null,
-          incubator);
+          incubator,
+        );
         console.log('done.');
       })
       .help()

@@ -224,10 +224,14 @@ describe('Testing statuspage', function testStatuspage() {
 
     await run(cliConfig({ name: [name, adobeioName, awsName] }));
     await getTimedPromise(() => true);
-    assert.ok(logger.log.calledWith('Updating component', awsName),
-      `console.log not called with ${awsName}`);
-    assert.ok(logger.log.calledWith('Updating component', adobeioName),
-      `console.log not called with ${adobeioName}`);
+    assert.ok(
+      logger.log.calledWith('Updating component', awsName),
+      `console.log not called with ${awsName}`,
+    );
+    assert.ok(
+      logger.log.calledWith('Updating component', adobeioName),
+      `console.log not called with ${adobeioName}`,
+    );
     api.stop();
   });
 
