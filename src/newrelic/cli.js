@@ -16,6 +16,7 @@ const yargs = require('yargs');
 const fs = require('fs');
 const { updateOrCreateMonitor } = require('./synthetics.js');
 const { updateOrCreatePolicies, reuseOrCreateChannel } = require('./alerts.js');
+const { stripQuotes } = require('../utils.js');
 
 class CLI {
   // eslint-disable-next-line class-methods-use-this
@@ -100,15 +101,8 @@ class CLI {
         auth, name, url, email, group_policy, group_targets,
         incubator, script, type, locations, frequency,
       }) => {
-        // since 17.3.0, yargs is preserving inner quotes so we need to strip
-        // them again from argument values where they were added
-        // see https://github.com/yargs/yargs-parser/pull/407
-        const stripQuotes = (value) => {
-          const match = /^"(.*)"$/.exec(value);
-          return match ? match[1] : value;
-        };
         /* eslint-disable no-param-reassign */
-        name = name.map(stripQuotes);
+        name = stripQuotes(name);
         group_policy = stripQuotes(group_policy);
         script = stripQuotes(script);
         /* eslint-enable no-param-reassign */
