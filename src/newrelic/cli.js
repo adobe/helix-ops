@@ -100,6 +100,19 @@ class CLI {
         auth, name, url, email, group_policy, group_targets,
         incubator, script, type, locations, frequency,
       }) => {
+        // since 17.3.0, yargs is preserving inner quotes so we need to strip
+        // them again from argument values where they were added
+        // see https://github.com/yargs/yargs-parser/pull/407
+        const stripQuotes = (value) => {
+          const match = /^"(.*)"$/.exec(value);
+          return match ? match[1] : value;
+        };
+        /* eslint-disable no-param-reassign */
+        name = name.map(stripQuotes);
+        group_policy = stripQuotes(group_policy);
+        script = stripQuotes(script);
+        /* eslint-enable no-param-reassign */
+
         // number of names, urls and emails must match
         if (name.length !== url.length) {
           console.error('The number of provides names and urls must match.');
