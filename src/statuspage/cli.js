@@ -13,7 +13,7 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const fetchAPI = require('@adobe/helix-fetch');
-const { getIncubatorName } = require('../utils');
+const { getIncubatorName, stripQuotes } = require('../utils');
 
 const { fetch } = fetchAPI.context({
   alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
@@ -288,7 +288,14 @@ class CLI {
     return yargs
       .scriptName('statuspage')
       .usage('$0 <cmd>')
-      .command('setup', 'Create or reuse a Statuspage component', (y) => baseargs(y), updateOrCreateComponent)
+      .command('setup', 'Create or reuse a Statuspage component', (y) => baseargs(y), (y) => {
+        /* eslint-disable no-param-reassign */
+        y.name = stripQuotes(y.name);
+        y.group = stripQuotes(y.group);
+        y.description = stripQuotes(y.description);
+        /* eslint-enable no-param-reassign */
+        return updateOrCreateComponent(y);
+      })
       .help()
       .strict()
       .demandCommand(1)

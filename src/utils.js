@@ -14,6 +14,20 @@ function getIncubatorName(name) {
   return `${name} [INCUBATOR]`;
 }
 
+// since v17.3.0, yargs is preserving inner quotes so we need to strip
+// them again from argument values where they were added
+// see https://github.com/yargs/yargs-parser/pull/407
+function stripQuotes(value) {
+  const isArray = Array.isArray(value);
+  const newValues = (isArray ? value : [value]).map((v) => {
+    if (!v) return undefined;
+    const match = /^"(.*)"$/.exec(v);
+    return match ? match[1] : v;
+  });
+  return isArray ? newValues : newValues[0];
+}
+
 module.exports = {
   getIncubatorName,
+  stripQuotes,
 };
