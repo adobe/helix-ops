@@ -1,3 +1,11 @@
+## [4.2.6](https://github.com/adobe/helix-ops/compare/v4.2.5...v4.2.6) (2022-01-11)
+
+
+### Bug Fixes
+
+* yargs 17.3.0 change in how quotes are handled ([a0f76df](https://github.com/adobe/helix-ops/commit/a0f76df9cd7b5753c048049b34859a1f7421ff31))
+* yargs 17.3.0 change in how quotes are handled ([af71354](https://github.com/adobe/helix-ops/commit/af7135460481da64168be506908779cbfd1a9c7a))
+
 ## [4.2.5](https://github.com/adobe/helix-ops/compare/v4.2.4...v4.2.5) (2021-10-18)
 
 
