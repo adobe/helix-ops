@@ -1,3 +1,10 @@
+## [4.2.7](https://github.com/adobe/helix-ops/compare/v4.2.6...v4.2.7) (2022-02-02)
+
+
+### Bug Fixes
+
+* update monitor script to use new authorization header ([#287](https://github.com/adobe/helix-ops/issues/287)) ([97d5e48](https://github.com/adobe/helix-ops/commit/97d5e48dcea926266b9d5c92cb99e67048a8abfa))
+
 ## [4.2.6](https://github.com/adobe/helix-ops/compare/v4.2.5...v4.2.6) (2022-01-11)
 
 
