@@ -26,7 +26,7 @@ if (adobeio) {
 }
 if (hlx3) {
   // helix 3 actions deployed in aws require api token
-  headers.Authorization = `token ${$secure.HELIX3_API_TOKEN}`;
+  headers['x-edge-authorization'] = `token ${$secure.HELIX3_API_TOKEN}`;
 }
 
 // $http -> https://github.com/request/request
