@@ -1,3 +1,10 @@
+## [4.2.15](https://github.com/adobe/helix-ops/compare/v4.2.14...v4.2.15) (2022-04-16)
+
+
+### Bug Fixes
+
+* **deps:** update dependency fs-extra to v10.1.0 ([#306](https://github.com/adobe/helix-ops/issues/306)) ([3da44ef](https://github.com/adobe/helix-ops/commit/3da44ef3a88172de34782c1c154788ab5a2005fd))
+
 ## [4.2.14](https://github.com/adobe/helix-ops/compare/v4.2.13...v4.2.14) (2022-04-10)
 
 
