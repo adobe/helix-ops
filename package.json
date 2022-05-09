@@ -55,7 +55,7 @@
     "nock": "13.2.4",
     "nyc": "15.1.0",
     "semantic-release": "19.0.2",
-    "sinon": "13.0.2",
+    "sinon": "14.0.0",
     "yaml": "2.0.1"
   },
   "lint-staged": {
