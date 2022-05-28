@@ -27,7 +27,7 @@
   "homepage": "https://github.com/adobe/helix-ops#readme",
   "dependencies": {
     "@adobe/helix-fetch": "3.0.10",
-    "diff": "5.0.0",
+    "diff": "5.1.0",
     "fs-extra": "10.1.0",
     "get-stream": "6.0.1",
     "git-log-parser": "1.2.0",
@@ -49,7 +49,7 @@
     "istanbul": "1.1.0-alpha.1",
     "jsdoc-to-markdown": "7.1.1",
     "junit-report-builder": "3.0.0",
-    "lint-staged": "12.4.1",
+    "lint-staged": "12.4.2",
     "lodash": "4.17.21",
     "mocha": "10.0.0",
     "nock": "13.2.4",
