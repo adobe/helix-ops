@@ -42,21 +42,21 @@
     "codecov": "3.8.3",
     "commitizen": "4.2.4",
     "cz-conventional-changelog": "3.3.0",
-    "eslint": "8.16.0",
+    "eslint": "8.17.0",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.26.0",
     "events": "3.3.0",
     "istanbul": "1.1.0-alpha.1",
     "jsdoc-to-markdown": "7.1.1",
     "junit-report-builder": "3.0.0",
-    "lint-staged": "12.4.2",
+    "lint-staged": "12.5.0",
     "lodash": "4.17.21",
     "mocha": "10.0.0",
-    "nock": "13.2.4",
+    "nock": "13.2.6",
     "nyc": "15.1.0",
     "semantic-release": "19.0.2",
     "sinon": "14.0.0",
-    "yaml": "2.1.0"
+    "yaml": "2.1.1"
   },
   "lint-staged": {
     "*.js": "eslint"
