@@ -1,3 +1,10 @@
+## [4.2.21](https://github.com/adobe/helix-ops/compare/v4.2.20...v4.2.21) (2022-07-20)
+
+
+### Bug Fixes
+
+* **fastly:** bump cli version to 3.1.1 ([35899ff](https://github.com/adobe/helix-ops/commit/35899ffcf470366e1ac05efc19c014f178717ecb))
+
 ## [4.2.20](https://github.com/adobe/helix-ops/compare/v4.2.19...v4.2.20) (2022-06-29)
 
 
