@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-const fetchAPI = require('@adobe/helix-fetch');
+const fetchAPI = require('@adobe/fetch');
 const { getIncubatorName } = require('../utils');
 
 const { fetch } = fetchAPI.context({

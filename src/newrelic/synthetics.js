@@ -10,13 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
-const fetchAPI = require('@adobe/helix-fetch');
+const { fetch } = require('@adobe/fetch').h1();
 const fs = require('fs');
 const path = require('path');
-
-const { fetch } = fetchAPI.context({
-  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-});
 
 const MONITOR_FREQUENCY = 15;
 const MONITOR_STATUS = 'ENABLED';
