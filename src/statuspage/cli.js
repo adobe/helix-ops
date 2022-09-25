@@ -12,12 +12,8 @@
 
 const yargs = require('yargs');
 const fs = require('fs');
-const fetchAPI = require('@adobe/helix-fetch');
+const { fetch } = require('@adobe/fetch').h1();
 const { getIncubatorName, stripQuotes } = require('../utils');
-
-const { fetch } = fetchAPI.context({
-  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-});
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
