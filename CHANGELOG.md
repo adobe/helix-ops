@@ -1,3 +1,10 @@
+## [4.2.23](https://github.com/adobe/helix-ops/compare/v4.2.22...v4.2.23) (2022-09-25)
+
+
+### Bug Fixes
+
+* @adobe/helix-fetch -> @adobe/fetch ([#342](https://github.com/adobe/helix-ops/issues/342)) ([ada03f5](https://github.com/adobe/helix-ops/commit/ada03f5bc84cd4960be4198e916e780eb16a9bb5))
+
 ## [4.2.22](https://github.com/adobe/helix-ops/compare/v4.2.21...v4.2.22) (2022-08-07)
 
 
