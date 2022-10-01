@@ -1,3 +1,10 @@
+## [4.2.24](https://github.com/adobe/helix-ops/compare/v4.2.23...v4.2.24) (2022-10-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency yargs to v17.6.0 ([c76d14a](https://github.com/adobe/helix-ops/commit/c76d14af47244e8411196e1befb674db3d6af0ad))
+
 ## [4.2.23](https://github.com/adobe/helix-ops/compare/v4.2.22...v4.2.23) (2022-09-25)
 
 
