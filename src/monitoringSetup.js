@@ -24,8 +24,11 @@ function getServiceInfo() {
   try {
     const json = JSON.parse(fs.readFileSync('package.json'));
     name = json.name;
-    // get short name by removing prefix
-    [, shortName] = name.split('-').slice(1).join('-');
+    if (name.startsWith('helix-') || name.startsWith('franklin-')) {
+      [, shortName] = name.split('-').slice(1).join('-');
+    } else {
+      shortName = name;
+    }
     versionDigits = json.version.split('.');
     [version] = versionDigits;
   } catch (e) {
