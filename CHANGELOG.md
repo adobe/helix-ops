@@ -1,3 +1,10 @@
+## [4.2.28](https://github.com/adobe/helix-ops/compare/v4.2.27...v4.2.28) (2022-11-11)
+
+
+### Bug Fixes
+
+* support franklin- prefix ([#351](https://github.com/adobe/helix-ops/issues/351)) ([eb2c23f](https://github.com/adobe/helix-ops/commit/eb2c23f9000472744bf3fcfffbc611ff436a569d))
+
 ## [4.2.27](https://github.com/adobe/helix-ops/compare/v4.2.26...v4.2.27) (2022-10-26)
 
 
