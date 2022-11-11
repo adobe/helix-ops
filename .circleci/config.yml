@@ -3,8 +3,6 @@ executors:
   node14:
     docker:
     - image: cimg/node:16.15
-    environment:
-      NPM_CONFIG_PREFIX: ~/.npm-global
 
 commands:
   setup:
