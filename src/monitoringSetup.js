@@ -24,10 +24,10 @@ function getServiceInfo() {
   try {
     const json = JSON.parse(fs.readFileSync('package.json'));
     name = json.name;
-    if (name.startsWith('helix-') || name.startsWith('franklin-')) {
-      [, shortName] = name.split('-').slice(1).join('-');
+    if (name.indexOf('franklin-') !== -1) {
+      [, shortName] = name.split('franklin-');
     } else {
-      shortName = name;
+      [, shortName] = name.split('helix-');
     }
     versionDigits = json.version.split('.');
     [version] = versionDigits;
