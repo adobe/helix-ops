@@ -69,30 +69,33 @@ describe('Testing monitoring setup', () => {
       (step) => step.run.name === 'Monitoring Setup',
     );
     defaults = extractDefaults(orbConfig.commands.monitoring.parameters);
-    shell.cd(MONITORING);
-  });
-
-  after(() => {
-    shell.cd('-');
   });
 
   const specs = path.resolve(MONITORING, 'specs');
   fse.readdirSync(specs).forEach((filename) => {
     const name = filename.substring(0, filename.length - 5);
-    const { env, parameters, output } = fse.readJSONSync(path.resolve(specs, filename), 'utf8');
+    const {
+      env, parameters, output, cwd = 'helix-project',
+    } = fse.readJSONSync(path.resolve(specs, filename), 'utf8');
     it(`Testing ${name}`, async () => {
       setEnv(env);
       const params = applyDefaults(parameters, defaults);
+      params.tool_path = MONITORING;
+
       const command = Object.keys(params).reduce(
         (cmd, k) => cmd.replace(new RegExp(`<< parameters.${k} >>`), params[k]),
         setup.run.command,
       )
         .replace(/<< parameters.tool_path >>/, MONITORING)
         .replace(/<< .+ >>/g, '');
+
+      shell.cd(path.resolve(MONITORING, cwd));
       const { code, stdout, stderr } = shell.exec(command, {
         silent: true,
         shell: '/bin/bash',
       });
+      shell.cd('-');
+
       unsetEnv(env);
       if (code !== 0) {
         assert.fail(`shell exited with non-zero code: ${code}:\n${stderr}`);
