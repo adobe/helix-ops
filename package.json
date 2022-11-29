@@ -1,6 +1,6 @@
 {
   "name": "@adobe/helix-ops",
-  "version": "4.2.28",
+  "version": "4.2.29",
   "description": "Operational tooling for Project Helix services",
   "bin": {
     "monitoringSetup": "src/monitoringSetup.js",

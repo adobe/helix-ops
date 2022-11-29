@@ -1,3 +1,10 @@
+## [4.2.29](https://github.com/adobe/helix-ops/compare/v4.2.28...v4.2.29) (2022-11-29)
+
+
+### Bug Fixes
+
+* **deps:** update external major (major) ([#357](https://github.com/adobe/helix-ops/issues/357)) ([c742a31](https://github.com/adobe/helix-ops/commit/c742a31abac00e0b9153cdc0c3b3b1a0f9f24c03))
+
 ## [4.2.28](https://github.com/adobe/helix-ops/compare/v4.2.27...v4.2.28) (2022-11-11)
 
 
