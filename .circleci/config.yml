@@ -1,57 +1,57 @@
 version: 2.1
 executors:
-  node14:
+  node18:
     docker:
-    - image: cimg/node:16.15
+      - image: cimg/node:18.2
 
 commands:
   setup:
     steps:
-    - checkout
-    # - restore_cache:
-    #     keys:
-    #     - v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
-    - run:
-        name: Installing Dependencies
-        command: npm ci
-    - run:
-        name: Validate orbs
-        command: |
+      - checkout
+      # - restore_cache:
+      #     keys:
+      #     - v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: Installing Dependencies
+          command: npm ci
+      - run:
+          name: Validate orbs
+          command: |
             export GITHUB_TOKEN=$GH_TOKEN
             curl --http1.1 -fLSs https://circle.ci/cli | DESTDIR=~ bash
             ~/circleci > /dev/null # first run checks for updates
             find . -name orb.yml -print0 | xargs -0 -I% ~/circleci orb validate %
-    # - save_cache:
-    #     paths:
-    #     - node_modules
-    #     key: v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
-    - run:
-        name: prepare test git user
-        command: git config --global user.email "circleci@example.com" && git config --global user.name "CircleCi Build"
+      # - save_cache:
+      #     paths:
+      #     - node_modules
+      #     key: v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: prepare test git user
+          command: git config --global user.email "circleci@example.com" && git config --global user.name "CircleCi Build"
 
 jobs:
   build:
-    executor: node14
+    executor: node18
 
     steps:
-    - setup
-    - run: mkdir junit
-    - run:
-        name: Lint
-        command: npm run lint
+      - setup
+      - run: mkdir junit
+      - run:
+          name: Lint
+          command: npm run lint
 
-    - run:
-        name: Getting Code Coverage
-        command: npm run test-ci
+      - run:
+          name: Getting Code Coverage
+          command: npm run test-ci
 
-    - store_test_results:
-        path: junit
+      - store_test_results:
+          path: junit
 
-    - store_artifacts:
-        path: junit
+      - store_artifacts:
+          path: junit
 
   release:
-    executor: node14
+    executor: node18
 
     steps:
       - setup
@@ -66,9 +66,9 @@ jobs:
       - run:
           name: Semantic Orb Release
           command: |
-              curl --http1.1 -fLSs https://circle.ci/cli | DESTDIR=~ bash
-              ~/circleci > /dev/null # first run checks for updates
-              node src/orb-release
+            curl --http1.1 -fLSs https://circle.ci/cli | DESTDIR=~ bash
+            ~/circleci > /dev/null # first run checks for updates
+            node src/orb-release
 
       - run:
           name: Semantic Release
@@ -78,12 +78,12 @@ workflows:
   version: 2
   build:
     jobs:
-    - build
-    # the release jobs needs a $NPM_TOKEN and $GH_TOKEN environment to be setup
-    - release:
-        requires:
-        - build
-        filters:
-          branches:
-            # rename to `main` once the tokens have been setup
-            only: main
+      - build
+      # the release jobs needs a $NPM_TOKEN and $GH_TOKEN environment to be setup
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              # rename to `main` once the tokens have been setup
+              only: main
