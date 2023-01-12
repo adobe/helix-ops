@@ -81,6 +81,7 @@ workflows:
       - build
       # the release jobs needs a $NPM_TOKEN and $GH_TOKEN environment to be setup
       - release:
+          context: Project Helix
           requires:
             - build
           filters:
