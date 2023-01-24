@@ -18,9 +18,9 @@ const sinon = require('sinon');
 
 process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
 
-const Statuspage = require('../src/statuspage/cli');
-const StatuspageAPI = require('./statuspage/StatuspageAPI');
-const { getTimedPromise } = require('./utils');
+const Statuspage = require('../src/statuspage/cli.js');
+const StatuspageAPI = require('./statuspage/StatuspageAPI.js');
+const { getTimedPromise } = require('./utils.js');
 
 function buildArgs({
   cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,

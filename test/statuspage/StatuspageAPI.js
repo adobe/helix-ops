@@ -11,7 +11,7 @@
  */
 /* eslint-env mocha */
 const nock = require('nock');
-const AbstractAPI = require('../AbstractAPI');
+const AbstractAPI = require('../AbstractAPI.js');
 
 /**
  * Simulates the <a href="https://doers.statuspage.io/api/v1/">Statuspage API v1</a>.
