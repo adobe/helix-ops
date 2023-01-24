@@ -13,7 +13,7 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const { fetch } = require('@adobe/fetch').h1();
-const { getIncubatorName, stripQuotes } = require('../utils');
+const { getIncubatorName, stripQuotes } = require('../utils.js');
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;

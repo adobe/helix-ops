@@ -11,7 +11,7 @@
  */
 
 const fetchAPI = require('@adobe/fetch');
-const { getIncubatorName } = require('../utils');
+const { getIncubatorName } = require('../utils.js');
 
 const { fetch } = fetchAPI.context({
   alpnProtocols: [fetchAPI.ALPN_HTTP1_1],

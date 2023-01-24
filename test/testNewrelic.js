@@ -20,24 +20,24 @@ const path = require('path');
 
 process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
 
-const NewRelic = require('../src/newrelic/cli');
+const NewRelic = require('../src/newrelic/cli.js');
 const {
   MONITOR_FREQUENCY,
   MONITOR_LOCATIONS,
   MONITOR_STATUS,
   MONITOR_THRESHOLD,
   MONITOR_TYPE,
-} = require('../src/newrelic/synthetics');
+} = require('../src/newrelic/synthetics.js');
 const {
   CHANNEL_TYPE,
   INCIDENT_PREFERENCE,
   CONDITION_NAME,
   CONDITION_PRIORITY,
   CONDITION_THRESHOLD,
-} = require('../src/newrelic/alerts');
-const NewRelicAPI = require('./newrelic/NewRelicAPI');
-const { getTimedPromise } = require('./utils');
-const { getIncubatorName } = require('../src/utils');
+} = require('../src/newrelic/alerts.js');
+const NewRelicAPI = require('./newrelic/NewRelicAPI.js');
+const { getTimedPromise } = require('./utils.js');
+const { getIncubatorName } = require('../src/utils.js');
 
 function buildArgs({
   cmd, auth, url, email, name, groupPolicy, type, script, locations, frequency, incubator,
