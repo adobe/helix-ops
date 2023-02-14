@@ -8,9 +8,6 @@ commands:
   setup:
     steps:
       - checkout
-      # - restore_cache:
-      #     keys:
-      #     - v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
       - run:
           name: Installing Dependencies
           command: npm ci
@@ -21,10 +18,6 @@ commands:
             curl --http1.1 -fLSs https://circle.ci/cli | DESTDIR=~ bash
             ~/circleci > /dev/null # first run checks for updates
             find . -name orb.yml -print0 | xargs -0 -I% ~/circleci orb validate %
-      # - save_cache:
-      #     paths:
-      #     - node_modules
-      #     key: v1-dependencies-{{ arch }}-{{ checksum "package-lock.json" }}
       - run:
           name: prepare test git user
           command: git config --global user.email "circleci@example.com" && git config --global user.name "CircleCi Build"
@@ -39,14 +32,11 @@ jobs:
       - run:
           name: Lint
           command: npm run lint
-
       - run:
           name: Getting Code Coverage
           command: npm run test-ci
-
       - store_test_results:
           path: junit
-
       - store_artifacts:
           path: junit
 
@@ -58,11 +48,7 @@ jobs:
       - run:
           name: revert changes to package-lock.json
           command: git checkout -- package-lock.json
-
-      - run:
-          name: Check for Updated Package name
-          command: node -e "if (require('./package.json').name=='@adobe/helix-library') { process.exit(1) };"
-
+      # note that npm release (semantic release) is done via github workflow
       - run:
           name: Semantic Orb Release
           command: |
@@ -70,21 +56,16 @@ jobs:
             ~/circleci > /dev/null # first run checks for updates
             node src/orb-release
 
-      - run:
-          name: Semantic Release
-          command: npm run semantic-release
 
 workflows:
   version: 2
   build:
     jobs:
       - build
-      # the release jobs needs a $NPM_TOKEN and $GH_TOKEN environment to be setup
       - release:
           context: Project Helix
           requires:
             - build
           filters:
             branches:
-              # rename to `main` once the tokens have been setup
               only: main
