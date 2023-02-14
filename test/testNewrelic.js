@@ -214,7 +214,7 @@ describe('Testing newrelic', () => {
       type: 'api', // type requires dependent argument script
     });
     assert.notEqual(output.code, 0, `expected exit code != 0, but got ${output.code}`);
-    assert.ok(/Missing dependent arguments:\n type/.test(output.stderr), 'expected missing dependent arguments');
+    assert.ok(/Missing dependent arguments:\s+type/.test(output.stderr), 'expected missing dependent arguments');
   });
 
   it('refuses to run with different number of urls and names', async () => {
