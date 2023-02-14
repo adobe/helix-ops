@@ -1,3 +1,10 @@
+## [4.2.33](https://github.com/adobe/helix-ops/compare/v4.2.32...v4.2.33) (2023-02-14)
+
+
+### Bug Fixes
+
+* release via github actions ([7994503](https://github.com/adobe/helix-ops/commit/79945030c0edf4ab3340b7345d4161321a7c4f61))
+
 ## [4.2.32](https://github.com/adobe/helix-ops/compare/v4.2.31...v4.2.32) (2023-02-14)
 
 
