@@ -1,3 +1,10 @@
+## [4.2.32](https://github.com/adobe/helix-ops/compare/v4.2.31...v4.2.32) (2023-02-14)
+
+
+### Bug Fixes
+
+* force installation despite problems with project dependncies ([#375](https://github.com/adobe/helix-ops/issues/375)) ([84249de](https://github.com/adobe/helix-ops/commit/84249de1c94ce30d21cf06da8d26368014f78825))
+
 ## [4.2.31](https://github.com/adobe/helix-ops/compare/v4.2.30...v4.2.31) (2023-02-06)
 
 
