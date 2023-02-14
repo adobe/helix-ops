@@ -78,11 +78,11 @@ commands:
             type: string
             default: ""
             description: The URL to monitor in New Relic.
-        newrelic_type: 
+        newrelic_type:
             type: string
             default: ""
             description: The type of New Relic monitor (api or browser).
-        newrelic_locations: 
+        newrelic_locations:
             type: string
             default: ""
             description: The comma-separated list of locations to use.
@@ -90,15 +90,15 @@ commands:
             type: integer
             default: 0
             description: The frequency to trigger the monitor in minutes. Defaults to 15.
-        newrelic_script: 
+        newrelic_script:
             type: string
             default: ""
             description: The path to the custom monitor script to use.
-        newrelic_group_targets: 
+        newrelic_group_targets:
             type: string
             default: ""
             description: The clouds to add to the group policy. Defaults to the first one.
-        newrelic_group_policy: 
+        newrelic_group_policy:
             type: string
             default: ""
             description: A collective alert policy in New Relic to add the monitor to.
@@ -141,7 +141,7 @@ commands:
     steps:
       - run:
           name: Ensure Installation of CLI
-          command: if [ ! -f ./node_modules/.bin/monitoringSetup ]; then npm i --no-save @adobe/helix-ops; fi
+          command: if [ ! -f ./node_modules/.bin/monitoringSetup ]; then npm i --force --no-save @adobe/helix-ops; fi
       - run:
           name: Monitoring Setup
           command: |
