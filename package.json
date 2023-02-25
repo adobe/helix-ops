@@ -29,7 +29,7 @@
     "reporter-options": "configFile=.mocha-multi.json"
   },
   "dependencies": {
-    "@adobe/fetch": "3.6.0",
+    "@adobe/fetch": "3.6.1",
     "diff": "5.1.0",
     "fs-extra": "11.1.0",
     "get-stream": "6.0.1",
@@ -38,7 +38,7 @@
     "yargs": "17.7.1"
   },
   "devDependencies": {
-    "@adobe/eslint-config-helix": "2.0.1",
+    "@adobe/eslint-config-helix": "2.0.2",
     "@semantic-release/changelog": "6.0.2",
     "@semantic-release/git": "10.0.1",
     "ajv": "8.12.0",
