@@ -17,7 +17,7 @@ const assert = require('assert');
 
 const url = '$$$URL$$$';
 const { host, pathname } = new URL(url);
-const hlx3 = host.endsWith('.amazonaws.com') && pathname.includes('helix3');
+const hlx3 = host.endsWith('.amazonaws.com') && pathname.includes('/helix3/');
 
 const headers = {};
 if (hlx3) {
