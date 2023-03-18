@@ -1,3 +1,11 @@
+## [4.2.35](https://github.com/adobe/helix-ops/compare/v4.2.34...v4.2.35) (2023-03-18)
+
+
+### Bug Fixes
+
+* potential insufficient hostname validation ([1e9b1eb](https://github.com/adobe/helix-ops/commit/1e9b1ebfe5413e7aa4c098439092c4fdfbcaeb38))
+* potential insufficient path validation ([f76bd95](https://github.com/adobe/helix-ops/commit/f76bd95bcca553c9ddb36e0af66cfd6398479f4d))
+
 ## [4.2.34](https://github.com/adobe/helix-ops/compare/v4.2.33...v4.2.34) (2023-02-25)
 
 
