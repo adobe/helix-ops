@@ -29,7 +29,7 @@
     "reporter-options": "configFile=.mocha-multi.json"
   },
   "dependencies": {
-    "@adobe/fetch": "3.6.1",
+    "@adobe/fetch": "3.6.2",
     "diff": "5.1.0",
     "fs-extra": "11.1.1",
     "get-stream": "6.0.1",
