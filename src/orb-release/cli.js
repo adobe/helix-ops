@@ -15,7 +15,7 @@
 const diff = require('diff');
 const fs = require('fs-extra');
 const gitLogParser = require('git-log-parser');
-const getStream = require('get-stream');
+const toArray = require('stream-to-array');
 const shell = require('shelljs');
 const yargs = require('yargs');
 
@@ -49,7 +49,7 @@ async function getReleaseType() {
   const releaseDate = await getReleaseDate();
   if (releaseDate) {
     logger.log('Last release date: %s', releaseDate.toUTCString());
-    (await getStream.array(gitLogParser.parse()))
+    (await toArray(gitLogParser.parse()))
       .filter((commit) => {
         if (new Date(commit.committerDate) >= releaseDate) {
           if (/^(fix|perf)\(?.*\)?:/.test(commit.subject) && type < releaseTypes.indexOf('patch')) {
