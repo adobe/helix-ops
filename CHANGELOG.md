@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/adobe/helix-ops/compare/v4.2.38...v4.3.0) (2023-07-11)
+
+
+### Features
+
+* upgrade to esm ([765af8c](https://github.com/adobe/helix-ops/commit/765af8c326556e6cebdf484b7140a7c84238f4d7))
+
 ## [4.2.38](https://github.com/adobe/helix-ops/compare/v4.2.37...v4.2.38) (2023-05-09)
 
 
