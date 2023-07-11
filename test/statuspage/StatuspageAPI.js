@@ -10,13 +10,13 @@
  * governing permissions and limitations under the License.
  */
 /* eslint-env mocha */
-const nock = require('nock');
-const AbstractAPI = require('../AbstractAPI.js');
+import nock from 'nock';
+import AbstractAPI from '../AbstractAPI.js';
 
 /**
  * Simulates the <a href="https://doers.statuspage.io/api/v1/">Statuspage API v1</a>.
  */
-class StatuspageAPI extends AbstractAPI {
+export default class StatuspageAPI extends AbstractAPI {
   /**
    * Creates a new API simulation.
    * @param {object} opts An object containing options:
@@ -150,5 +150,3 @@ StatuspageAPI.GET_COMPONENTS = 'getComponents';
 StatuspageAPI.CREATE_COMPONENT = 'createComponent';
 StatuspageAPI.UPDATE_COMPONENT = 'updateComponent';
 StatuspageAPI.DELETE_COMPONENT = 'deleteComponent';
-
-module.exports = StatuspageAPI;

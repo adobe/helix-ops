@@ -9,17 +9,18 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import yargs from 'yargs';
+import fs from 'fs';
+import { h1 } from '@adobe/fetch';
+import { getIncubatorName, stripQuotes } from '../utils.js';
 
-const yargs = require('yargs');
-const fs = require('fs');
-const { fetch } = require('@adobe/fetch').h1();
-const { getIncubatorName, stripQuotes } = require('../utils.js');
+const { fetch } = h1();
 
 function getIncubatorPageId(pageId, incubatorPageId) {
   return incubatorPageId || pageId;
 }
 
-class CLI {
+export default class CLI {
   // eslint-disable-next-line class-methods-use-this
   run(arg) {
     let logger = console;
@@ -281,7 +282,7 @@ class CLI {
           default: false,
         });
     }
-    return yargs
+    return yargs()
       .scriptName('statuspage')
       .usage('$0 <cmd>')
       .command('setup', 'Create or reuse a Statuspage component', (y) => baseargs(y), (y) => {
@@ -300,5 +301,3 @@ class CLI {
       .argv;
   }
 }
-
-module.exports = CLI;

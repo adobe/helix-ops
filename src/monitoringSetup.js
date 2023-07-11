@@ -11,9 +11,8 @@
  * governing permissions and limitations under the License.
  */
 /* eslint-disable no-console */
-
-const fs = require('fs');
-const shell = require('shelljs');
+import fs from 'fs';
+import shell from 'shelljs';
 
 function getServiceInfo() {
   // load info from package json

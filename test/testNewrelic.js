@@ -11,33 +11,30 @@
  */
 
 /* eslint-env mocha */
-
-const assert = require('assert');
-const shell = require('shelljs');
-const sinon = require('sinon');
-const fs = require('fs');
-const path = require('path');
-
-process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
-
-const NewRelic = require('../src/newrelic/cli.js');
-const {
+import assert from 'assert';
+import shell from 'shelljs';
+import sinon from 'sinon';
+import fs from 'fs';
+import path from 'path';
+import NewRelic from '../src/newrelic/cli.js';
+import {
   MONITOR_FREQUENCY,
   MONITOR_LOCATIONS,
-  MONITOR_STATUS,
-  MONITOR_THRESHOLD,
-  MONITOR_TYPE,
-} = require('../src/newrelic/synthetics.js');
-const {
+  MONITOR_STATUS, MONITOR_THRESHOLD, MONITOR_TYPE,
+} from '../src/newrelic/synthetics.js';
+
+import {
   CHANNEL_TYPE,
-  INCIDENT_PREFERENCE,
   CONDITION_NAME,
-  CONDITION_PRIORITY,
-  CONDITION_THRESHOLD,
-} = require('../src/newrelic/alerts.js');
-const NewRelicAPI = require('./newrelic/NewRelicAPI.js');
-const { getTimedPromise } = require('./utils.js');
-const { getIncubatorName } = require('../src/utils.js');
+  CONDITION_PRIORITY, CONDITION_THRESHOLD,
+  INCIDENT_PREFERENCE,
+} from '../src/newrelic/alerts.js';
+
+import NewRelicAPI from './newrelic/NewRelicAPI.js';
+import { getTimedPromise } from './utils.js';
+import { getIncubatorName } from '../src/utils.js';
+
+process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
 
 function buildArgs({
   cmd, auth, url, email, name, groupPolicy, type, script, locations, frequency, incubator,
@@ -79,7 +76,7 @@ describe('Testing newrelic', () => {
   const auth = 'test-auth';
   const namePrefix = 'Test Service ';
   const email = 'component+abcdef@notifications.statuspage.io';
-  const script = path.resolve(__dirname, './fixtures/newrelic/custom-monitor-script.js');
+  const script = path.resolve(__testdir, './fixtures/newrelic/custom-monitor-script.js');
   const locations = MONITOR_LOCATIONS.slice(3, 6).join(' ');
   const frequency = 5;
   const monitor = {

@@ -10,13 +10,13 @@
  * governing permissions and limitations under the License.
  */
 /* eslint-env mocha */
-const EventEmitter = require('events');
-const nock = require('nock');
+import EventEmitter from 'events';
+import nock from 'nock';
 
 /**
  * Abstract API simulator.
  */
-class AbstractAPI extends EventEmitter {
+export default class AbstractAPI extends EventEmitter {
   /**
    * Creates a new API simulator.
    * @param {object} opts An object containing configuration options:
@@ -77,5 +77,3 @@ class AbstractAPI extends EventEmitter {
     return this;
   }
 }
-
-module.exports = AbstractAPI;

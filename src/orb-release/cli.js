@@ -11,13 +11,12 @@
  */
 
 /* eslint-disable no-param-reassign */
-
-const diff = require('diff');
-const fs = require('fs-extra');
-const gitLogParser = require('git-log-parser');
-const toArray = require('stream-to-array');
-const shell = require('shelljs');
-const yargs = require('yargs');
+import { diffTrimmedLines } from 'diff';
+import fs from 'fs-extra';
+import gitLogParser from 'git-log-parser';
+import toArray from 'stream-to-array';
+import shell from 'shelljs';
+import yargs from 'yargs';
 
 const releaseTypes = [
   '',
@@ -99,7 +98,7 @@ async function diffOrb(orb) {
   }
   const pubSource = (await fs.readFile(pubFile)).toString('utf-8');
   const locSource = `${(await fs.readFile(orb.src)).toString('utf-8')}\n`;
-  const patch = diff.diffTrimmedLines(pubSource, locSource);
+  const patch = diffTrimmedLines(pubSource, locSource);
   patch.forEach((entry) => {
     if (entry.added || entry.removed) {
       ret = true;
@@ -169,10 +168,10 @@ function baseargs(y) {
     });
 }
 
-class CLI {
+export default class CLI {
   // eslint-disable-next-line class-methods-use-this
   run(arg) {
-    return yargs
+    return yargs()
       .scriptName('orb-release')
       .usage('$0')
       .command('$0', 'default', (y) => baseargs(y), releaseOrbs)
@@ -183,5 +182,3 @@ class CLI {
       .argv;
   }
 }
-
-module.exports = CLI;
