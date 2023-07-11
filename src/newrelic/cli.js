@@ -11,14 +11,13 @@
  */
 
 /* eslint-disable no-console, camelcase */
+import yargs from 'yargs';
+import fs from 'fs';
+import { updateOrCreateMonitor } from './synthetics.js';
+import { reuseOrCreateChannel, updateOrCreatePolicies } from './alerts.js';
+import { stripQuotes } from '../utils.js';
 
-const yargs = require('yargs');
-const fs = require('fs');
-const { updateOrCreateMonitor } = require('./synthetics.js');
-const { updateOrCreatePolicies, reuseOrCreateChannel } = require('./alerts.js');
-const { stripQuotes } = require('../utils.js');
-
-class CLI {
+export default class CLI {
   // eslint-disable-next-line class-methods-use-this
   run(arg) {
     const config = {};
@@ -94,7 +93,7 @@ class CLI {
         });
     }
 
-    return yargs
+    return yargs()
       .scriptName('newrelic')
       .usage('$0 <cmd>')
       .command('setup', 'Create or update a New Relic setup', (y) => baseargs(y), async ({
@@ -136,5 +135,3 @@ class CLI {
       .argv;
   }
 }
-
-module.exports = CLI;

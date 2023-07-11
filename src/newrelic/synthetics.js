@@ -9,15 +9,15 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import { h1 } from '@adobe/fetch';
+import fs from 'fs';
+import path from 'path';
 
-const { fetch } = require('@adobe/fetch').h1();
-const fs = require('fs');
-const path = require('path');
-
-const MONITOR_FREQUENCY = 15;
-const MONITOR_STATUS = 'ENABLED';
-const MONITOR_THRESHOLD = 7;
-const MONITOR_LOCATIONS = [
+const { fetch } = h1();
+export const MONITOR_FREQUENCY = 15;
+export const MONITOR_STATUS = 'ENABLED';
+export const MONITOR_THRESHOLD = 7;
+export const MONITOR_LOCATIONS = [
   'AWS_AP_NORTHEAST_1',
   'AWS_AP_NORTHEAST_2',
   'AWS_AP_SOUTH_1',
@@ -34,7 +34,7 @@ const MONITOR_LOCATIONS = [
   'AWS_US_WEST_1',
   'AWS_US_WEST_2',
 ];
-const MONITOR_TYPE = {
+export const MONITOR_TYPE = {
   api: 'SCRIPT_API',
   browser: 'SCRIPT_BROWSER',
 };
@@ -106,7 +106,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
   console.log('Updating script for monitor', monitor.name);
 
   const scriptText = Buffer.from(fs
-    .readFileSync(script || path.resolve(__dirname, 'monitor_script.js'))
+    .readFileSync(script || path.resolve(__rootdir, 'src', 'newrelic', 'monitor_script.js'))
     .toString()
     .replace('$$$URL$$$', url)
     .replace('$$$NS$$$', getNS(url)))
@@ -130,7 +130,7 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
   }
 }
 
-async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq) {
+export async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc, monFreq) {
   const monitors = await getMonitors(auth, names);
   const type = monType ? MONITOR_TYPE[monType] : MONITOR_TYPE.api;
   const locations = monLoc ? monLoc.map((loc) => loc.trim()) : MONITOR_LOCATIONS;
@@ -185,12 +185,3 @@ async function updateOrCreateMonitor(auth, names, urls, script, monType, monLoc,
     .map((mon) => mon.id || null)
     .filter((id) => !!id);
 }
-
-module.exports = {
-  updateOrCreateMonitor,
-  MONITOR_FREQUENCY,
-  MONITOR_LOCATIONS,
-  MONITOR_STATUS,
-  MONITOR_THRESHOLD,
-  MONITOR_TYPE,
-};

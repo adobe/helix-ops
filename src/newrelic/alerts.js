@@ -9,19 +9,16 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import { h1 } from '@adobe/fetch';
+import { getIncubatorName } from '../utils.js';
 
-const fetchAPI = require('@adobe/fetch');
-const { getIncubatorName } = require('../utils.js');
+const { fetch } = h1();
 
-const { fetch } = fetchAPI.context({
-  alpnProtocols: [fetchAPI.ALPN_HTTP1_1],
-});
-
-const CHANNEL_TYPE = 'email';
-const INCIDENT_PREFERENCE = 'PER_POLICY';
-const CONDITION_NAME = 'Location Failure';
-const CONDITION_PRIORITY = 'critical';
-const CONDITION_THRESHOLD = 2;
+export const CHANNEL_TYPE = 'email';
+export const INCIDENT_PREFERENCE = 'PER_POLICY';
+export const CONDITION_NAME = 'Location Failure';
+export const CONDITION_PRIORITY = 'critical';
+export const CONDITION_THRESHOLD = 2;
 
 /* eslint-disable no-console */
 
@@ -70,7 +67,7 @@ async function purgeIncubatorChannel(auth, name, allPolicies) {
   }
 }
 
-async function reuseOrCreateChannel(auth, names, emails, incubator) {
+export async function reuseOrCreateChannel(auth, names, emails, incubator) {
   const channels = [];
   await Promise.all(names.map(async (name, i) => {
     const channelName = incubator ? getIncubatorName(name) : name;
@@ -345,7 +342,7 @@ async function purgeIncubatorPolicy(auth, name, allPolicies) {
   }
 }
 
-async function updateOrCreatePolicies(
+export async function updateOrCreatePolicies(
   auth,
   names,
   groupPolicy,
@@ -387,13 +384,3 @@ async function updateOrCreatePolicies(
     return policy;
   }));
 }
-
-module.exports = {
-  updateOrCreatePolicies,
-  reuseOrCreateChannel,
-  CHANNEL_TYPE,
-  INCIDENT_PREFERENCE,
-  CONDITION_NAME,
-  CONDITION_PRIORITY,
-  CONDITION_THRESHOLD,
-};

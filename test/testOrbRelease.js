@@ -11,11 +11,10 @@
  */
 
 /* eslint-env mocha */
-
-const assert = require('assert');
-const nock = require('nock');
-const shell = require('shelljs');
-const sinon = require('sinon');
+import assert from 'assert';
+import nock from 'nock';
+import shell from 'shelljs';
+import sinon from 'sinon';
 
 function buildArgs({
   auth, pageId: namespace, orbDir, orbSrc, changelog,

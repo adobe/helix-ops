@@ -11,9 +11,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import CLI from './orb-release/cli.js';
 
-const CLI = require('./orb-release/cli.js');
-
-(async () => {
-  new CLI().run(process.argv.slice(2));
-})();
+await new CLI().run(process.argv.slice(2));

@@ -10,15 +10,15 @@
  * governing permissions and limitations under the License.
  */
 /* eslint-env mocha */
-const nock = require('nock');
-const AbstractAPI = require('../AbstractAPI.js');
+import nock from 'nock';
+import AbstractAPI from '../AbstractAPI.js';
 
 /**
  * Simulates the New Relic APIs
  * <a href="https://docs.newrelic.com/docs/apis/synthetics-rest-api/monitor-examples/manage-synthetics-monitors-rest-api"> Synthetics v3</a> and
  * <a href="https://docs.newrelic.com/docs/alerts/rest-api-alerts/new-relic-alerts-rest-api/rest-api-calls-new-relic-alerts">Alerts v2</a>.
  */
-class NewRelicAPI extends AbstractAPI {
+export default class NewRelicAPI extends AbstractAPI {
   /**
    * Creates a new API simulation.
    * @param {object} opts An object containing options:
@@ -429,5 +429,3 @@ NewRelicAPI.UPDATE_POLICY = 'updatePolicy';
 NewRelicAPI.GET_CONDITIONS = 'getConditions';
 NewRelicAPI.CREATE_CONDITION = 'createCondition';
 NewRelicAPI.UPDATE_CONDITION = 'updateCondition';
-
-module.exports = NewRelicAPI;

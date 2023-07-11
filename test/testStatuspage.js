@@ -11,16 +11,14 @@
  */
 
 /* eslint-env mocha */
-
-const assert = require('assert');
-const shell = require('shelljs');
-const sinon = require('sinon');
+import assert from 'assert';
+import shell from 'shelljs';
+import sinon from 'sinon';
+import Statuspage from '../src/statuspage/cli.js';
+import StatuspageAPI from './statuspage/StatuspageAPI.js';
+import { getTimedPromise } from './utils.js';
 
 process.env.HELIX_FETCH_FORCE_HTTP1 = 'true';
-
-const Statuspage = require('../src/statuspage/cli.js');
-const StatuspageAPI = require('./statuspage/StatuspageAPI.js');
-const { getTimedPromise } = require('./utils.js');
 
 function buildArgs({
   cmd, auth, pageId, name, desc, group, incubator, incubatorPageId, silent,

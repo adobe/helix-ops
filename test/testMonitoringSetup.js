@@ -11,14 +11,13 @@
  */
 
 /* eslint-env mocha */
+import assert from 'assert';
+import shell from 'shelljs';
+import fse from 'fs-extra';
+import path from 'path';
+import YAML from 'yaml';
 
-const assert = require('assert');
-const shell = require('shelljs');
-const fse = require('fs-extra');
-const path = require('path');
-const YAML = require('yaml');
-
-const MONITORING = path.resolve(__dirname, 'monitoring');
+const MONITORING = path.resolve(__testdir, 'monitoring');
 
 function extractDefaults(params) {
   const defaultParams = {};
@@ -61,7 +60,7 @@ describe('Testing monitoring setup', () => {
 
   before(() => {
     const orbConfigSource = fse.readFileSync(
-      path.resolve(__dirname, '../.circleci/orbs/helix-post-deploy/orb.yml'),
+      path.resolve(__rootdir, '.circleci/orbs/helix-post-deploy/orb.yml'),
       'utf8',
     );
     const orbConfig = YAML.parseDocument(orbConfigSource).toJSON();

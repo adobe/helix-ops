@@ -12,7 +12,7 @@
 
 /* eslint-env mocha */
 
-function getTimedPromise(fn, err, time) {
+export function getTimedPromise(fn, err, time) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (fn()) {
@@ -23,7 +23,3 @@ function getTimedPromise(fn, err, time) {
     }, time || 3000);
   });
 }
-
-module.exports = {
-  getTimedPromise,
-};
