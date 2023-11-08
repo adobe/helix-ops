@@ -1,3 +1,10 @@
+## [4.3.3](https://github.com/adobe/helix-ops/compare/v4.3.2...v4.3.3) (2023-11-08)
+
+
+### Bug Fixes
+
+* monitor script update failing ([6072f5c](https://github.com/adobe/helix-ops/commit/6072f5c8531028f3ee75acea3f2c74e75c67f646))
+
 ## [4.3.2](https://github.com/adobe/helix-ops/compare/v4.3.1...v4.3.2) (2023-10-30)
 
 
