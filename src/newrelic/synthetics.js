@@ -11,7 +11,7 @@
  */
 import { h1 } from '@adobe/fetch';
 import fs from 'fs';
-import path from 'path';
+import { fileURLToPath } from 'url';
 
 const { fetch } = h1();
 export const MONITOR_FREQUENCY = 15;
@@ -105,8 +105,9 @@ async function updateMonitor(auth, monitor, url, script, locations, frequency) {
 
   console.log('Updating script for monitor', monitor.name);
 
+  const defaultScript = fileURLToPath(new URL('./monitor_script.js', import.meta.url));
   const scriptText = Buffer.from(fs
-    .readFileSync(script || path.resolve(__rootdir, 'src', 'newrelic', 'monitor_script.js'))
+    .readFileSync(script || defaultScript)
     .toString()
     .replace('$$$URL$$$', url)
     .replace('$$$NS$$$', getNS(url)))
