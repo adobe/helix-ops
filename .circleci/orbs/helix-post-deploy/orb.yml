@@ -6,7 +6,7 @@ description: |
 executors:
     node8:
         docker:
-            - image: circleci/node:8
+            - image: circleci/node:17
 
 commands:
   config-env:
