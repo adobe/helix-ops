@@ -57,7 +57,7 @@
     "nock": "13.5.4",
     "semantic-release": "23.0.8",
     "sinon": "17.0.1",
-    "yaml": "2.4.1"
+    "yaml": "2.4.2"
   },
   "lint-staged": {
     "*.js": "eslint"
