@@ -55,8 +55,8 @@
     "mocha": "10.4.0",
     "mocha-multi-reporters": "1.5.1",
     "nock": "13.5.4",
-    "semantic-release": "23.0.8",
-    "sinon": "17.0.1",
+    "semantic-release": "23.1.1",
+    "sinon": "17.0.2",
     "yaml": "2.4.2"
   },
   "lint-staged": {
