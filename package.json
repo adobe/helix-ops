@@ -36,7 +36,7 @@
     "@adobe/fetch": "4.1.8",
     "diff": "5.2.0",
     "fs-extra": "11.2.0",
-    "git-log-parser": "1.2.0",
+    "git-log-parser": "1.2.1",
     "shelljs": "0.8.5",
     "stream-to-array": "2.3.0",
     "yargs": "17.7.2"
@@ -52,7 +52,7 @@
     "jsdoc-to-markdown": "8.0.1",
     "junit-report-builder": "3.2.1",
     "lint-staged": "15.2.7",
-    "mocha": "10.5.2",
+    "mocha": "10.6.0",
     "mocha-multi-reporters": "1.5.1",
     "nock": "13.5.4",
     "semantic-release": "24.0.0",
