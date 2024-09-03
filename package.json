@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@adobe/fetch": "4.1.8",
-    "diff": "5.2.0",
+    "diff": "6.0.0",
     "fs-extra": "11.2.0",
     "git-log-parser": "1.2.1",
     "shelljs": "0.8.5",
@@ -49,7 +49,7 @@
     "eslint": "8.57.0",
     "events": "3.3.0",
     "husky": "9.1.5",
-    "jsdoc-to-markdown": "8.0.3",
+    "jsdoc-to-markdown": "9.0.0",
     "junit-report-builder": "5.0.0",
     "lint-staged": "15.2.9",
     "mocha": "10.7.3",
