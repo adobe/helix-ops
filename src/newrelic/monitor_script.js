@@ -37,7 +37,7 @@ $http.get({
   }
   let status = {};
   try {
-    status = JSON.parse(body);
+    status = typeof body === 'string' ? JSON.parse(body) : body;
   } catch (e) {
     assert.fail(new Error(`Error parsing body of ${url}: ${body}`));
   }
@@ -55,7 +55,7 @@ $http.get({
     $util.insights.set('errorURL', status.error.url);
   }
   if (status.status !== 'OK') {
-    console.error(body);
+    console.error(status);
   }
 
   assert.equal(status.status, 'OK', `Expected an OK health check status, got: ${status.status}`);
