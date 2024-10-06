@@ -1,6 +1,6 @@
 version: 2.1
 executors:
-  node18:
+  node20:
     docker:
       - image: cimg/node:18.20
 
@@ -27,7 +27,7 @@ commands:
 
 jobs:
   build:
-    executor: node18
+    executor: node20
 
     steps:
       - setup
@@ -45,7 +45,7 @@ jobs:
           path: junit
 
   release:
-    executor: node18
+    executor: node20
 
     steps:
       - setup

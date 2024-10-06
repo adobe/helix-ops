@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx jsdoc2md -c .jsdoc.json --files 'src/*.js'  > docs/API.md",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
