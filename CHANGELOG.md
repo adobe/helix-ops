@@ -1,3 +1,19 @@
+## [4.3.6](https://github.com/adobe/helix-ops/compare/v4.3.5...v4.3.6) (2024-10-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/fetch to v4.1.3 ([2a0d239](https://github.com/adobe/helix-ops/commit/2a0d23913e25f2a10847aec9066ccc702ec1742f))
+* **deps:** update dependency @adobe/fetch to v4.1.4 ([5f2aa3c](https://github.com/adobe/helix-ops/commit/5f2aa3c97a0eace52e109565e0692cc1b8a5eab0))
+* **deps:** update dependency @adobe/fetch to v4.1.8 ([fa6c3c8](https://github.com/adobe/helix-ops/commit/fa6c3c8c3fb9e10e6a19bd15a9fdb31a411a3d16))
+* **deps:** update dependency @adobe/fetch to v4.1.9 ([1cea631](https://github.com/adobe/helix-ops/commit/1cea631882c2aff75c800d1c72f704f6b229b228))
+* **deps:** update dependency diff to v7 ([#491](https://github.com/adobe/helix-ops/issues/491)) ([089fb34](https://github.com/adobe/helix-ops/commit/089fb34b0596a5618d8d6146a548ffb46a04fec1))
+* **deps:** update external fixes ([d4ff7f4](https://github.com/adobe/helix-ops/commit/d4ff7f4be32f1a97dddd01843b7b0fb2b63cc341))
+* **deps:** update external major ([#488](https://github.com/adobe/helix-ops/issues/488)) ([0882e8d](https://github.com/adobe/helix-ops/commit/0882e8d366349bbea5523e456d8005e43323236b))
+* **newrelic:** update monitor_script.js ([#497](https://github.com/adobe/helix-ops/issues/497)) ([fb5f129](https://github.com/adobe/helix-ops/commit/fb5f12928b59bf542b343afae62eb3da0d98ce02))
+* use node 20 for semantic-release ([db26476](https://github.com/adobe/helix-ops/commit/db2647643906e5c4684501d0ce1e06d317a6758a))
+* use node20 ([#500](https://github.com/adobe/helix-ops/issues/500)) ([175cce7](https://github.com/adobe/helix-ops/commit/175cce7a068be532d417c037d7cccdf9a4baef01))
+
 ## [4.3.5](https://github.com/adobe/helix-ops/compare/v4.3.4...v4.3.5) (2024-04-11)
 
 
