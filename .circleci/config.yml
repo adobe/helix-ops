@@ -5,7 +5,7 @@ executors:
       - image: cimg/node:18.20.4
 
 orbs:
-  codecov: codecov/codecov@5.0.0
+  codecov: codecov/codecov@5.0.2
 
 commands:
   setup:
