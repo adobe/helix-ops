@@ -1,3 +1,10 @@
+## [4.3.7](https://github.com/adobe/helix-ops/compare/v4.3.6...v4.3.7) (2024-12-05)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/fetch to v4.1.10 ([#512](https://github.com/adobe/helix-ops/issues/512)) ([40c95a3](https://github.com/adobe/helix-ops/commit/40c95a3ac6c1f48dc5c8970ddcf5add0e5270ad6))
+
 ## [4.3.6](https://github.com/adobe/helix-ops/compare/v4.3.5...v4.3.6) (2024-10-06)
 
 
