@@ -2,10 +2,10 @@ version: 2.1
 executors:
   node20:
     docker:
-      - image: cimg/node:18.20.5
+      - image: cimg/node:18.20.6
 
 orbs:
-  codecov: codecov/codecov@5.0.3
+  codecov: codecov/codecov@5.2.0
 
 commands:
   setup:
