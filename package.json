@@ -37,7 +37,7 @@
     "diff": "7.0.0",
     "fs-extra": "11.3.0",
     "git-log-parser": "1.2.1",
-    "shelljs": "0.8.5",
+    "shelljs": "0.9.1",
     "stream-to-array": "2.3.0",
     "yargs": "17.7.2"
   },
