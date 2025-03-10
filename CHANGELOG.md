@@ -1,3 +1,10 @@
+## [4.3.11](https://github.com/adobe/helix-ops/compare/v4.3.10...v4.3.11) (2025-03-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency shelljs to v0.9.1 ([#526](https://github.com/adobe/helix-ops/issues/526)) ([2f9db60](https://github.com/adobe/helix-ops/commit/2f9db6038fc86e63d7c40dd2b7cf37a4922e2ea1))
+
 ## [4.3.10](https://github.com/adobe/helix-ops/compare/v4.3.9...v4.3.10) (2025-03-04)
 
 
