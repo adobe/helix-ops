@@ -1,3 +1,10 @@
+## [4.3.14](https://github.com/adobe/helix-ops/compare/v4.3.13...v4.3.14) (2025-05-12)
+
+
+### Bug Fixes
+
+* **deps:** update external fixes ([#536](https://github.com/adobe/helix-ops/issues/536)) ([0817389](https://github.com/adobe/helix-ops/commit/0817389af51a4c8c3b249cd182b02d336a59ef38))
+
 ## [4.3.13](https://github.com/adobe/helix-ops/compare/v4.3.12...v4.3.13) (2025-05-11)
 
 
