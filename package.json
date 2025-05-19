@@ -33,7 +33,7 @@
     ]
   },
   "dependencies": {
-    "@adobe/fetch": "4.2.1",
+    "@adobe/fetch": "4.2.2",
     "diff": "7.0.0",
     "fs-extra": "11.3.0",
     "git-log-parser": "1.2.1",
